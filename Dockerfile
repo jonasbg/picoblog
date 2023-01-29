@@ -19,6 +19,10 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV TZ=Europe/Oslo
 ENV DOTNET_EnableDiagnostics=0
 ENV ASPNETCORE_URLS=http://+:8080
+
+ENV SYNOLOGY_SUPPORT=true
+ENV DATA_DIR=/data
+
 WORKDIR /app
 COPY --from=backend /publish .
 

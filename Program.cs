@@ -48,21 +48,21 @@ app.Use(async (context, next) =>
         context.Request.Headers.TryGetValue("Referer", out var headerValue);
         var path = context.Request.Path.Value;
 
-        path = path.Replace("/post/", "").Replace("/data/", "").Replace("/home/", "");
+        path = path.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
 
         if(headerValue[0].Contains("post"))
         {
-            if(!File.Exists($"/data/{path}"))
+            if(!File.Exists($"{Config.DataDir}/{path}"))
             {
                 var title = headerValue[0].Substring(headerValue[0].IndexOf("post"));
                 title = System.Net.WebUtility.UrlDecode(title).Replace("post/", "");
                 var directory = Cache.Models.First(p => p.Title == title).Path;
                 path = $"{Path.GetDirectoryName(directory)}/{path}";
             } else {
-                path = $"/data/{path}";
+                path = $"{Config.DataDir}/{path}";
             }
         } else {
-            path = $"/data/{path}";
+            path = $"{Config.DataDir}/{path}";
         }
 
         if(!File.Exists(path))
@@ -77,14 +77,17 @@ app.Use(async (context, next) =>
         // if(contentType?.StartsWith("image/") != false)
         //     return;
 
-        var synologyFile = Path.GetFileName(path);
-        var synologyPath = $"@eaDir/{synologyFile}/SYNOPHOTO_THUMB_XL.jpg";
-        synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
+        Byte[]? file = null;
+        if(Config.Synology){
+          var synologyFile = Path.GetFileName(path);
+          var synologyPath = $"@eaDir/{synologyFile}/SYNOPHOTO_THUMB_XL.jpg";
+          synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
 
-        Byte[] file;
-        if (System.IO.File.Exists(synologyPath))
-          file = System.IO.File.ReadAllBytes($"{synologyPath}");
-        else
+          if (System.IO.File.Exists(synologyPath))
+            file = System.IO.File.ReadAllBytes($"{synologyPath}");
+        }
+
+        if(file is null)
           file = System.IO.File.ReadAllBytes($"{path}");
 
         await context.Response.BodyWriter.WriteAsync(file);
@@ -94,8 +97,7 @@ app.Use(async (context, next) =>
     await next(context);
 });
 
-
-    var files = Directory.GetFiles("/data", "*.md", SearchOption.AllDirectories);
+    var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
     Console.WriteLine("Starting searching for markdown files (*.md)");
     foreach (var file in files)
     {

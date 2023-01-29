@@ -18,7 +18,9 @@
         "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
       },
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SYNOLOGY_SUPPORT": "true",
+        "DATA_DIR": "/data"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
