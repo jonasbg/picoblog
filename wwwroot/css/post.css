@@ -52,6 +52,7 @@ img:not(.hero > img) {
   display: flex;
   flex-wrap: wrap;
   gap: 1em;
+  -webkit-flex-wrap: nowrap;
 }
 
 .gallery p {
