@@ -1,0 +1,42 @@
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 15px;
+}
+
+.banner-grid{
+  display: grid;
+  gap: 15px;
+}
+
+.banner-grid img {
+  height: 15em;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.hero {
+  position: relative;
+ }
+
+ .flex-container img {
+  height: 200px;
+  width: 200px;
+ }
+
+ .hero img{
+  object-fit: cover;
+  border-radius: 10px;
+ }
+
+ .hero .hero-text {
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: xxx-large;
+ }

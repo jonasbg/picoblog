@@ -1,0 +1,15 @@
+﻿<link rel="stylesheet" href="~/css/home.css" />
+
+@{
+  ViewData["Title"] = "Home Page";
+}
+
+<div class="banner-grid">
+@foreach (var doc in Model)
+{
+    <a class="hero" href="/post/@doc.Title">
+      <img src="@doc.PosterPath">
+      <h3 class="hero-text">@doc.Title</h3>
+    </a>
+}
+</div>
