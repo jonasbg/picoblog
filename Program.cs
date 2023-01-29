@@ -143,6 +143,11 @@ app.Use(async (context, next) =>
             var postPath = line.Split(':')[1].Trim();
             model.PosterPath = $"{Path.GetDirectoryName(file)}/{postPath}";
           }
+          if (line.Trim().StartsWith(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase))
+          {
+            var description = line.Split(':')[1].Trim();
+            model.Description = description;
+          }
 
           if (line.Trim().Equals("---"))
             break;

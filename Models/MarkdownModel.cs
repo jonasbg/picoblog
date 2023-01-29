@@ -9,4 +9,5 @@ public class MarkdownModel
   public DateTime? Date { get; internal set; }
   public string? PosterPath {get; internal set;}
   public bool Visible {get; internal set;} = true;
+  public string? Description {get; internal set;}
 }
