@@ -33,5 +33,3 @@ Run it:
 ```bash
 docker run -d --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
 ```
-
-Icon by <a href="https://www.flaticon.com/free-icons/contract" title="contract icons">Contract icons created by wanicon - Flaticon</a>
