@@ -64,19 +64,29 @@ app.Use(async (context, next) =>
         } else {
             path = $"/data/{path}";
         }
+
         if(!File.Exists(path))
         {
             await next(context);
             return;
         }
 
-        var provider = new FileExtensionContentTypeProvider();
-        provider.TryGetContentType(path, out string contentType);
+        // var provider = new FileExtensionContentTypeProvider();
+        // provider.TryGetContentType(path, out string contentType);
 
-        if(!contentType.StartsWith("image/"))
-            return;
+        // if(contentType?.StartsWith("image/") != false)
+        //     return;
 
-        var file = System.IO.File.ReadAllBytes($"{path}");
+        var synologyFile = Path.GetFileName(path);
+        var synologyPath = $"@eaDir/{synologyFile}/SYNOPHOTO_THUMB_XL.jpg";
+        synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
+
+        Byte[] file;
+        if (System.IO.File.Exists(synologyPath))
+          file = System.IO.File.ReadAllBytes($"{synologyPath}");
+        else
+          file = System.IO.File.ReadAllBytes($"{path}");
+
         await context.Response.BodyWriter.WriteAsync(file);
         return;
     }
