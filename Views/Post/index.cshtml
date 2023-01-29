@@ -1,6 +1,4 @@
 @using Markdig;
-@using Markdig.Extensions.Yaml;
-@using Markdig.Syntax;
 
 <link rel="stylesheet" href="https://ghcdn.rawgit.org/Gnkalk/Vanilla-Gallery/main/Css-script/Gallery.css" />
 
@@ -23,3 +21,11 @@
     }
     @Html.Raw(Markdown.ToHtml(Model.Markdown, pipeline))
 </div>
+
+<script>
+    document.querySelectorAll(".gallery").forEach((p) => {
+        if(p.childElementCount%2 != 0){
+            p.innerHTML += "<p style='flex-grow: 10;'></p>";
+        }
+    });
+</script>

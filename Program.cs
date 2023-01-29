@@ -50,7 +50,7 @@ app.Use(async (context, next) =>
 
         path = path.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
 
-        if(headerValue[0].Contains("post"))
+        if(headerValue.Any(p => p.Contains("post")))
         {
             if(!File.Exists($"{Config.DataDir}/{path}"))
             {
