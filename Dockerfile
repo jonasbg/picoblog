@@ -22,6 +22,7 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 ENV SYNOLOGY_SUPPORT=true
 ENV DATA_DIR=/data
+ENV DOMAIN=localhost
 
 WORKDIR /app
 COPY --from=backend /publish .

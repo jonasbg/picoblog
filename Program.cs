@@ -123,19 +123,23 @@ app.Use(async (context, next) =>
               Console.WriteLine("ADDED");
             }
           }
-          if (line.Trim().StartsWith("title:", StringComparison.InvariantCultureIgnoreCase))
+          if (line.Trim().StartsWith(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase))
           {
             var title = line.Split(':')[1].Trim();
             model.Title = title;
           }
-          if (line.Trim().StartsWith("date:", StringComparison.InvariantCultureIgnoreCase))
+          if (line.Trim().StartsWith(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase))
           {
             var date = line.Split(':')[1].Trim();
             model.Date = DateTime.Parse(date);
           }
-          if (line.Trim().StartsWith("poster:", StringComparison.InvariantCultureIgnoreCase))
+          if (line.Trim().StartsWith(MetadataHeader.Hidden, StringComparison.InvariantCultureIgnoreCase))
           {
-
+            var hidden = line.Split(':')[1].Trim().ToLower();
+            model.Visible = hidden != "true";
+          }
+          if (line.Trim().StartsWith(MetadataHeader.Poster, StringComparison.InvariantCultureIgnoreCase))
+          {
             var postPath = line.Split(':')[1].Trim();
             model.PosterPath = $"{Path.GetDirectoryName(file)}/{postPath}";
           }
@@ -147,8 +151,10 @@ app.Use(async (context, next) =>
           break;
         counter++;
       }
+    if(!model.Visible)
+      Console.WriteLine($"HIDDEN: https://{Config.Domain}/{model.Title}");
     if(Cache.Models.LastOrDefault() != model)
-        Console.WriteLine("IGNORED");
+      Console.WriteLine("IGNORED");
     }
 
 app.Run();
