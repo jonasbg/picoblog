@@ -152,7 +152,7 @@ app.Use(async (context, next) =>
         counter++;
       }
     if(!model.Visible)
-      Console.WriteLine($"HIDDEN: https://{Config.Domain}/post/{model.Title}");
+      Console.WriteLine($"HIDDEN: {Config.Domain}/post/{model.Title}");
     if(Cache.Models.LastOrDefault() != model)
       Console.WriteLine("IGNORED");
     }

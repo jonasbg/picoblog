@@ -19,8 +19,9 @@
       },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SYNOLOGY_SUPPORT": "true",
-        "DATA_DIR": "/data"
+        "SYNOLOGY_SUPPORT": "false",
+        "DATA_DIR": "/data",
+        "DOMAIN": "localhost:8080"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"

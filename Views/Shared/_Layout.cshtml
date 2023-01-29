@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/picoblog.styles.css" asp-append-version="true" />
+    <meta data-rh="true" property="og:type" content="article">
+    <meta data-rh="true" property="og:title" content='@ViewData["Title"]'>
+    <meta data-rh="true" property="og:url" content='@ViewData["Url"]'>
+    <meta data-rh="true" property="og:image" content='@ViewData["Image"]'>
+    <meta data-rh="true" property="og:Description" content="@Config.Description">
 </head>
 <body>
     <header>

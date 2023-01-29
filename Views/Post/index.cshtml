@@ -1,5 +1,11 @@
 @using Markdig;
 
+@{
+  ViewData["Title"] = Model.Title;
+  ViewData["Url"] = $"{Config.Domain}/post/{Model.Title}";
+  ViewData["Image"] = $"{Config.Domain}{Model.PosterPath}";
+}
+
 <link rel="stylesheet" href="https://ghcdn.rawgit.org/Gnkalk/Vanilla-Gallery/main/Css-script/Gallery.css" />
 
 @if(!string.IsNullOrEmpty(Model.PosterPath)){
