@@ -24,8 +24,8 @@ public class PostController : Controller
 
     if (model == null)
       return NotFound();
-    if(string.IsNullOrEmpty(model.Markdown))
-      model.Markdown = System.IO.File.ReadAllText(model.Path);
+    // if(string.IsNullOrEmpty(model.Markdown))
+    model.Markdown = System.IO.File.ReadAllText(model.Path);
     return View(model);
   }
 }
