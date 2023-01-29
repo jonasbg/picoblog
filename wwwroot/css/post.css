@@ -12,6 +12,10 @@
   height: 35vw;
 }
 
+img:not(.hero > img) {
+  border-radius: 5px;
+}
+
 .date, .date > *{
   text-transform: capitalize;
 }
