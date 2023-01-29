@@ -120,7 +120,6 @@ app.Use(async (context, next) =>
               model.Public = true;
               model.Path = file;
               Cache.Models.Add(model);
-              Console.WriteLine("ADDED");
             }
           }
           if (line.Trim().StartsWith(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase))
@@ -156,10 +155,18 @@ app.Use(async (context, next) =>
           break;
         counter++;
       }
-    if(!model.Visible)
-      Console.WriteLine($"HIDDEN: {Config.Domain}/post/{model.Title}");
+      if(Cache.Models.LastOrDefault() == model){
+        Console.Write("ADDED");
+        Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
+      }
+
     if(Cache.Models.LastOrDefault() != model)
       Console.WriteLine("IGNORED");
     }
 
+    if(Cache.Models.Any(p => p.Visible == false))
+      Console.WriteLine($"FOUND {Cache.Models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
+    foreach(var model in Cache.Models.Where(p => p.Visible == false)){
+      Console.WriteLine($"{Config.Domain}/post/{model.Title}");
+    }
 app.Run();
