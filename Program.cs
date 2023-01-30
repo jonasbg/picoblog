@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.StaticFiles;
 using picoblog.Models;
 
@@ -180,8 +181,7 @@ app.UseExceptionHandler(exceptionHandlerApp =>
         {
           var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
           Console.WriteLine(exceptionHandlerPathFeature?.Error);
-          context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-          context.Response.ContentType = Text.Plain;
+          context.Response.StatusCode = 500;
           await context.Response.WriteAsync("An exception was thrown.");
         });
     });
