@@ -6,7 +6,7 @@ ARG BUILDPLATFORM
 WORKDIR /build
 COPY . .
 
-RUN if [ "$TARGETPLATFORM" = "linux/arm64 " ] ; then DOTNET_TARGET=linux-musl-arm64 ; else DOTNET_TARGET=linux-musl-x64 ; fi \
+RUN if [ "$TARGETPLATFORM" = "linux/arm64 " ] ; then DOTNET_TARGET=alpine-arm ; else DOTNET_TARGET=linux-musl-x64 ; fi \
     && echo $DOTNET_TARGET > /tmp/rid
 
 RUN dotnet restore "picoblog.csproj" -r $(cat /tmp/rid) /p:PublishReadyToRun=true
