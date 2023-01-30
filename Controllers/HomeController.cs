@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using picoblog.Models;
 
 namespace picoblog.Controllers;
-
+[Route("")]
 public class HomeController : Controller
 {
   private readonly ILogger<HomeController> _logger;
@@ -14,14 +14,13 @@ public class HomeController : Controller
   }
 
   [Route("")]
-  [Route("Home")]
-  [Route("Home/Index")]
   public IActionResult Index()
   {
     return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));
   }
 
 //   [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+[Route("error")]
   public IActionResult Error()
   {
     var ctx = HttpContext;

@@ -5,12 +5,16 @@ using picoblog.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
 app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
-app.UseRequestLocalization();
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    ApplyCurrentCultureToResponseHeaders = true
+});
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -21,10 +25,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.MapControllerRoute(
-    name: "post",
-    pattern: "{controller=Post}/{action=Index}/{title}");
 
 app.Use(async (context, next) =>
 {
@@ -156,6 +156,8 @@ app.Use(async (context, next) =>
         Console.Write("ADDED");
         if(model.Visible)
           Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
+        else
+          Console.WriteLine();
       }
 
     if(Cache.Models.LastOrDefault() != model)
