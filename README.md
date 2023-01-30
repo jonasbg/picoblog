@@ -23,18 +23,21 @@ This is some awesome content
 ![img](img2.jpg)
 :::
 ```
-
+# Install
+## Docker
+### Build
 Build it with docker
 ```bash
 docker build . -t jonasbg/picoblog
 ```
-
+### Run
 Run it:
 
 ```bash
-docker run -d --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
+docker run -d -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
 ```
 
+## HELM
 Install from HELM
 ```bash
 helm repo add picoblog https://jonasbg.github.io/picoblog
