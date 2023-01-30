@@ -1,4 +1,22 @@
-@import url("post.css");
+@font-face {
+  font-family: "Comfortaa";
+  src: url("/fonts/Comfortaa-Regular.woff2") format("woff");
+  src: url("/fonts/Comfortaa-Bold.woff2") format("woff");
+  src: url("/fonts/Comfortaa-Light.woff2") format("woff");
+  src: url("/fonts/Comfortaa-Medium.woff2") format("woff");
+  src: url("/fonts/Comfortaa-SemiBold.woff2") format("woff");
+  }
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-serif {
+  font-family: Comfortaa, Georgia, Times New Roman, Times, serif !important
+}
 
 html {
   font-size: 14px;
