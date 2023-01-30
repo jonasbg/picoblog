@@ -7,8 +7,6 @@
   ViewData["Image"] = $"{Config.Domain}{Model.PosterPath}";
 }
 
-<link rel="stylesheet" href="https://ghcdn.rawgit.org/Gnkalk/Vanilla-Gallery/main/Css-script/Gallery.css" />
-
 @if(!string.IsNullOrEmpty(Model.PosterPath)){
 <div class="hero">
     <img class="full-screen-width" src=@Model.PosterPath alt="Banner Image">
@@ -27,6 +25,12 @@
      var yamlBlock = document.Descendants<YamlFrontMatterBlock>().FirstOrDefault(); *@
     }
     @Html.Raw(Markdown.ToHtml(Model.Markdown, pipeline))
+</div>
+
+<div class="center">
+    <a href="#top">
+        <img style="height: 3vw;" src="/icon/arrow_up.svg">
+    </a>
 </div>
 
 <script>
