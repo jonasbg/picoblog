@@ -41,12 +41,22 @@ app.Use(async (context, next) =>
         await next(context);
         return;
     }
+    var path = context.Request.Path.Value;
+
+    if(!Cache.Models.Any(p => p.PosterPath == path))
+    {
+    path = path?.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
+    if(!Cache.Models.Any(p => p.Markdown != null && path != null && p.Markdown.Contains(path)))
+      {
+        await next(context);
+        return;
+      }
+    }
 
     context.Request.Headers.TryGetValue("Accept", out var headerAccepts);
 
     if(headerAccepts.Any(f => f.Contains("image/"))) {
         context.Request.Headers.TryGetValue("Referer", out var headerValue);
-        var path = context.Request.Path.Value;
 
         path = path.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
 
@@ -71,16 +81,10 @@ app.Use(async (context, next) =>
             return;
         }
 
-        // var provider = new FileExtensionContentTypeProvider();
-        // provider.TryGetContentType(path, out string contentType);
-
-        // if(contentType?.StartsWith("image/") != false)
-        //     return;
-
         Byte[]? file = null;
         if(Config.Synology){
           var synologyFile = Path.GetFileName(path);
-          var synologyPath = $"@eaDir/{synologyFile}/SYNOPHOTO_THUMB_XL.jpg";
+          var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize}";
           synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
 
           if (System.IO.File.Exists(synologyPath))
