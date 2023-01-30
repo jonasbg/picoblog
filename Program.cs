@@ -87,6 +87,8 @@ app.Use(async (context, next) =>
           var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize}";
           synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
 
+          Console.WriteLine($"Synology photo found: {synologyPath}");
+
           if (System.IO.File.Exists(synologyPath))
             file = System.IO.File.ReadAllBytes($"{synologyPath}");
         }
