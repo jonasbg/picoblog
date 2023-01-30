@@ -35,7 +35,7 @@ docker run -d --name picoblog --volume /image/directory:/data:ro jonasbg/picoblo
 ```
 
 Install from HELM
-``picoblog`bash
+```bash
 helm repo add picoblog https://jonasbg.github.io/picoblog
-helm repo install picoblog/picoblog --name
+helm repo install picoblog/picoblog --name picoblog
 ```
