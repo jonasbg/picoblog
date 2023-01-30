@@ -175,4 +175,17 @@ app.Use(async (context, next) =>
     foreach(var model in Cache.Models.Where(p => p.Visible == false)){
       Console.WriteLine($"{Config.Domain}/post/{model.Title}");
     }
+
+app.UseExceptionHandler(exceptionHandlerApp =>
+    {
+        exceptionHandlerApp.Run(async context =>
+        {
+          var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+          Console.WriteLine(exceptionHandlerPathFeature?.Error);
+          context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+          context.Response.ContentType = Text.Plain;
+          await context.Response.WriteAsync("An exception was thrown.");
+        });
+    });
+
 app.Run();
