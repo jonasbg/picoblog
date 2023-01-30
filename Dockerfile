@@ -6,10 +6,10 @@ ARG BUILDPLATFORM
 WORKDIR /build
 COPY . .
 
-RUN echo "Build: " $BUILDPLATFORM
-RUN echo "Target: " $TARGETPLATFORM
+RUN echo "Build:" $BUILDPLATFORM
+RUN echo "Target:" $TARGETPLATFORM
 
-RUN if [ "$BUILDPLATFORM" = "linux/arm64" ] ; then DOTNET_TARGET=linux-musl-arm64 ; else DOTNET_TARGET=linux-musl-x64 ; fi \
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ] ; then DOTNET_TARGET=linux-musl-arm64 ; else DOTNET_TARGET=linux-musl-x64 ; fi \
     && echo $DOTNET_TARGET > /tmp/rid
 
 RUN cat /tmp/rid
