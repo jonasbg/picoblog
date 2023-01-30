@@ -6,9 +6,10 @@ ARG BUILDPLATFORM
 WORKDIR /build
 COPY . .
 
-RUN if [ "$TARGETPLATFORM" = "linux/arm64 " ] ; then DOTNET_TARGET=alpine-arm ; else DOTNET_TARGET=linux-musl-x64 ; fi \
+RUN if [ "$BUILDPLATFORM" = "linux/arm64 " ] ; then DOTNET_TARGET=alpine-arm64 ; else DOTNET_TARGET=linux-musl-x64 ; fi \
     && echo $DOTNET_TARGET > /tmp/rid
 
+RUN cat /tmp/rid
 RUN dotnet restore "picoblog.csproj" -r $(cat /tmp/rid) /p:PublishReadyToRun=true
 RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tmp/rid) --self-contained true --no-restore /p:PublishTrimmed=true /p:PublishReadyToRun=true /p:PublishSingleFile=true
 
@@ -29,4 +30,3 @@ WORKDIR /app
 COPY --from=backend /publish .
 
 ENTRYPOINT ["/app/picoblog"]
-
