@@ -33,3 +33,9 @@ Run it:
 ```bash
 docker run -d --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
 ```
+
+Install from HELM
+``picoblog`bash
+helm repo add picoblog https://jonasbg.github.io/picoblog
+helm repo install picoblog/picoblog --name
+```
