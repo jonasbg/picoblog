@@ -12,6 +12,7 @@ title: New blog post
 date: 2023-01-29
 public: true
 poster: poster-image.jpg
+hidden: make-post-available-but-hidden-on-front-page
 ---
 This is some awesome content
 
