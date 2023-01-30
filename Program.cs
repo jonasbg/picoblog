@@ -154,7 +154,8 @@ app.Use(async (context, next) =>
       }
       if(Cache.Models.LastOrDefault() == model){
         Console.Write("ADDED");
-        Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
+        if(model.Visible)
+          Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
       }
 
     if(Cache.Models.LastOrDefault() != model)

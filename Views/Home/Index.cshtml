@@ -9,7 +9,10 @@
 {
     <a class="hero" href="/post/@doc.Title">
       <img src="@doc.PosterPath">
-      <h3 class="hero-text">@doc.Title</h3>
+      <div class="hero-text">
+        <h3>@doc.Title</h3>
+        <h5>@doc.Date.ToString("dd. MMM yyyy")</h5>
+      </div>
     </a>
 }
 </div>

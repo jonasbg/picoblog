@@ -12,7 +12,8 @@
 }
 
 .banner-grid img {
-  height: 15em;
+  max-height: 25em;
+  height: auto;
   object-fit: cover;
   border-radius: 10px;
 }
@@ -32,11 +33,14 @@
  }
 
  .hero .hero-text {
-  text-align: center;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 75%;
+  left: 5%;
+  transform: none !important;
   color: white;
-  font-size: xxx-large;
+  text-align: left;
+ }
+
+ .hero .hero-text h5 {
+  font-size: 1rem;
  }

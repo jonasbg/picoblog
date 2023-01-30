@@ -20,6 +20,7 @@
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SYNOLOGY_SUPPORT": "false",
+        "SYNOLOGY_SIZE": "SM",
         "DATA_DIR": "/data",
         "DOMAIN": "localhost:8080"
       },
