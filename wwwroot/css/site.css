@@ -7,6 +7,12 @@
   src: url("/fonts/Comfortaa-SemiBold.woff2") format("woff");
   }
 
+.login-form{
+  border: 1px solid #0003;
+  border-radius: 5px;
+  box-shadow: 0 0 100px 0px #00000021;
+}
+
 .v-center{
   display: flex;
   justify-content: center;

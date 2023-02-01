@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - picoblog</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/picoblog.styles.css" asp-append-version="true" />
+    <meta property="og:type" content="article">
+    <meta property="og:title" content='@ViewData["Title"]'>
+    <meta property="og:url" content='@ViewData["Url"]'>
+    <meta property="og:image" content='@ViewData["Image"]'>
+    @if(ViewData["Description"] != null){
+    <meta property="og:Description" content='@ViewData["Description"]'>
+    }
+</head>
+<body>
+
+    <div class="container" style="margin-top:10vh">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
