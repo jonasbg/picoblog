@@ -15,7 +15,7 @@ if (Config.Password != null)
      .AddCookie(options =>
      {
        options.Cookie.HttpOnly = true; options.Cookie.SecurePolicy = CookieSecurePolicy.None; options.Cookie.SameSite = SameSiteMode.Lax;
-       options.Cookie.Name = "BlogPost.AuthCookieAspNetCore"; options.LoginPath = "/home/login"; options.LogoutPath = "/Home/Logout";
+       options.Cookie.Name = "BlogPost.AuthCookieAspNetCore"; options.LoginPath = "/login";
      });
   builder.Services.AddControllersWithViews(options =>
   {
@@ -32,7 +32,7 @@ var app = builder.Build();
 
 if (Config.Password != null)
 {
-  app.UseCookiePolicy(); // Don't forget this line
+  app.UseCookiePolicy();
   app.UseAuthentication();
   app.UseAuthorization();
 }

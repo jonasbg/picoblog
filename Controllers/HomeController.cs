@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using picoblog.Models;
 
 namespace picoblog.Controllers;
-// [Route("")]
+[Route("")]
 public class HomeController : Controller
 {
   private readonly ILogger<HomeController> _logger;
@@ -18,6 +18,7 @@ public class HomeController : Controller
   }
 
         [AllowAnonymous]
+        [Route("/login")]
         public IActionResult Login()
         {
             if (User.Claims.Any())
@@ -30,6 +31,7 @@ public class HomeController : Controller
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("/login")]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -52,11 +54,10 @@ public class HomeController : Controller
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
-
             return RedirectToAction("Index");
         }
 
-  // [Route("")]
+  [Route("")]
   public IActionResult Index()
   {
     return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));

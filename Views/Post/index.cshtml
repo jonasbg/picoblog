@@ -1,8 +1,6 @@
 @using Markdig;
 <link rel="stylesheet" href="~/css/post.css" />
 
-@using Microsoft.AspNetCore.Authorization
-
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Title}";
@@ -25,8 +23,8 @@
 {
 <div  class="center">
     <h1>You need to login</h1>
-    <p>You have to login to view the content of this page</p>
-    <button class="bnt-black" onclick="location.href='/home/login'" type="button">Login</button>
+    <p>You have to login to view the content of this page.</p>
+    <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Title'" type="button">Login</button>
 </div>
 return;
 }
