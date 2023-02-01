@@ -1,6 +1,8 @@
 @using Markdig;
 <link rel="stylesheet" href="~/css/post.css" />
 
+@using Microsoft.AspNetCore.Authorization
+
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Title}";
@@ -18,6 +20,10 @@
     <p>@Model.Date?.ToString("D")</p>
  </div>
 }
+
+@if (Config.Password != null && !User.Identity.IsAuthenticated)
+    return;
+
 <div>
     @{
      var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();

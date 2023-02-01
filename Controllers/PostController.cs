@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using picoblog.Models;
 
@@ -18,6 +19,7 @@ public class PostController : Controller
   [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.None, NoStore = true)]
   [HttpGet]
   [Route("[Controller]/{title}")]
+  [AllowAnonymous]
   public IActionResult Index(string title)
   {
     var model = Cache.Models.FirstOrDefault(f => f.Title == title);
