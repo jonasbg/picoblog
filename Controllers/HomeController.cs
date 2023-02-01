@@ -54,6 +54,10 @@ public class HomeController : Controller
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
+
+            if (!String.IsNullOrEmpty(model.ReturnURL))
+              return Redirect(model.ReturnURL);
+            else
             return RedirectToAction("Index");
         }
 
