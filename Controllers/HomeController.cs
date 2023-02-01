@@ -44,7 +44,7 @@ public class HomeController : Controller
 
       var claimsIdentity = new ClaimsIdentity(
           claims, CookieAuthenticationDefaults.AuthenticationScheme);
-      var authProperties = new AuthenticationProperties();
+      var authProperties = new AuthenticationProperties() { IsPersistent = true };
 
       await HttpContext.SignInAsync(
           CookieAuthenticationDefaults.AuthenticationScheme,
