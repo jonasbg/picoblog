@@ -5,7 +5,7 @@ using picoblog.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
-
+builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 if (Config.Password != null)
 {
   builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -53,9 +53,6 @@ app.Use(async (context, next) =>
   context.Response.Headers.Add("X-Permitted-Cross-Domain-Policies", "none");
   context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   context.Response.Headers.Add("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
-  context.Response.Headers.Remove("X-Powered-By");
-  context.Response.Headers.Remove("Server");
-  context.Response.Headers.Remove("X-AspNetMvc-Version");
   if (context.Request.Method=="TRACE")
   {
       context.Response.StatusCode = 405;
