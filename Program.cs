@@ -11,8 +11,8 @@ if (Config.Password != null)
   builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
      .AddCookie(options =>
      {
-       options.Cookie.HttpOnly = true; options.Cookie.SecurePolicy = CookieSecurePolicy.None; options.Cookie.SameSite = SameSiteMode.Lax;
-       options.Cookie.Name = "BlogPost.AuthCookieAspNetCore"; options.LoginPath = "/login";
+       options.Cookie.HttpOnly = true; options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; options.Cookie.SameSite = SameSiteMode.Strict;
+       options.Cookie.Name = "Picoblog.AuthCookie"; options.LoginPath = "/login";
      });
   builder.Services.AddControllersWithViews(options =>
   {
@@ -44,6 +44,11 @@ app.MapControllerRoute(
 
 app.Use(async (context, next) =>
 {
+  if (context.Request.Method=="TRACE")
+  {
+      context.Response.StatusCode = 405;
+      return;
+  }
   var currentEndpoint = context.GetEndpoint();
   if (context.Request.Path.Value == "/")
   {
