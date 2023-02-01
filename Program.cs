@@ -46,6 +46,16 @@ app.MapControllerRoute(
 
 app.Use(async (context, next) =>
 {
+  context.Response.Headers.Add("X-Xss-Protection", "1; mode=block");
+  context.Response.Headers.Add("X-Frame-Options", "DENY");
+  context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+  context.Response.Headers.Add("Referrer-Policy", "same-origin");
+  context.Response.Headers.Add("X-Permitted-Cross-Domain-Policies", "none");
+  context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  context.Response.Headers.Add("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
+  context.Response.Headers.Remove("X-Powered-By");
+  context.Response.Headers.Remove("Server");
+  context.Response.Headers.Remove("X-AspNetMvc-Version");
   if (context.Request.Method=="TRACE")
   {
       context.Response.StatusCode = 405;
