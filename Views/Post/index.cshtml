@@ -22,7 +22,14 @@
 }
 
 @if (Config.Password != null && !User.Identity.IsAuthenticated)
-    return;
+{
+<div  class="center">
+    <h1>You need to login</h1>
+    <p>You have to login to view the content of this page</p>
+    <button class="bnt-black" onclick="location.href='/home/login'" type="button">Login</button>
+</div>
+return;
+}
 
 <div>
     @{
