@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.StaticFiles;
 using picoblog.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 if (Config.Password != null)
@@ -23,10 +20,7 @@ if (Config.Password != null)
   });
 }
 else
-{
   builder.Services.AddControllersWithViews();
-}
-
 
 var app = builder.Build();
 
@@ -41,11 +35,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 {
   ApplyCurrentCultureToResponseHeaders = true
 });
-// app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 
 app.MapControllerRoute(
     name: "default",
@@ -121,12 +112,11 @@ app.Use(async (context, next) =>
     await context.Response.BodyWriter.WriteAsync(file);
     return;
   }
-
   await next(context);
 });
 
-var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
 Console.WriteLine("Starting searching for markdown files (*.md)");
+var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
 foreach (var file in files)
 {
   Console.Write($"Found file: {file} ");
@@ -204,14 +194,14 @@ foreach (var model in Cache.Models.Where(p => p.Visible == false))
 }
 
 app.UseExceptionHandler(exceptionHandlerApp =>
-    {
-      exceptionHandlerApp.Run(async context =>
-      {
-        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-        Console.WriteLine(exceptionHandlerPathFeature?.Error);
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("An exception was thrown.");
-      });
-    });
+{
+  exceptionHandlerApp.Run(async context =>
+  {
+    var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+    Console.WriteLine(exceptionHandlerPathFeature?.Error);
+    context.Response.StatusCode = 500;
+    await context.Response.WriteAsync("An exception was thrown.");
+  });
+});
 
 app.Run();
