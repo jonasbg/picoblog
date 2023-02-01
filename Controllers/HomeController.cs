@@ -17,49 +17,44 @@ public class HomeController : Controller
     _logger = logger;
   }
 
-        [AllowAnonymous]
-        [Route("/login")]
-        public IActionResult Login()
-        {
-            if (User.Claims.Any())
-            {
-                return View("Index");
-            }
+  [AllowAnonymous]
+  [Route("/login")]
+  public IActionResult Login()
+  {
+    if (User.Claims.Any())
+      return Redirect("/");
+    return View();
+  }
 
-            return View();
-        }
+  [AllowAnonymous]
+  [HttpPost]
+  [Route("/login")]
+  public async Task<IActionResult> Login(LoginViewModel model)
+  {
+      if (!ModelState.IsValid)
+          return View(model);
 
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("/login")]
-        public async Task<IActionResult> Login(LoginViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
+      if (!model.Password.Equals(Config.Password))
+        return View(model);
 
+      var claims = new List<Claim>
+      {
+          new Claim(nameof(LoginViewModel.Password), model.Password)
+      };
 
-            if (!model.Password.Equals(Config.Password))
-              return View(model);
+      var claimsIdentity = new ClaimsIdentity(
+          claims, CookieAuthenticationDefaults.AuthenticationScheme);
+      var authProperties = new AuthenticationProperties();
 
-            var claims = new List<Claim>
-            {
-                new Claim(nameof(LoginViewModel.Password), model.Password)
-            };
+      await HttpContext.SignInAsync(
+          CookieAuthenticationDefaults.AuthenticationScheme,
+          new ClaimsPrincipal(claimsIdentity),
+          authProperties);
 
-            var claimsIdentity = new ClaimsIdentity(
-                claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties();
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            if (!String.IsNullOrEmpty(model.ReturnURL))
-              return Redirect(model.ReturnURL);
-            else
-            return RedirectToAction("Index");
-        }
+      if (!String.IsNullOrEmpty(model.ReturnURL))
+        return Redirect(model.ReturnURL);
+      return RedirectToAction("/");
+  }
 
   [Route("")]
   public IActionResult Index()
