@@ -16,18 +16,112 @@ public class PostController : Controller
     // Console.WriteLine($"Found this Culture {BrowserCulture}");
   }
 
-  [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.None, NoStore = true)]
+  [HttpGet]
+  [Route("[Controller]/{title}/{path}/{image}")]
+  [AllowAnonymous]
+  public async Task<IActionResult> Index(string title, string subPath, string image)
+  {
+    var model = Cache.Models.FirstOrDefault(p => p.Title == title);
+    if (model == null)
+      {
+        var referer = Request.Headers["Referer"];
+        if (!referer.Any())
+          return NotFound();
+
+        var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
+        if(subPath == null)
+          subPath = title;
+        title = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
+        model = Cache.Models.FirstOrDefault(p => p.Title == title);
+        image = $"{subPath}/{image}";
+      }
+    if(model.Poster.Contains(image) && (model.Markdown != null && !model.Markdown.Contains(image)))
+      return NotFound();
+    var directory = model.Path;
+    string imagePath;
+    if(subPath == null)
+      imagePath = $"{Path.GetDirectoryName(directory)}/{image}";
+    else
+      imagePath = $"{Path.GetDirectoryName(directory)}/{subPath}/{image}";
+    if(model.Poster.Contains(image))
+      imagePath = $"{Path.GetDirectoryName(directory)}/{model.Poster}";
+    if (!System.IO.File.Exists(imagePath))
+      return NotFound();
+    var imageFile = await Synology(imagePath);
+    HttpContext.Response.Body.WriteAsync(imageFile);
+    return new EmptyResult();
+  }
+
+  [HttpGet]
+  [Route("[Controller]/{title}/{image}")]
+  [AllowAnonymous]
+  public async Task<IActionResult> Index(string title, string image)
+  {
+    var model = Cache.Models.FirstOrDefault(p => p.Title == title);
+    if (model == null)
+      {
+        var referer = Request.Headers["Referer"];
+        if (!referer.Any())
+          return NotFound();
+
+        var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
+        var subPath = title;
+        title = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
+        model = Cache.Models.FirstOrDefault(p => p.Title == title);
+        image = $"{subPath}/{image}";
+      }
+    if(model.Poster != image && !model.Markdown.Contains(image))
+      return NotFound();
+    var directory = model.Path;
+    var imagePath = $"{Path.GetDirectoryName(directory)}/{image}";
+    if (!System.IO.File.Exists(imagePath))
+      return NotFound();
+    var imageFile = await Synology(imagePath);
+    HttpContext.Response.Body.WriteAsync(imageFile);
+    return new EmptyResult();
+  }
+
+  // [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.None, NoStore = true)]
   [HttpGet]
   [Route("[Controller]/{title}")]
   [AllowAnonymous]
-  public IActionResult Index(string title)
+  public async Task<IActionResult> Index(string title)
   {
     var model = Cache.Models.FirstOrDefault(f => f.Title == title);
 
-    if (model == null)
-      return NotFound();
-    // if(string.IsNullOrEmpty(model.Markdown))
+    if (model == null){
+      var referer = Request.Headers["Referer"];
+      var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
+      refererTitle = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
+      var directory = Cache.Models.First(p => p.Title == refererTitle).Path;
+
+      var imagePath = $"{Path.GetDirectoryName(directory)}/{title}";
+
+      if (!Cache.Models.Any(p => p.Markdown != null && title != null && p.Markdown.Contains(title)))
+          return NotFound();
+      if (!System.IO.File.Exists(imagePath))
+        return NotFound();
+      var image = await Synology(imagePath);
+      HttpContext.Response.Body.WriteAsync(image);
+      return new EmptyResult();
+    }
     model.Markdown = System.IO.File.ReadAllText(model.Path);
     return View(model);
+  }
+
+  public async Task<Byte[]> Synology(string path) {
+    Byte[]? file = null;
+    if (Config.Synology)
+    {
+      var synologyFile = Path.GetFileName(path);
+      var directory = Path.GetDirectoryName(path);
+      var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
+      synologyPath = $"{directory}/{synologyPath}";
+
+      if (System.IO.File.Exists(synologyPath))
+        return await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
+    }
+
+    return await System.IO.File.ReadAllBytesAsync($"{path}");
   }
 }

@@ -21,7 +21,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SYNOLOGY_SUPPORT": "false",
         "SYNOLOGY_SIZE": "SM",
-        "DATA_DIR": "/home",
+        "DATA_DIR": "/data",
         "DOMAIN": "localhost:8080",
         "PASSWORD": ""
       },

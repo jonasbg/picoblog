@@ -8,7 +8,7 @@
 @foreach (var doc in Model)
 {
     <a class="hero" href="/post/@doc.Title">
-      <img src="@doc.PosterPath">
+      <img src="/post/@doc.Title/@doc.Poster">
       <div class="hero-text">
         <h3>@doc.Title</h3>
         <h5>@doc.Date?.ToString("dd. MMM yyyy")</h5>

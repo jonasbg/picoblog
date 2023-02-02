@@ -4,12 +4,12 @@
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Title}";
-  ViewData["Image"] = $"{Config.Domain}{Model.PosterPath}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Model.Title}/{Model.Poster}";
 }
 
-@if(!string.IsNullOrEmpty(Model.PosterPath)){
+@if(!string.IsNullOrEmpty(Model.Poster)){
 <div class="hero">
-    <img class="full-screen-width" src=@Model.PosterPath alt="Banner Image">
+    <img class="full-screen-width" src=@Model.Poster alt="Banner Image">
     <div class="hero-text">
         <h1>@Model.Title</h1>
     </div>
