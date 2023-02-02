@@ -27,7 +27,7 @@ public class PostController : Controller
         var referer = Request.Headers["Referer"];
         if (!referer.Any())
         {
-          Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found")
+          Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found");
           return NotFound();
         }
 
@@ -40,7 +40,7 @@ public class PostController : Controller
       }
     if(model.Poster.Contains(image) && (model.Markdown != null && !model.Markdown.Contains(image)))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found in model.Poster og markdowns");
       return NotFound();
     }
     var directory = model.Path;
@@ -53,7 +53,7 @@ public class PostController : Controller
       imagePath = $"{Path.GetDirectoryName(directory)}/{model.Poster}";
     if (!System.IO.File.Exists(imagePath))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file");
       return NotFound();
     }
     var imageFile = await Synology(imagePath);
@@ -72,7 +72,7 @@ public class PostController : Controller
         var referer = Request.Headers["Referer"];
         if (!referer.Any())
         {
-          Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found")
+          Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found");
           return NotFound();
         }
 
@@ -84,14 +84,14 @@ public class PostController : Controller
       }
     if(model.Poster != image && !model.Markdown.Contains(image))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found in model.Poster og markdowns");
       return NotFound();
     }
     var directory = model.Path;
     var imagePath = $"{Path.GetDirectoryName(directory)}/{image}";
     if (!System.IO.File.Exists(imagePath))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file");
       return NotFound();
     }
     var imageFile = await Synology(imagePath);
@@ -117,12 +117,12 @@ public class PostController : Controller
 
       if (!Cache.Models.Any(p => p.Markdown != null && title != null && p.Markdown.Contains(title)))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file");
       return NotFound();
     }
       if (!System.IO.File.Exists(imagePath))
     {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file")
+      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file");
       return NotFound();
     }
       var image = await Synology(imagePath);
