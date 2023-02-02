@@ -45,12 +45,14 @@ img:not(.hero > img) {
   flex-wrap: wrap;
   gap: 1em;
   -webkit-flex-wrap: wrap;
+  margin-bottom: 1rem;
 }
 
 .gallery p {
   flex: 1 1 auto;
   height: 40vh;
   flex-grow: 1;
+  margin-bottom: 0;
 }
 
 .gallery img {
@@ -59,10 +61,6 @@ img:not(.hero > img) {
   height: 100%;
   object-fit: cover;
   vertical-align: bottom;
-}
-
-.gallery p {
-  margin-bottom: 0;
 }
 
 @media only screen and (min-width: 600px) {
