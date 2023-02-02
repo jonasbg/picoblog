@@ -26,9 +26,9 @@ if (Config.Password != null)
 }
 else
   builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-});
+  {
+      options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+  });
 
 var app = builder.Build();
 
@@ -39,11 +39,9 @@ if (Config.Password != null)
   app.UseAuthorization();
 }
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
-app.UseRequestLocalization(new RequestLocalizationOptions
-{
-  ApplyCurrentCultureToResponseHeaders = true
-});
+app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureToResponseHeaders = true });
 app.UseStaticFiles();
+app.MapHealthChecks("/healthz");
 app.UseRouting();
 
 app.MapControllerRoute(
