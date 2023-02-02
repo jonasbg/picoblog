@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using picoblog.Models;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -44,6 +46,18 @@ app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureT
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
 app.UseRouting();
+
+var supportedCultures = new[]
+{
+   new CultureInfo("nb-NO"),
+   new CultureInfo("en-GB"),
+};
+
+app.UseRequestLocalization(new RequestLocalizationOptions{
+    DefaultRequestCulture = new RequestCulture("nb-NO"),
+    SupportedCultures=supportedCultures,
+    SupportedUICultures=supportedCultures
+});
 
 app.MapControllerRoute(
     name: "default",

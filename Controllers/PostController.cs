@@ -11,9 +11,6 @@ public class PostController : Controller
   public PostController(ILogger<PostController> logger)
   {
     _logger = logger;
-    // var locale = Request.HttpContext.Features.Get<IRequestCultureFeature>();
-    // var BrowserCulture = locale.RequestCulture.UICulture.ToString();
-    // Console.WriteLine($"Found this Culture {BrowserCulture}");
   }
 
   [HttpGet]
@@ -67,8 +64,7 @@ public class PostController : Controller
   public async Task<IActionResult> Index(string title, string image)
   {
     var model = Cache.Models.FirstOrDefault(p => p.Title == title);
-
-    
+    if (model == null)
       {
         var referer = Request.Headers["Referer"];
         if (!referer.Any())
