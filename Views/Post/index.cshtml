@@ -4,7 +4,7 @@
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}";
-  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.Poster}";
+  ViewData["Image"] = $"/post/{Uri.EscapeDataString(Model.Title)}/{Model.Poster}";
 }
 
 @if(!string.IsNullOrEmpty(Model.Poster)){
