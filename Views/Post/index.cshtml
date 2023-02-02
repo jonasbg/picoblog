@@ -18,11 +18,20 @@
     <p>@Model.Date?.ToString("D")</p>
  </div>
 }
+
+@if (Config.Password != null && !User.Identity.IsAuthenticated)
+{
+<div  class="center" style="margin-bottom:8vh">
+    <h1>Members only</h1>
+    <p>You have to login to view the content of this page.</p>
+    <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Title'" type="button">Login</button>
+</div>
+return;
+}
+
 <div>
     @{
      var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
-     @* MarkdownDocument document = Markdown.Parse(Model.Markdown, pipeline);
-     var yamlBlock = document.Descendants<YamlFrontMatterBlock>().FirstOrDefault(); *@
     }
     @Html.Raw(Markdown.ToHtml(Model.Markdown, pipeline))
 </div>

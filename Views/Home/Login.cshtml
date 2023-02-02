@@ -1,0 +1,17 @@
+@model LoginViewModel
+
+@{
+    ViewBag.Title = "Login";
+    Layout = "_Minimal";
+}
+
+<form class="v-center login-form" method="post">
+    <div class="center">
+        <div class="form-group col-4" style="margin: 2rem auto;">
+            <input class="input-dark" asp-for="Password" type="password"/>
+            <input hidden asp-for="ReturnURL" type="text" value='@Context.Request.Query["returnUrl"]'/>
+            <span asp-validation-for="Password"></span>
+        </div>
+        <button class="bnt-black" type="submit">Login</button>
+    </div>
+</form>

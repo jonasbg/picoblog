@@ -21,8 +21,9 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SYNOLOGY_SUPPORT": "false",
         "SYNOLOGY_SIZE": "SM",
-        "DATA_DIR": "/data",
-        "DOMAIN": "localhost:8080"
+        "DATA_DIR": "/home",
+        "DOMAIN": "localhost:8080",
+        "PASSWORD": ""
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
