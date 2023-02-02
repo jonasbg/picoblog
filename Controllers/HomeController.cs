@@ -52,7 +52,7 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL))
+      if (!String.IsNullOrEmpty(model.ReturnURL) && model.ReturnURL.StartsWith("/"))
         return Redirect(model.ReturnURL);
       return RedirectToAction("/");
   }
