@@ -25,7 +25,7 @@ This is some awesome content
 ```
 
 ## Authentication
-Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off.
+Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. The login session is not persisted between server restarts.
 
 
 # Install

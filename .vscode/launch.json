@@ -23,7 +23,7 @@
         "SYNOLOGY_SIZE": "SM",
         "DATA_DIR": "/home",
         "DOMAIN": "localhost:8080",
-        "PASSWORD": "123"
+        "PASSWORD": ""
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
