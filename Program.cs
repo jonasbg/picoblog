@@ -35,26 +35,26 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
   app.UseExceptionHandler("/Error");
-  app.UseHsts(options => options.MaxAge(days: 30));
-  app.UseXContentTypeOptions();
-  app.UseXXssProtection(options => options.EnabledWithBlockMode());
-  app.UseXfo(options => options.SameOrigin());
-  app.UseReferrerPolicy(opts => opts.NoReferrerWhenDowngrade());
+  // app.UseHsts(options => options.MaxAge(days: 30));
+  // app.UseXContentTypeOptions();
+  // app.UseXXssProtection(options => options.EnabledWithBlockMode());
+  // app.UseXfo(options => options.SameOrigin());
+  // app.UseReferrerPolicy(opts => opts.NoReferrerWhenDowngrade());
 
-  app.UseCsp(options => options
-      .DefaultSources(s => s.Self()
-          .CustomSources("data:")
-          .CustomSources("https:"))
-      .StyleSources(s => s.Self()
-          .CustomSources("torden.tech")
-          .UnsafeInline()
-      )
-      .ScriptSources(s => s.Self()
-            .CustomSources("torden.tech" )
-          .UnsafeInline()
-          .UnsafeEval()
-      )
-  );
+  // app.UseCsp(options => options
+  //     .DefaultSources(s => s.Self()
+  //         .CustomSources("data:")
+  //         .CustomSources("https:"))
+  //     .StyleSources(s => s.Self()
+  //         .CustomSources("torden.tech")
+  //         .UnsafeInline()
+  //     )
+  //     .ScriptSources(s => s.Self()
+  //           .CustomSources("torden.tech" )
+  //         .UnsafeInline()
+  //         .UnsafeEval()
+  //     )
+  // );
 }
 
 if (Config.Password != null)
