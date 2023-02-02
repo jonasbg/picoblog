@@ -26,11 +26,14 @@ ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 ENV SYNOLOGY_SUPPORT=true
-ENV SYNOLOGY_SIZE=M
+ENV SYNOLOGY_SIZE=XL
 ENV DATA_DIR=/data
 ENV DOMAIN=localhost
 
+RUN apk add --no-cache icu-libs icu-data-full tzdata
+
 WORKDIR /app
+
 COPY --from=backend /publish .
 
 ENTRYPOINT ["/app/picoblog"]
