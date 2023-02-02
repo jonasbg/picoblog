@@ -35,7 +35,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
   app.UseExceptionHandler("/Error");
-  app.UseHttpsRedirection();
   app.UseHsts(options => options.MaxAge(days: 30));
   app.UseXContentTypeOptions();
   app.UseXXssProtection(options => options.EnabledWithBlockMode());
