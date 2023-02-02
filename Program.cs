@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using picoblog.Models;
@@ -25,6 +26,21 @@ else
   builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+app.UseHsts(hsts => hsts.MaxAge(365).IncludeSubdomains());
+app.UseXContentTypeOptions();
+app.UseReferrerPolicy(opts => opts.NoReferrer());
+app.UseXXssProtection(options => options.EnabledWithBlockMode());
+app.UseXfo(options => options.Deny());
+app.UseCsp(opts => opts
+  .BlockAllMixedContent()
+  .StyleSources(s => s.Self())
+  .StyleSources(s => s.UnsafeInline())
+  .FontSources(s => s.Self())
+  .FormActions(s => s.Self())
+  .FrameAncestors(s => s.Self())
+  .ImageSources(s => s.Self())
+  .ScriptSources(s => s.Self())
+);
 
 if (Config.Password != null)
 {
@@ -46,13 +62,6 @@ app.MapControllerRoute(
 
 app.Use(async (context, next) =>
 {
-  context.Response.Headers.Add("X-Xss-Protection", "1; mode=block");
-  context.Response.Headers.Add("X-Frame-Options", "DENY");
-  context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-  context.Response.Headers.Add("Referrer-Policy", "same-origin");
-  context.Response.Headers.Add("X-Permitted-Cross-Domain-Policies", "none");
-  context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  context.Response.Headers.Add("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
   if (context.Request.Method=="TRACE")
   {
       context.Response.StatusCode = 405;
