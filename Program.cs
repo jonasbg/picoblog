@@ -7,6 +7,7 @@ using picoblog.Models;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
+builder.Services.AddHealthChecks();
 
 if (Config.Password != null)
 {
