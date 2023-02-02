@@ -28,6 +28,7 @@ public class HomeController : Controller
 
   [AllowAnonymous]
   [HttpPost]
+  [ValidateAntiForgeryToken]
   [Route("/login")]
   public async Task<IActionResult> Login(LoginViewModel model)
   {

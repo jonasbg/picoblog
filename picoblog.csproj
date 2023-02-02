@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.30.4" />
+    <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

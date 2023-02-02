@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using picoblog.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
+
 if (Config.Password != null)
 {
   builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -20,27 +21,42 @@ if (Config.Password != null)
   builder.Services.AddControllersWithViews(options =>
   {
     options.Filters.Add(new AuthorizeFilter());
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
   });
 }
 else
-  builder.Services.AddControllersWithViews();
+  builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
 
 var app = builder.Build();
-app.UseHsts(hsts => hsts.MaxAge(365).IncludeSubdomains());
-app.UseXContentTypeOptions();
-app.UseReferrerPolicy(opts => opts.NoReferrer());
-app.UseXXssProtection(options => options.EnabledWithBlockMode());
-app.UseXfo(options => options.Deny());
-app.UseCsp(opts => opts
-  .BlockAllMixedContent()
-  .StyleSources(s => s.Self())
-  .StyleSources(s => s.UnsafeInline())
-  .FontSources(s => s.Self())
-  .FormActions(s => s.Self())
-  .FrameAncestors(s => s.Self())
-  .ImageSources(s => s.Self())
-  .ScriptSources(s => s.Self())
-);
+
+if (!app.Environment.IsDevelopment())
+{
+  app.UseExceptionHandler("/Error");
+  app.UseHttpsRedirection();
+  app.UseHsts(options => options.MaxAge(days: 30));
+  app.UseXContentTypeOptions();
+  app.UseXXssProtection(options => options.EnabledWithBlockMode());
+  app.UseXfo(options => options.SameOrigin());
+  app.UseReferrerPolicy(opts => opts.NoReferrerWhenDowngrade());
+
+  app.UseCsp(options => options
+      .DefaultSources(s => s.Self()
+          .CustomSources("data:")
+          .CustomSources("https:"))
+      .StyleSources(s => s.Self()
+          .CustomSources("torden.tech")
+          .UnsafeInline()
+      )
+      .ScriptSources(s => s.Self()
+            .CustomSources("torden.tech" )
+          .UnsafeInline()
+          .UnsafeEval()
+      )
+  );
+}
 
 if (Config.Password != null)
 {
@@ -48,7 +64,7 @@ if (Config.Password != null)
   app.UseAuthentication();
   app.UseAuthorization();
 }
-app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
   ApplyCurrentCultureToResponseHeaders = true
