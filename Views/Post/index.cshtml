@@ -3,13 +3,13 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  ViewData["Url"] = $"{Config.Domain}/post/{Model.Title}";
-  ViewData["Image"] = $"{Config.Domain}{Model.PosterPath}";
+  ViewData["Url"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.Poster}";
 }
 
-@if(!string.IsNullOrEmpty(Model.PosterPath)){
+@if(!string.IsNullOrEmpty(Model.Poster)){
 <div class="hero">
-    <img class="full-screen-width" src=@Model.PosterPath alt="Banner Image">
+    <img class="full-screen-width" src=@(Uri.EscapeDataString(Model.Title)+"/"+Model.Poster) alt="Banner Image">
     <div class="hero-text">
         <h1>@Model.Title</h1>
     </div>
@@ -32,8 +32,12 @@ return;
 <div>
     @{
      var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
+     var html = Markdown.ToHtml(Model.Markdown, pipeline);
+     html = html.Replace("<p><img src=\"", $"<p><img src=\"{Model.Title}/");
+     html = html.Replace($"{Model.Title}/https://", "https://");
+     html = html.Replace($"{Model.Title}/http://", "http://");
     }
-    @Html.Raw(Markdown.ToHtml(Model.Markdown, pipeline))
+    @Html.Raw(html)
 </div>
 
 <div class="center">

@@ -18,19 +18,22 @@ RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tm
 
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:7.0-alpine
 EXPOSE 8080
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV TZ=Europe/Oslo
 ENV DOTNET_EnableDiagnostics=0
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENV SYNOLOGY_SUPPORT=true
-ENV SYNOLOGY_SIZE=M
 ENV DATA_DIR=/data
 ENV DOMAIN=localhost
+ENV SYNOLOGY_SIZE=XL
+ENV SYNOLOGY_SUPPORT=true
+
+RUN apk add --no-cache icu-libs icu-data-full tzdata
 
 WORKDIR /app
+
 COPY --from=backend /publish .
 
 ENTRYPOINT ["/app/picoblog"]

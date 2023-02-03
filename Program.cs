@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using picoblog.Models;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -45,87 +47,21 @@ app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
 app.UseRouting();
 
+var supportedCultures = new[]
+{
+   new CultureInfo("nb-NO"),
+   new CultureInfo("en-GB"),
+};
+
+app.UseRequestLocalization(new RequestLocalizationOptions{
+    DefaultRequestCulture = new RequestCulture("nb-NO"),
+    SupportedCultures=supportedCultures,
+    SupportedUICultures=supportedCultures
+});
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Use(async (context, next) =>
-{
-  if (context.Request.Method=="TRACE")
-  {
-      context.Response.StatusCode = 405;
-      return;
-  }
-  var currentEndpoint = context.GetEndpoint();
-  if (context.Request.Path.Value == "/")
-  {
-    await next(context);
-    return;
-  }
-  var path = context.Request.Path.Value;
-
-  if (!Cache.Models.Any(p => p.PosterPath == path))
-  {
-    path = path?.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
-    if (!Cache.Models.Any(p => p.Markdown != null && path != null && p.Markdown.Contains(path)))
-    {
-      await next(context);
-      return;
-    }
-  }
-
-  context.Request.Headers.TryGetValue("Accept", out var headerAccepts);
-
-  if (headerAccepts.Any(f => f.Contains("image/")))
-  {
-    context.Request.Headers.TryGetValue("Referer", out var headerValue);
-
-    path = path.Replace("/post/", "").Replace($"{Config.DataDir}/", "").Replace("/home/", "");
-
-    if (headerValue.Any(p => p.Contains("post")))
-    {
-      if (!File.Exists($"{Config.DataDir}/{path}"))
-      {
-        var title = headerValue[0].Substring(headerValue[0].IndexOf("post"));
-        title = System.Net.WebUtility.UrlDecode(title).Replace("post/", "");
-        var directory = Cache.Models.First(p => p.Title == title).Path;
-        path = $"{Path.GetDirectoryName(directory)}/{path}";
-      }
-      else
-      {
-        path = $"{Config.DataDir}/{path}";
-      }
-    }
-    else
-    {
-      path = $"{Config.DataDir}/{path}";
-    }
-
-    if (!File.Exists(path))
-    {
-      await next(context);
-      return;
-    }
-
-    Byte[]? file = null;
-    if (Config.Synology)
-    {
-      var synologyFile = Path.GetFileName(path);
-      var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
-      synologyPath = $"{Path.GetDirectoryName(path)}/{synologyPath}";
-
-      if (System.IO.File.Exists(synologyPath))
-        file = System.IO.File.ReadAllBytes($"{synologyPath}");
-    }
-
-    if (file is null)
-      file = System.IO.File.ReadAllBytes($"{path}");
-
-    await context.Response.BodyWriter.WriteAsync(file);
-    return;
-  }
-  await next(context);
-});
 
 Console.WriteLine("Starting searching for markdown files (*.md)");
 var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
@@ -162,15 +98,15 @@ foreach (var file in files)
         var date = line.Split(':')[1].Trim();
         model.Date = DateTime.Parse(date);
       }
-      if (line.Trim().StartsWith(MetadataHeader.Hidden, StringComparison.InvariantCultureIgnoreCase))
+      if (line.Trim().StartsWith(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase))
       {
-        var hidden = line.Split(':')[1].Trim().ToLower();
-        model.Visible = hidden != "true";
+        var draft = line.Split(':')[1].Trim().ToLower();
+        model.Visible = draft != "true";
       }
       if (line.Trim().StartsWith(MetadataHeader.Poster, StringComparison.InvariantCultureIgnoreCase))
       {
-        var postPath = line.Split(':')[1].Trim();
-        model.PosterPath = $"{Path.GetDirectoryName(file)}/{postPath}";
+        var poster = line.Split(':')[1].Trim();
+        model.Poster = $"{poster}";
       }
       if (line.Trim().StartsWith(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase))
       {
