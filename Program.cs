@@ -98,10 +98,10 @@ foreach (var file in files)
         var date = line.Split(':')[1].Trim();
         model.Date = DateTime.Parse(date);
       }
-      if (line.Trim().StartsWith(MetadataHeader.Hidden, StringComparison.InvariantCultureIgnoreCase))
+      if (line.Trim().StartsWith(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase))
       {
-        var hidden = line.Split(':')[1].Trim().ToLower();
-        model.Visible = hidden != "true";
+        var draft = line.Split(':')[1].Trim().ToLower();
+        model.Visible = draft != "true";
       }
       if (line.Trim().StartsWith(MetadataHeader.Poster, StringComparison.InvariantCultureIgnoreCase))
       {

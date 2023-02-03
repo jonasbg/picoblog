@@ -23,6 +23,8 @@ img:not(.hero > img) {
 .hero img {
   object-fit: cover;
   opacity: 0.7;
+  bottom: -10vh;
+  position: absolute;
  }
 .hero .hero-text {
   text-align: center;
@@ -37,6 +39,13 @@ img:not(.hero > img) {
   font-size: 6vw;
   padding: 0.5em;
  }
+
+ iframe {
+  max-width: 90vw;
+  margin: 0 auto;
+  display: block;
+  border-radius: 10px;
+}
 
  /* GALLERY */
 
