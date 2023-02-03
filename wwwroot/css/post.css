@@ -22,7 +22,7 @@ img:not(.hero > img) {
 .hero img {
   object-fit: cover;
   opacity: 0.7;
-  bottom: -10vh;
+  bottom: 0;
   position: absolute;
  }
 .hero .hero-text {
