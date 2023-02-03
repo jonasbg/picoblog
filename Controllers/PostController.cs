@@ -14,132 +14,29 @@ public class PostController : Controller
   }
 
   [HttpGet]
-  [Route("[Controller]/{title}/{path}/{image}")]
-  [AllowAnonymous]
-  public async Task<IActionResult> Index(string title, string subPath, string image)
-  {
-    var model = Cache.Models.FirstOrDefault(p => p.Title == title);
-    if (model == null)
-      {
-        var referer = Request.Headers["Referer"];
-        if (!referer.Any())
-        {
-          Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found");
-          return NotFound();
-        }
-
-        var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
-        if(subPath == null)
-          subPath = title;
-        title = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
-        model = Cache.Models.FirstOrDefault(p => p.Title == title);
-        image = $"{subPath}/{image}";
-      }
-    if(model.Poster.Contains(image) && (model.Markdown != null && !model.Markdown.Contains(image)))
-    {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found in model.Poster og markdowns");
-      return NotFound();
-    }
-    var directory = model.Path;
-    string imagePath;
-    if(subPath == null)
-      imagePath = $"{Path.GetDirectoryName(directory)}/{image}";
-    else
-      imagePath = $"{Path.GetDirectoryName(directory)}/{subPath}/{image}";
-    if(model.Poster.Contains(image))
-      imagePath = $"{Path.GetDirectoryName(directory)}/{model.Poster}";
-    if (!System.IO.File.Exists(imagePath))
-    {
-      Console.WriteLine($"{title}/{subPath}/{image} from [{Request.Headers["Referer"]}] not found as file");
-      return NotFound();
-    }
-    var imageFile = await Synology(imagePath);
-    HttpContext.Response.Body.WriteAsync(imageFile);
-    return new EmptyResult();
-  }
-
-  [HttpGet]
-  [Route("[Controller]/{title}/{image}")]
-  [AllowAnonymous]
-  public async Task<IActionResult> Index(string title, string image)
-  {
-    var model = Cache.Models.FirstOrDefault(p => p.Title == title);
-    if (model == null)
-      {
-        var referer = Request.Headers["Referer"];
-        if (!referer.Any())
-        {
-          Console.WriteLine($"{title}/{image} from [{referer}] not found");
-          return NotFound();
-        }
-
-        var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
-        var subPath = title;
-        title = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
-        model = Cache.Models.FirstOrDefault(p => p.Title == title);
-        image = $"{subPath}/{image}";
-      }
-    if(model.Poster != image && !model.Markdown.Contains(image))
-    {
-      var referer = Request.Headers["Referer"];
-      Console.WriteLine($"{title}/{image} from [{referer}] not found in model.Poster og markdowns");
-      return NotFound();
-    }
-    var directory = model.Path;
-    var imagePath = $"{Path.GetDirectoryName(directory)}/{image}";
-    if (!System.IO.File.Exists(imagePath))
-    {
-      var referer = Request.Headers["Referer"];
-      Console.WriteLine($"{title}/{image} from [{referer}] not found as file");
-      return NotFound();
-    }
-    var imageFile = await Synology(imagePath);
-    // HttpContext.Response.Body.WriteAsync(imageFile);
-    return File(imageFile, "image/jpeg");
-  }
-
-  // [ResponseCache(Duration = 1000, Location = ResponseCacheLocation.None, NoStore = true)]
-  [HttpGet]
+  [Route("[Controller]/{title}/{**image}")]
   [Route("[Controller]/{title}")]
   [AllowAnonymous]
-  public async Task<IActionResult> Index(Post post)
+  public async Task<IActionResult> Index(Payload payload)
   {
-    var title = post.Title;
-    var model = Cache.Models.FirstOrDefault(f => f.Title == title);
-
-    if (model == null){
-      var referer = Request.Headers["Referer"];
-      var refererTitle = referer[0].Substring(referer[0].IndexOf("post"));
-      refererTitle = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
-      var directory = Cache.Models.First(p => p.Title == refererTitle).Path;
-
-      var imagePath = $"{Path.GetDirectoryName(directory)}/{title}";
-
-      if (!Cache.Models.Any(p => p.Markdown != null && title != null && p.Markdown.Contains(title)))
-      {
-        Console.WriteLine($"{title} from [{referer}] not found in markdown");
-        return NotFound();
-      }
-      if (!System.IO.File.Exists(imagePath))
-      {
-        Console.WriteLine($"{title} from [{referer}] not found as file");
-        return NotFound();
-      }
-      if(!imagePath.StartsWith(Config.DataDir))
-      {
-        Console.WriteLine($"Request for image outside of data folder {imagePath}");
-        return NotFound();
-      }
-      var image = await Synology(imagePath);
-      await HttpContext.Response.Body.WriteAsync(image);
-      return new EmptyResult();
+    var model = Cache.Models.SingleOrDefault(f => f.Title == payload.Title);
+    if(model == null)
+      return NotFound();
+    if (string.IsNullOrEmpty(payload.Image))
+    {
+        model.Markdown = System.IO.File.ReadAllText(model.Path);
+        return View(model);
     }
 
-    model.Markdown = System.IO.File.ReadAllText(model.Path);
-    return View(model);
+    if (model.Poster.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true)
+    {
+      var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";
+      return await Synology(path);
+    }
+    return NotFound();
   }
 
-  public async Task<Byte[]> Synology(string path) {
+  private async Task<IActionResult> Synology(string path) {
     Byte[]? file = null;
     if (Config.Synology)
     {
@@ -149,9 +46,12 @@ public class PostController : Controller
       synologyPath = $"{directory}/{synologyPath}";
 
       if (System.IO.File.Exists(synologyPath))
-        return await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
-    }
-
-    return await System.IO.File.ReadAllBytesAsync($"{path}");
+        file = await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
+    } else
+      file = await System.IO.File.ReadAllBytesAsync(path);
+    if (!System.IO.File.Exists(path))
+      return NotFound();
+    await HttpContext.Response.Body.WriteAsync(file);
+    return new EmptyResult();
   }
 }
