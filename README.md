@@ -48,7 +48,7 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 | SYNOLOGY_SUPPORT | `true`        | Synology Support is turned on by default, and it will automatically fallback if `@eaDir` is not found. |
 | PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment.     |
 | DATA_DIR         | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.             |
-| DOMAIN           | `localhost`   | This is primarly to support the Open Graph and link previews of your site.                             |
+| DOMAIN           | `localhost`   | This is primarly to support the Open Graph Protocol and link previews of your site.                    |
 | SYNOLOGY_SIZE    | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.       |
 
 # Install
@@ -114,7 +114,7 @@ Some important work remains
 
 - [ ] Search for `.md` files at a given interval or events. (Background task initiated on site request within a given interval ie. once every 5min if theres traffic to the site)
 
-- [x] Better mobile responsive support
+- [x] ~~Better mobile responsive support~~
 
 - [ ] Tags in posts. This is not implemented but will be `tags: ["tag1", "tag2"]`
 
