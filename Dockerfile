@@ -25,10 +25,11 @@ ENV DOTNET_EnableDiagnostics=0
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENV SYNOLOGY_SUPPORT=true
-ENV SYNOLOGY_SIZE=XL
 ENV DATA_DIR=/data
 ENV DOMAIN=localhost
+ENV PASSWORD
+ENV SYNOLOGY_SIZE=XL
+ENV SYNOLOGY_SUPPORT=true
 
 RUN apk add --no-cache icu-libs icu-data-full tzdata
 
