@@ -102,9 +102,9 @@ public class PostController : Controller
   [HttpGet]
   [Route("[Controller]/{title}")]
   [AllowAnonymous]
-  public async Task<IActionResult> Index(string title)
+  public async Task<IActionResult> Index(Post post)
   {
-    var model = Cache.Models.FirstOrDefault(f => f.Title == title);
+    var model = Cache.Models.FirstOrDefault(f => f.Title == post.Title);
 
     if (model == null){
       var referer = Request.Headers["Referer"];
@@ -112,16 +112,16 @@ public class PostController : Controller
       refererTitle = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
       var directory = Cache.Models.First(p => p.Title == refererTitle).Path;
 
-      var imagePath = $"{Path.GetDirectoryName(directory)}/{title}";
+      var imagePath = $"{Path.GetDirectoryName(directory)}/{post.Title}";
 
-    if (!Cache.Models.Any(p => p.Markdown != null && title != null && p.Markdown.Contains(title)))
+    if (!Cache.Models.Any(p => p.Markdown != null && post.Title != null && p.Markdown.Contains(post.Title)))
     {
-      Console.WriteLine($"{title} from [{referer}] not found as file");
+      Console.WriteLine($"{post.Title} from [{referer}] not found as file");
       return NotFound();
     }
       if (!System.IO.File.Exists(imagePath))
     {
-      Console.WriteLine($"{title} from [{referer}] not found as file");
+      Console.WriteLine($"{post.Title} from [{referer}] not found as file");
       return NotFound();
     }
       var image = await Synology(imagePath);
