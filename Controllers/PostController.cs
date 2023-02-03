@@ -104,7 +104,8 @@ public class PostController : Controller
   [AllowAnonymous]
   public async Task<IActionResult> Index(Post post)
   {
-    var model = Cache.Models.FirstOrDefault(f => f.Title == post.Title);
+    var title = post.Title;
+    var model = Cache.Models.FirstOrDefault(f => f.Title == title);
 
     if (model == null){
       var referer = Request.Headers["Referer"];
@@ -112,22 +113,28 @@ public class PostController : Controller
       refererTitle = System.Net.WebUtility.UrlDecode(refererTitle).Replace("post/", "");
       var directory = Cache.Models.First(p => p.Title == refererTitle).Path;
 
-      var imagePath = $"{Path.GetDirectoryName(directory)}/{post.Title}";
+      var imagePath = $"{Path.GetDirectoryName(directory)}/{title}";
 
-    if (!Cache.Models.Any(p => p.Markdown != null && post.Title != null && p.Markdown.Contains(post.Title)))
-    {
-      Console.WriteLine($"{post.Title} from [{referer}] not found as file");
-      return NotFound();
-    }
+      if (!Cache.Models.Any(p => p.Markdown != null && title != null && p.Markdown.Contains(title)))
+      {
+        Console.WriteLine($"{title} from [{referer}] not found in markdown");
+        return NotFound();
+      }
       if (!System.IO.File.Exists(imagePath))
-    {
-      Console.WriteLine($"{post.Title} from [{referer}] not found as file");
-      return NotFound();
-    }
+      {
+        Console.WriteLine($"{title} from [{referer}] not found as file");
+        return NotFound();
+      }
+      if(!imagePath.StartsWith(Config.DataDir))
+      {
+        Console.WriteLine($"Request for image outside of data folder {imagePath}");
+        return NotFound();
+      }
       var image = await Synology(imagePath);
-      HttpContext.Response.Body.WriteAsync(image);
+      await HttpContext.Response.Body.WriteAsync(image);
       return new EmptyResult();
     }
+
     model.Markdown = System.IO.File.ReadAllText(model.Path);
     return View(model);
   }
