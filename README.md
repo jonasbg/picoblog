@@ -44,7 +44,7 @@ Its possible to lock down the site with a password that is set with the environm
 These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](https://github.com/jonasbg/picoblog/blob/main/Models/Config.cs)
 
 | Variable name    | Default value | Description                                                                                            |
-| ---------------- | ------------- | ------------------------------------------------------------------------------------------------------ |
+| ----------------:|:-------------:| ------------------------------------------------------------------------------------------------------ |
 | SYNOLOGY_SUPPORT | `true`        | Synology Support is turned on by default, and it will automatically fallback if `@eaDir` is not found. |
 | PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment.     |
 | DATA_DIR         | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.             |
@@ -56,9 +56,9 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 <details>
   <summary>Build it yourself</summary>
 
-  ```bash
-  docker build . -t jonasbg/picoblog
-  ```
+```bash
+docker build . -t jonasbg/picoblog
+```
 
 </details>
 
@@ -67,11 +67,12 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 
   The latest build will always be uploaded to dockerhub so download it from there.
 
-  ```bash
-  docker run -d -p 8080:8080 -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
-  ```
+```bash
+docker run -d -p 8080:8080 -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
+```
 
   Open ➡ [localhost:8080](http://localhost:8080).
+
 </details>
 
 <details>
@@ -81,8 +82,8 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 helm repo add picoblog https://jonasbg.github.io/picoblog
 helm repo install picoblog/picoblog --name picoblog
 ```
-</details>
 
+</details>
 
 # Extra commands
 
@@ -120,21 +121,21 @@ Some important work remains
 - [ ] Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*
 
 - [ ] Big Picture and carousel mode with basic `EXIF`support such as
-
+  
   - [ ] Camera model
-
+  
   - [ ] Lens model
-
+  
   - [ ] Shutter speed
-
+  
   - [ ] Aperture
-
+  
   - [ ] ISO
-
+  
   - [ ] Location on a mini map
-
+  
   - [ ] Description
-
+  
   - [ ] Tags
 
 - [ ] Virtual directory with assets imported from `*.md` files as a security measurement.
