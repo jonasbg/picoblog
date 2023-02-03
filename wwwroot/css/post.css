@@ -18,7 +18,6 @@ img:not(.hero > img) {
   right: 0;
   top: 6vh;
   bottom: 0;
-  z-index: -1;
  }
 .hero img {
   object-fit: cover;
