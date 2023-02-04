@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
   justify-content: space-around;
   gap: 15px;
 }
@@ -30,11 +31,12 @@
  .hero img{
   object-fit: cover;
   border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
  }
 
  .hero .hero-text {
   position: absolute;
-  top: 75%;
+  bottom: 1vh;
   left: 5%;
   transform: none !important;
   color: white;

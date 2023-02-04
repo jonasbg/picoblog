@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="~/css/home.css" />
+
+@{
+  string GetModel(int? year){
+    var models = Cache.Models.Where(f => f.Date?.Year == year).ToList();
+    Random rnd = new Random();
+    int index  = rnd.Next(0, models.Count());
+    var model = models[index];
+    return $"/post/{Uri.EscapeDataString(model.Title)}/{model.Poster}";
+  }
+}
+
+<div class="banner-grid">
+@foreach (var year in Model)
+{
+    <a class="hero" href="/calendar/@year">
+      <img src="@GetModel(year)" loading="lazy">
+      <div class="hero-text">
+        <h1>@year</h1>
+      </div>
+    </a>
+}
+</div>

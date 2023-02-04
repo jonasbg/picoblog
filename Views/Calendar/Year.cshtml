@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="~/css/home.css" />
+
+@{
+  string calculateCSS(int total, int index){
+    if(total == 1)
+      return "item-full";
+    if(total == 2)
+      return $"item-2-{index}";
+    if(total == 3)
+      return $"item-3-{index}";
+    if(total == 4)
+      return $"item-4-{index}";
+    if(total == 5)
+      return $"item-5-{index}";
+    return "";
+  }
+}
+
+@foreach (var month in Model.Keys)
+{
+<div class="banner-grid">
+    <div>
+      <h2>@(new DateTime(2010, month, 1).ToString("MMM"))</h2>
+      <h4>@Model[month][0].Date.Year</h4>
+    </div>
+    <div class='@(Model[month].Count<6?"gallery-grid":"gallery-flex")'>
+      @{var index = 0;}
+    @foreach (var doc in Model[month])
+    {
+      <a class='hero @calculateCSS(Model[month].Count, index)' href="/post/@doc.Title">
+        <img src="/post/@Uri.EscapeDataString(doc.Title)/@doc.Poster" loading="lazy">
+        <div class="hero-text">
+          <h4>@doc.Title</h4>
+          <h5>@doc.Date?.ToString("dd. MMM yyyy")</h5>
+        </div>
+      </a>
+      index++;
+    }
+    </div>
+</div>
+}

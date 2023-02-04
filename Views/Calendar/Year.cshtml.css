@@ -1,0 +1,131 @@
+.banner-grid{
+  grid-template-columns: 1fr 16fr;
+}
+
+.gallery-flex{
+  display: grid;
+  grid-gap: 15px;
+  margin-bottom: 2vh;
+  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 5vw);
+  grid-gap: 15px;
+  margin-bottom: 2vh;
+}
+
+.item-3-0{
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 4;
+}
+
+.item-3-1{
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 4;
+  grid-row-end: 8;
+}
+
+.item-3-2{
+  grid-column-start: 4;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 8;
+}
+
+.item-4-0{
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 4;
+}
+
+.item-4-1{
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 4;
+  grid-row-end: 8;
+}
+
+.item-4-2{
+  grid-column-start: 4;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 5;
+}
+
+.item-4-3{
+  grid-column-start: 4;
+  grid-column-end: 9;
+  grid-row-start: 5;
+  grid-row-end: 8;
+}
+
+.item-5-0{
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 4;
+}
+
+.item-5-1{
+  grid-column-start: 3;
+  grid-column-end: 5;
+  grid-row-start: 1;
+  grid-row-end: 5;
+}
+
+.item-5-2{
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 4;
+  grid-row-end: 8;
+}
+
+.item-5-3{
+  grid-column-start: 3;
+  grid-column-end: 5;
+  grid-row-start: 5;
+  grid-row-end: 8;
+}
+
+.item-5-4{
+  grid-column-start: 5;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 8;
+}
+
+.item-2-0{
+  grid-column-start: 1;
+  grid-column-end: 5;
+  grid-row-start: 1;
+  grid-row-end: 8;
+}
+
+.item-2-1{
+  grid-column-start: 5;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 8;
+}
+
+.item-full{
+  grid-column-start: 1;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 9;
+}
+
+.banner-grid img {
+  max-height: none;
+  border-radius: 10px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
