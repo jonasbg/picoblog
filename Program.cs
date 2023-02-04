@@ -41,7 +41,7 @@ if (Config.Password != null)
   app.UseAuthentication();
   app.UseAuthorization();
 }
-app.UseStatusCodePagesWithReExecute("/Error/{0}");
+
 app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureToResponseHeaders = true });
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
@@ -63,6 +63,17 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.Use(async (context, next) =>
+    {
+        await next();
+        if (context.Response.StatusCode != 200)
+        {
+          var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+          Console.WriteLine($"[RemoteIP::{ip}]:[StatusCode::{context.Response.StatusCode}]:{context.Request.Path}");
+          context.Request.Path = "/";
+          await next();
+        }
+    });
 Console.WriteLine("Starting searching for markdown files (*.md)");
 var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
 foreach (var file in files)

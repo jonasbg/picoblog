@@ -62,12 +62,4 @@ public class HomeController : Controller
   {
     return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));
   }
-
-//   [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-[Route("error")]
-  public IActionResult Error()
-  {
-    var ctx = HttpContext;
-    return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-  }
 }
