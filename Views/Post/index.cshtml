@@ -18,6 +18,35 @@
     <p>@Model.Date?.ToString("D")</p>
  </div>
 }
+<button id="shareButton">share</button>
+<script>
+    shareButton.addEventListener("click", onShare);
+    async function onShare() {
+        const title = document.title;
+        const url = document.querySelector("link[rel=canonical]")
+            ? document.querySelector("link[rel=canonical]").href
+            : document.location.href;
+        const text = "Share this blog post";
+        try {
+            await navigator
+            .share({
+                title,
+                url,
+                text
+            })
+                /*
+                Show a message if the user shares something
+                */
+            } catch (err) {
+            /*
+                This error will appear if the user cancels the action of sharing.
+                */
+            }
+    }
+</script>
+
+
+
 
 @if (Config.Password != null && !User.Identity.IsAuthenticated)
 {

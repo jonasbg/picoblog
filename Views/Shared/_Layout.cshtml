@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - picoblog</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -13,19 +12,21 @@
     <meta property="og:image" content='@ViewData["Image"]'>
     <meta property="og:image:type" content="image/jpeg" />
     <link rel="manifest" href="/manifest.json">
+    <meta name="viewport" content="initial-scale=1, viewport-fit=cover, user-scaleable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="white" />
     @if(ViewData["Description"] != null){
     <meta property="og:Description" content='@ViewData["Description"]'>
     }
 </head>
 <body>
-    <header>
+    @* <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">picoblog</a>
             </div>
         </nav>
-    </header>
+    </header> *@
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -33,16 +34,18 @@
     </div>
 
     <menu>
-        <a href="/" @ViewBag.Home>Home</a>
-        <a href="/calendar" @ViewBag.Calendar>Calendar</a>
-        <a href="/">Search</a>
+        <div class="menu">
+            <a href="/" @ViewBag.Home>Home</a>
+            <a href="/calendar" @ViewBag.Calendar>Calendar</a>
+            <a href="/">Search</a>
+        </div>
     </menu>
 
-    <footer class="border-top footer text-muted">
+    @* <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2023 - picoblog -
         </div>
-    </footer>
+    </footer> *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
