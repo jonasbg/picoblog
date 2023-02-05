@@ -32,7 +32,8 @@
             @RenderBody()
         </main>
     </div>
-
+    @if (Config.Password != null && User.Identity.IsAuthenticated)
+    {
     <menu>
         <div class="menu">
             <a href="/" @ViewBag.Home>Home</a>
@@ -40,7 +41,7 @@
             <a href="/">Search</a>
         </div>
     </menu>
-
+    }
     @* <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2023 - picoblog -
@@ -50,12 +51,12 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-    <script>
+    @* <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
                 .register('/serviceworker.js')
                 .then(function () { console.log('Service Worker Registered'); });
         }
-    </script>
+    </script> *@
 </body>
 </html>
