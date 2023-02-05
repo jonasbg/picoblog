@@ -5,6 +5,7 @@ main {
 .top-right{
   position: absolute;
   color: white;
-  top: 6vh;
-  right: 3vh;
+  top: 0;
+  right: 0;
+  padding: 6vh 3vh 3vh 3vh;
   }
