@@ -49,7 +49,7 @@ button.accept-policy {
 
 menu{
   position: fixed;
-  bottom: 5vh;
+  bottom: 1vh;
   display: flex;
   background-color: white;
   justify-content: space-between;
