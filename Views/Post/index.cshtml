@@ -26,27 +26,15 @@
         const url = document.querySelector("link[rel=canonical]")
             ? document.querySelector("link[rel=canonical]").href
             : document.location.href;
-        const text = "Share this blog post";
         try {
             await navigator
             .share({
                 title,
-                url,
-                text
+                url
             })
-                /*
-                Show a message if the user shares something
-                */
-            } catch (err) {
-            /*
-                This error will appear if the user cancels the action of sharing.
-                */
-            }
+            } catch (err) { }
     }
 </script>
-
-
-
 
 @if (Config.Password != null && !User.Identity.IsAuthenticated)
 {

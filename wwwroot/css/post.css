@@ -4,7 +4,7 @@ img:not(.hero > img) {
 
 .date, .date > *{
   text-transform: capitalize;
-  padding-top: 25vw;
+  padding-top: 31vw;
   margin-bottom: 5vw;
 }
 
