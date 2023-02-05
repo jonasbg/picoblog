@@ -1,3 +1,10 @@
 main {
   margin-top: 0 !important;
 }
+
+.top-right{
+  position: absolute;
+  color: white;
+  top: 6vh;
+  right: 3vh;
+  }

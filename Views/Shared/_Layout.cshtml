@@ -32,7 +32,7 @@
             @RenderBody()
         </main>
     </div>
-    @if (Config.Password != null && User.Identity.IsAuthenticated)
+    @if (Config.Password == null || User.Identity.IsAuthenticated)
     {
     <menu>
         <div class="menu">
