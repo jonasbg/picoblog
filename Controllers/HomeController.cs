@@ -60,6 +60,7 @@ public class HomeController : Controller
   [Route("")]
   public IActionResult Index()
   {
+    ViewBag.Home = "class = active";
     return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));
   }
 }

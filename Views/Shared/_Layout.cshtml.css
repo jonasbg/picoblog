@@ -59,3 +59,14 @@ menu{
   width: 90vw;
   margin: 0 5vw;
 }
+
+menu > .active {
+  color: #6f9aff !important;
+}
+
+menu a:link, menu a:visited, menu a:hover, menu a {
+  text-decoration: none;
+  color: #00000057;
+}
+
+
