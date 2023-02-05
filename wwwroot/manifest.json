@@ -1,6 +1,6 @@
 {
-  "name": "ASP.NET MVC Progressive Web App",
-  "short_name": "PWA App",
+  "name": "Picoblog - zero config blogging",
+  "short_name": "Picoblog",
   "description": "Implementing PWA behavior into existing ASP.NET MVC 5 app.",
   "theme_color": "#2196f3",
   "background_color": "#2196f3",
