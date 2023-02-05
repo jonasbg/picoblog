@@ -62,6 +62,23 @@ body{
   -webkit-tap-highlight-color: transparent;
 }
 
+nav{
+  z-index: 1;
+}
+
+@media all and (display-mode: standalone) {
+  footer, header, nav{
+    display: none !important;
+  }
+}
+
+@media all and (display-mode: browser) {
+  menu{
+    display: none !important;
+  }
+}
+
+
 menu{
   position: fixed;
   padding:0;
