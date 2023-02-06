@@ -2,12 +2,16 @@ main {
   margin-top: 0 !important;
 }
 
-@media all and (display-mode: standalone) {
-  .top-right{
-    position: absolute;
-    color: white;
-    top: 0;
-    right: 0;
-    padding: 6vh 3vh 3vh 3vh;
+.top-right {
+  position: absolute;
+  color: white;
+  top: 0;
+  right: 0;
+  padding: 6vh 3vh 3vh 3vh;
+}
+
+@media all and (display-mode: browser) {
+  .top-right {
+    display:none;
   }
 }
