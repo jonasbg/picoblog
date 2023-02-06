@@ -12,7 +12,7 @@ entries:
     - https://jonasbg.github.io/picoblog/charts/picoblog-0.0.1.tgz
     version: 0.0.1
   - apiVersion: v2
-    appVersion: 0.0.1
+    appVersion: 0.1.0
     created: "2023-02-06T19:39:44.450334+01:00"
     description: A Helm chart for Kubernetes
     digest: 37602f523c022011f0307f99e59dd2abcba949a705fbb1b3ff15d02185cadab3
