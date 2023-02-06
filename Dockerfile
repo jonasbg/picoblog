@@ -18,6 +18,14 @@ RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tm
 
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:7.0-alpine
 EXPOSE 8080
+
+RUN apk add --no-cache icu-libs icu-data-full tzdata
+RUN adduser \
+  --disabled-password \
+  --home /app \
+  --gecos '' app
+USER app
+
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV TZ=Europe/Oslo
@@ -28,12 +36,11 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV DATA_DIR=/data
 ENV DOMAIN=localhost
 ENV SYNOLOGY_SIZE=XL
+ENV PASSWORD=""
 ENV SYNOLOGY_SUPPORT=true
-
-RUN apk add --no-cache icu-libs icu-data-full tzdata
 
 WORKDIR /app
 
-COPY --from=backend /publish .
+COPY --from=backend --chown=app /publish .
 
 ENTRYPOINT ["/app/picoblog"]

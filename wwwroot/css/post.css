@@ -4,25 +4,26 @@ img:not(.hero > img) {
 
 .date, .date > *{
   text-transform: capitalize;
-  padding-top: 25vw;
+  padding-top: 31vw;
   margin-bottom: 5vw;
 }
 
 .hero {
-  height: 50vw;
+  height: 60vw;
   width: 100vw;
   background: black;
   overflow: hidden;
   position: absolute;
   left: 0;
   right: 0;
-  top: 6vh;
+  top:0;
   bottom: 0;
  }
 .hero img {
   object-fit: cover;
   opacity: 0.7;
   bottom: 0;
+  top:0;
   position: absolute;
  }
 .hero .hero-text {

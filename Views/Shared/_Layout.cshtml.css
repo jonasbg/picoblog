@@ -7,6 +7,10 @@ a.navbar-brand {
   word-break: break-all;
 }
 
+main {
+  padding-top: env(safe-area-inset-top);
+}
+
 a {
   color: #0077cc;
 }
@@ -46,3 +50,55 @@ button.accept-policy {
   white-space: nowrap;
   line-height: 60px;
 }
+
+.menu{
+  background-color: white;
+  border-radius: 10px;
+  padding: 2vh;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+body{
+  -webkit-tap-highlight-color: transparent;
+}
+
+nav{
+  z-index: 1;
+}
+
+@media all and (display-mode: standalone) {
+  footer, header, nav{
+    display: none !important;
+  }
+}
+
+@media all and (display-mode: browser) {
+  menu{
+    display: none !important;
+  }
+}
+
+
+menu{
+  position: fixed;
+  padding:0;
+  bottom: 1vh;
+  display: flex;
+  justify-content: space-around;
+  z-index: 1;
+  width: 100%;
+  /* margin: 0 5vw; */
+}
+
+menu > .menu > .active {
+  color: #6f9aff !important;
+}
+
+menu a:link, menu a:visited, menu a:hover, menu a {
+  text-decoration: none;
+  color: #00000057;
+  padding-left: 2vw;
+  padding-right: 2vw;
+}
+
+

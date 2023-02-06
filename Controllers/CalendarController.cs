@@ -16,6 +16,7 @@ public class CalendarController : Controller
   [Route("[Controller]/{year}")]
   public async Task<IActionResult> Year(int? year)
   {
+    ViewBag.Calendar = "class = active";
     var models = Cache.Models.Where(p => p.Visible).Where(f => f.Date?.Year == year).OrderBy(p => p.Date).ToList();
     var dictionary = new Dictionary<int, List<MarkdownModel>>();
     var months = models.Where(p => p.Date != null).Select(p => p.Date?.Month).Distinct().ToArray();
@@ -28,6 +29,7 @@ public class CalendarController : Controller
   [Route("[Controller]")]
   public async Task<IActionResult> Index()
   {
+    ViewBag.Calendar = "class = active";
     var models = Cache.Models.Where(p => p.Visible);
     var years = models.Select(p => p.Date?.Year).Distinct().OrderByDescending(p => p).ToList();
     return View(years);
