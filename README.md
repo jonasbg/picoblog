@@ -138,4 +138,4 @@ Some important work remains
   
   - [ ] Tags
 
-- [ ] Virtual directory with assets imported from `*.md` files as a security measurement.
+- [x] ~Virtual directory with assets imported from `*.md` files as a security measurement.~~
