@@ -4,12 +4,12 @@
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}";
-  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.Poster}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
 }
 
-@if(!string.IsNullOrEmpty(Model.Poster)){
+@if(!string.IsNullOrEmpty(Model.CoverImage)){
 <div class="hero">
-    <img class="full-screen-width" src=@(Uri.EscapeDataString(Model.Title)+"/"+Model.Poster) alt="Banner Image">
+    <img class="full-screen-width" src=@(Uri.EscapeDataString(Model.Title)+"/"+Model.CoverImage) alt="Banner Image">
     <div class="hero-text">
         <h1>@Model.Title</h1>
     </div>

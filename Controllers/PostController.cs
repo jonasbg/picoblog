@@ -28,9 +28,9 @@ public class PostController : Controller
         return View(model);
     }
 
-  if (model.Poster.Contains(payload.Image)) {
+  if (model.CoverImage.Contains(payload.Image)) {
     if(model.Markdown?.Contains(payload.Image) == true)
-      if (!model.Poster.Contains(payload.Image) && Config.Password != null && !User.Identity.IsAuthenticated)
+      if (!model.CoverImage.Contains(payload.Image) && Config.Password != null && !User.Identity.IsAuthenticated)
         return NotFound();
 
       var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";

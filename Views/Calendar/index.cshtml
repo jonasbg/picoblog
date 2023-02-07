@@ -6,7 +6,7 @@
     Random rnd = new Random();
     int index  = rnd.Next(0, models.Count());
     var model = models[index];
-    return $"/post/{Uri.EscapeDataString(model.Title)}/{model.Poster}";
+    return $"/post/{Uri.EscapeDataString(model.Title)}/{model.CoverImage}";
   }
 }
 

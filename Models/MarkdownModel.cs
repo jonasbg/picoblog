@@ -7,7 +7,7 @@ public class MarkdownModel
   public bool Public { get; internal set; } = false;
   public string Path { get; internal set; }
   public DateTime? Date { get; internal set; }
-  public string? Poster {get; internal set;}
+  public string? CoverImage {get; internal set;}
   public bool Visible {get; internal set;} = true;
   public string? Description {get; internal set;}
 }

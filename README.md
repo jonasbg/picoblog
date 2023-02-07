@@ -22,7 +22,7 @@ Example of a markdown file
 title: New blog post #required uniq title
 date: 2023-01-29 #published date
 public: true #keyword for picoblog to publish as post
-poster: poster-image.jpg
+poster: cover-image.jpg
 draft: true|false #make-post-available-but-hidden-on-front-page
 ---
 This is some awesome content

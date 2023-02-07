@@ -115,10 +115,10 @@ foreach (var file in files)
         var draft = line.Split(':')[1].Trim().ToLower();
         model.Visible = draft != "true";
       }
-      if (line.Trim().StartsWith(MetadataHeader.Poster, StringComparison.InvariantCultureIgnoreCase))
+      if (line.Trim().StartsWith(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase))
       {
-        var poster = line.Split(':')[1].Trim();
-        model.Poster = $"{poster}";
+        var cover = line.Split(':')[1].Trim();
+        model.CoverImage = $"{cover}";
       }
       if (line.Trim().StartsWith(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase))
       {
