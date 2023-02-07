@@ -73,6 +73,13 @@ docker run -d -p 8080:8080 -e DOMAIN=pico.blog --name picoblog --volume /image/d
 
   Open ➡ [localhost:8080](http://localhost:8080).
 
+### Restart
+Update the docker image to latest version
+
+```bash
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --run-once picoblog
+```
+
 </details>
 
 <details>
@@ -81,6 +88,11 @@ docker run -d -p 8080:8080 -e DOMAIN=pico.blog --name picoblog --volume /image/d
 ```bash
 helm repo add picoblog https://jonasbg.github.io/picoblog
 helm repo install picoblog/picoblog --name picoblog
+```
+
+### Restart
+```bash
+kubectl rollout restart deployment/picoblog -n picoblog && kubectl rollout status deployment/picoblog -n picoblog
 ```
 
 </details>
@@ -93,12 +105,6 @@ Find all your drafts for easy editing:
 
 ```bash
 find . -name "*.md" -exec sh -c "grep -H 'draft' '{}'"  \;
-```
-
-Update the docker image to latest version
-
-```bash
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --run-once picoblog
 ```
 
 Backup your markdown files with git
@@ -121,21 +127,21 @@ Some important work remains
 - [ ] Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*
 
 - [ ] Big Picture and carousel mode with basic `EXIF`support such as
-  
+
   - [ ] Camera model
-  
+
   - [ ] Lens model
-  
+
   - [ ] Shutter speed
-  
+
   - [ ] Aperture
-  
+
   - [ ] ISO
-  
+
   - [ ] Location on a mini map
-  
+
   - [ ] Description
-  
+
   - [ ] Tags
 
 - [x] ~Virtual directory with assets imported from `*.md` files as a security measurement.~~
