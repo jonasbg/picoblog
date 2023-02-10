@@ -107,7 +107,7 @@ foreach (var file in files)
       }
       if (line.Trim().StartsWith(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase))
       {
-        var date = line.Replace("date:", "");
+        var date = line.Replace("date:", "", System.StringComparison.InvariantCultureIgnoreCase).Trim();
         model.Date = DateTime.Parse(date);
       }
       if (line.Trim().StartsWith(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase))

@@ -77,3 +77,10 @@ img:not(.hero > img) {
     max-width: 25vw;
   }
 }
+
+blockquote{
+  border-left: 5px solid;
+  padding-left: 1em;
+  font-size: larger;
+  margin-left: 5vw;
+}
