@@ -146,12 +146,19 @@ foreach (var file in files)
     Console.WriteLine("IGNORED");
 }
 
-if (Cache.Models.Any(p => p.Visible == false))
+if (Cache.Models.Any(p => p.Visible == false)){
   Console.WriteLine($"FOUND {Cache.Models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
-foreach (var model in Cache.Models.Where(p => p.Visible == false))
-{
-  Console.WriteLine($"{Config.Domain}/post/{model.Title}");
+  foreach (var model in Cache.Models.Where(p => p.Visible == false))
+    Console.WriteLine($"{Config.Domain}/post/{model.Title}");
 }
+
+if (Cache.Models.Any(p => string.IsNullOrEmpty(p.Title))){
+  Console.WriteLine($"FOUND {Cache.Models.Where(p => string.IsNullOrEmpty(p.Title)).Count()} POSTS WITHOUT TITLES");
+  foreach (var model in Cache.Models.Where(p => string.IsNullOrEmpty(p.Title)))
+    {Console.WriteLine($"{model.Path}");}
+  Cache.Models = Cache.Models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
+}
+
 
 app.UseExceptionHandler(exceptionHandlerApp =>
 {
