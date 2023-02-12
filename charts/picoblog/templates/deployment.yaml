@@ -27,9 +27,11 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
+        {{- if .Values.env.PASSWORD }}
         - name: picoblog-config
           persistentVolumeClaim:
             claimName: picoblog-pv
+        {{- end }}
         - name: picoblog-nfs
           nfs:
           {{- toYaml .Values.nfs | nindent 12}}
@@ -45,8 +47,10 @@ spec:
             - mountPath: /data
               name: picoblog-nfs
               readOnly: true
+            {{- if .Values.env.PASSWORD }}
             - mountPath: /config
               name: picoblog-config
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

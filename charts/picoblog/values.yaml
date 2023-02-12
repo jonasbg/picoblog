@@ -13,6 +13,7 @@ image:
 env:
   SYNOLOGY_SUPPORT: false
   DOMAIN: localhost
+  PASSWORD: ""
 
 nfs:
   # the IP of the NFS server
