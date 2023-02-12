@@ -1,6 +1,8 @@
 namespace picoblog.Models;
 
 public static class Config{
+
+  public static string ConfigDir => Environment.GetEnvironmentVariable("CONFIG_DIR");
   public static bool Synology => Environment.GetEnvironmentVariable("SYNOLOGY_SUPPORT") == "true";
   public static string? Password => Environment.GetEnvironmentVariable("PASSWORD");
   public static string DataDir => Environment.GetEnvironmentVariable("DATA_DIR");

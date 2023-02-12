@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using picoblog.Models;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -26,6 +27,8 @@ if (Config.Password != null)
     options.Filters.Add(new AuthorizeFilter());
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
   });
+  builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
 }
 else
   builder.Services.AddControllersWithViews(options =>
