@@ -30,7 +30,17 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  automountServiceAccountToken: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
 
 service:
   type: ClusterIP

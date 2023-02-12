@@ -32,6 +32,9 @@ spec:
           persistentVolumeClaim:
             claimName: picoblog-pv
         {{- end }}
+        - name: tempfs
+          emptyDir:
+            sizeLimit: 64Mi
         - name: picoblog-nfs
           nfs:
           {{- toYaml .Values.nfs | nindent 12}}
@@ -47,6 +50,8 @@ spec:
             - mountPath: /data
               name: picoblog-nfs
               readOnly: true
+            - mountPath: /tmp
+              name: tempfs
             {{- if .Values.env.PASSWORD }}
             - mountPath: /config
               name: picoblog-config
