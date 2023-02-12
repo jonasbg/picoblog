@@ -162,15 +162,12 @@ if (Cache.Models.Any(p => string.IsNullOrEmpty(p.Title))){
   Cache.Models = Cache.Models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
 }
 
-
 app.UseExceptionHandler(exceptionHandlerApp =>
 {
   exceptionHandlerApp.Run(async context =>
   {
     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
     Console.WriteLine(exceptionHandlerPathFeature?.Error);
-    context.Response.StatusCode = 500;
-    await context.Response.WriteAsync("An exception was thrown.");
   });
 });
 
