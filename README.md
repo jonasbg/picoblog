@@ -37,7 +37,7 @@ This is some awesome content
 
 ## Authentication
 
-Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. The login session is not persisted between server restarts.
+Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. To persist login sessions between server restarts mount `/config` folder to the container at initialization.
 
 ## Environment variables
 
@@ -45,8 +45,9 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 
 | Variable name    | Default value | Description                                                                                            |
 | ----------------:|:-------------:| ------------------------------------------------------------------------------------------------------ |
-| SYNOLOGY_SUPPORT | `true`        | Synology Support is turned on by default, and it will automatically fallback if `@eaDir` is not found. |
-| PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment.     |
+| SYNOLOGY_SUPPORT | `false`        | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found. |
+| PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment. Remember to mount `/config` dir to persist login between restarts. |
+| CONFIG_DIR | `/config` | When using `PASSWORD` env variabel, mount a `CONFIG_DIR` so that logins are persisted between container restarts. |
 | DATA_DIR         | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.             |
 | DOMAIN           | `localhost`   | This is primarly to support the Open Graph Protocol and link previews of your site.                    |
 | SYNOLOGY_SIZE    | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.       |
@@ -68,7 +69,7 @@ docker build . -t jonasbg/picoblog
   The latest build will always be uploaded to dockerhub so download it from there.
 
 ```bash
-docker run -d -p 8080:8080 -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
+docker run -d -p 8080:8080 --cap-drop ALL --read-only -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
 ```
 
   Open ➡ [localhost:8080](http://localhost:8080).
@@ -144,4 +145,4 @@ Some important work remains
 
   - [ ] Tags
 
-- [x] ~Virtual directory with assets imported from `*.md` files as a security measurement.~~
+- [x] ~~Virtual directory with assets imported from `*.md` files as a security measurement.~~
