@@ -12,6 +12,7 @@
     <meta property="og:image" content='@ViewData["Image"]'>
     <meta property="og:image:type" content="image/jpeg" />
     <link rel="manifest" href="/manifest.json">
+    @Html.Raw(Config.CustomHeader)
     @Html.Partial("_pwa")
     @Html.Partial("_splashscreens")
     @if(ViewData["Description"] != null){
