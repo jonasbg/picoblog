@@ -22,9 +22,9 @@ EXPOSE 8080
 RUN apk add --no-cache icu-libs icu-data-full tzdata
 RUN adduser \
   --disabled-password \
-  --home /app \
+  --no-create-home \
+  -S \
   --gecos '' app
-USER app
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENV DOTNET_RUNNING_IN_CONTAINER=true
@@ -32,6 +32,7 @@ ENV TZ=Europe/Oslo
 ENV DOTNET_EnableDiagnostics=0
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 
 ENV DATA_DIR=/data
 ENV CONFIG_DIR=/config
@@ -41,7 +42,9 @@ ENV PASSWORD=""
 ENV SYNOLOGY_SUPPORT=false
 
 WORKDIR /app
+RUN mkdir $CONFIG_DIR $DATA_DIR && chown app $CONFIG_DIR $DATA_DIR
 
 COPY --from=backend --chown=app /publish .
+USER app
 
 ENTRYPOINT ["/app/picoblog"]
