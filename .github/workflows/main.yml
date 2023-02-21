@@ -21,7 +21,7 @@ jobs:
 
       - name: Docker Metadata action
         uses: docker/metadata-action@v4.3.0
-        with: |
+        with:
           images: jonasbg/picoblog
         tags: |
           type=ref,event=branch
