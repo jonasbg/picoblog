@@ -55,6 +55,6 @@ public class PostController : Controller
     if (!System.IO.File.Exists(path))
       return NotFound();
     await HttpContext.Response.Body.WriteAsync(file);
-    return new EmptyResult();
+    return StatusCode(HttpContext.Response.StatusCode);
   }
 }
