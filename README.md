@@ -71,6 +71,10 @@ docker build . -t jonasbg/picoblog
 ```bash
 docker run -d -p 8080:8080 --cap-drop ALL --read-only -e DOMAIN=pico.blog --name picoblog --volume /image/directory:/data:ro jonasbg/picoblog
 ```
+Or with password enabled. Tmpfs is mounted as an example. Persist that to a directory on the host to perist login sessions.
+```bash
+docker run -d -p 8080:8080 --cap-drop ALL --read-only -e PASSWORD="myPassword" -e DOMAIN=pico.blog --name picoblog --mount type=tmpfs,destination=/config --volume /image/directory:/data:ro jonasbg/picoblog
+```
 
   Open ➡ [localhost:8080](http://localhost:8080).
 
