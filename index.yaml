@@ -3,7 +3,17 @@ entries:
   picoblog:
   - apiVersion: v2
     appVersion: 0.0.1
-    created: "2023-02-21T23:03:35.589034+01:00"
+    created: "2023-02-21T23:22:56.929911+01:00"
+    description: A Helm chart for Kubernetes
+    digest: b67c20bc4fe44be967406f5594964a7f57719f801d4b74cb9972558135fffcc5
+    name: picoblog
+    type: application
+    urls:
+    - https://jonasbg.github.io/picoblog/charts/picoblog-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2023-02-21T23:22:56.929608+01:00"
     description: A Helm chart for Kubernetes
     digest: 57635b51cbdf1bcd3e8aa9d639b6ea0c3579ec1e2deea9056b4319e8d0c9166c
     name: picoblog
@@ -11,4 +21,4 @@ entries:
     urls:
     - https://jonasbg.github.io/picoblog/charts/picoblog-0.0.2.tgz
     version: 0.0.2
-generated: "2023-02-21T23:03:35.587666+01:00"
+generated: "2023-02-21T23:22:56.929218+01:00"
