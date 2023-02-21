@@ -1,8 +1,7 @@
 # How to build
 ```bash
+ch charts
 helm package picoblog
-```
-
-```bash
-helm repo index --url https://jonasbg.github.io/picoblog/ --merge index.yaml .
+cd ..
+helm repo index --url https://jonasbg.github.io/picoblog/charts --merge index.yaml charts
 ```
