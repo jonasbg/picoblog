@@ -27,11 +27,6 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        {{- if .Values.env.PASSWORD }}
-        - name: picoblog-config
-          persistentVolumeClaim:
-            claimName: picoblog-pv
-        {{- end }}
         - name: tempfs
           emptyDir:
             sizeLimit: 64Mi
@@ -88,3 +83,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: picoblog-config
+      spec:
+        accessModes: ["ReadWriteMany"]
+        resources:
+          requests:
+            storage: 64Mi
+          limits:
+            storage: 128Mi
