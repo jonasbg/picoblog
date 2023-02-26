@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using picoblog.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 
 namespace picoblog.Controllers;
 
@@ -54,7 +57,23 @@ public class PostController : Controller
       file = await System.IO.File.ReadAllBytesAsync(path);
     if (!System.IO.File.Exists(path))
       return NotFound();
-    await HttpContext.Response.Body.WriteAsync(file);
-    return StatusCode(HttpContext.Response.StatusCode);
+    await HttpContext.Response.Body.WriteAsync(resize(file));
+    return new EmptyResult();
+  }
+
+  private byte[] resize(byte[]? file) {
+    using (var outputStream = new MemoryStream())
+{
+    using (var image = Image.Load(file))
+    {
+        int width = image.Width / 2;
+        int height = image.Height / 2;
+        image.Mutate(x =>x.Resize(width, height));
+        image.SaveAsJpeg(outputStream);
+    }
+
+    var data = outputStream.ToArray();
+    return data;
+}
   }
 }
