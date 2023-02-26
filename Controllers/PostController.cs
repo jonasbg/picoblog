@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using picoblog.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -10,10 +11,12 @@ namespace picoblog.Controllers;
 public class PostController : Controller
 {
   private readonly ILogger<PostController> _logger;
+  private readonly IMemoryCache _memoryCache;
 
-  public PostController(ILogger<PostController> logger)
+  public PostController(ILogger<PostController> logger, IMemoryCache memoryCache)
   {
     _logger = logger;
+    _memoryCache = memoryCache;
   }
 
   [HttpGet]
@@ -52,28 +55,39 @@ public class PostController : Controller
       synologyPath = $"{directory}/{synologyPath}";
 
       if (System.IO.File.Exists(synologyPath))
-        file = await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
-    } else
-      file = await System.IO.File.ReadAllBytesAsync(path);
+        path = synologyPath;
+        // file = await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
+    }
+    // else
+    //   file = await System.IO.File.ReadAllBytesAsync(path);
     if (!System.IO.File.Exists(path))
       return NotFound();
-    await HttpContext.Response.Body.WriteAsync(resize(file));
+    HttpContext.Response.Headers.Add("Last-Modified", $"{DateTime.Now.AddHours(-1)}");
+    HttpContext.Response.Headers.Add("ETag", Path.GetFileName(path));
+    await HttpContext.Response.Body.WriteAsync(await resize(path));
     return new EmptyResult();
   }
 
-  private byte[] resize(byte[]? file) {
+  private async Task<byte[]> resize(string path) {
+    if (_memoryCache.TryGetValue(path, out byte[] cacheValue))
+      return cacheValue;
+
+    var cacheEntryOptions = new MemoryCacheEntryOptions()
+          .SetSlidingExpiration(TimeSpan.FromHours(24));
+
     using (var outputStream = new MemoryStream())
-{
-    using (var image = Image.Load(file))
     {
-        int width = image.Width / 2;
-        int height = image.Height / 2;
-        image.Mutate(x =>x.Resize(width, height));
-        image.SaveAsJpeg(outputStream);
-    }
+      using (var image = await Image.LoadAsync(path))
+      {
+          int width = image.Width / 2;
+          int height = image.Height / 2;
+          image.Mutate(x =>x.Resize(width, height));
+          image.SaveAsJpeg(outputStream);
+      }
 
     var data = outputStream.ToArray();
+    _memoryCache.Set(path, data, cacheEntryOptions);
     return data;
-}
+    }
   }
 }
