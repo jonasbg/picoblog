@@ -56,24 +56,30 @@ public class PostController : Controller
 
       if (System.IO.File.Exists(synologyPath))
         path = synologyPath;
-        // file = await System.IO.File.ReadAllBytesAsync($"{synologyPath}");
     }
-    // else
-    //   file = await System.IO.File.ReadAllBytesAsync(path);
     if (!System.IO.File.Exists(path))
       return NotFound();
-    HttpContext.Response.Headers.Add("Last-Modified", $"{DateTime.Now.AddHours(-1)}");
-    HttpContext.Response.Headers.Add("ETag", Path.GetFileName(path));
+    HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
+    HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
     await HttpContext.Response.Body.WriteAsync(await resize(path));
     return new EmptyResult();
   }
+
+  private string ComputeMD5(string s)
+    {
+        using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
+        {
+            return BitConverter.ToString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(s)))
+                        .Replace("-", "");
+        }
+    }
 
   private async Task<byte[]> resize(string path) {
     if (_memoryCache.TryGetValue(path, out byte[] cacheValue))
       return cacheValue;
 
     var cacheEntryOptions = new MemoryCacheEntryOptions()
-          .SetSlidingExpiration(TimeSpan.FromHours(24));
+          .SetSlidingExpiration(TimeSpan.FromMinutes(Config.CacheTimeInMinutes));
 
     using (var outputStream = new MemoryStream())
     {
@@ -81,8 +87,12 @@ public class PostController : Controller
       {
           int width = image.Width / 2;
           int height = image.Height / 2;
-          image.Mutate(x =>x.Resize(width, height));
-          image.SaveAsJpeg(outputStream);
+          width = 0;
+          height = Config.ImageMaxHeight;
+          image.Mutate(x => x.Resize(width, height));
+          JpegEncoder encoder = new JpegEncoder();
+          encoder.Quality = Config.ImageQuality;
+          image.SaveAsJpeg(outputStream, encoder);
       }
 
     var data = outputStream.ToArray();
