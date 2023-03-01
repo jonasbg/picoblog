@@ -4,7 +4,6 @@ img:not(.hero > img) {
 
 .date, .date > *{
   text-transform: capitalize;
-  padding-top: 31vw;
   margin-bottom: 5vw;
 }
 
@@ -26,6 +25,7 @@ img:not(.hero > img) {
   top:0;
   position: absolute;
  }
+
 .hero .hero-text {
   text-align: center;
   position: absolute;
@@ -34,6 +34,7 @@ img:not(.hero > img) {
   transform: translate(-50%, -50%);
   color: white;
  }
+
 .hero .hero-text h1 {
   color: #FFF;
   font-size: 6vw;

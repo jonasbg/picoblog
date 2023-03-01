@@ -73,7 +73,10 @@ nav{
 }
 
 @media all and (display-mode: browser) {
-  menu{
+  menu {
+    display: none !important;
+  }
+  .menu {
     display: none !important;
   }
 }
