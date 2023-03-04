@@ -10,6 +10,14 @@ main {
   padding: 6vh 3vh 3vh 3vh;
 }
 
+.date h2 {
+  margin-bottom: 0px;
+}
+.date p {
+  color: #c2c2c2;
+  font-size: 0.8em;
+}
+
 @media all and (display-mode: browser) {
   #shareButton {
     display:none;
