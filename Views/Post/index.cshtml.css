@@ -3,7 +3,7 @@ main {
 }
 
 .top-left {
-  position: absolute;
+  position: fixed;
   color: white;
   top: 1em;
   left: 0;
@@ -17,13 +17,14 @@ main {
 }
 
 .top-right {
-  position: absolute;
+  position: fixed;
   color: white;
   top: 1em;
   right: 0;
   padding: 6vh 3vh 3vh 3vh;
   border: 0;
   background: none;
+  
 }
 
 .date h2 {
