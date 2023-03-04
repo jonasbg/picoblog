@@ -1,0 +1,12 @@
+<div class="content">
+  @foreach (var doc in Model)
+  {
+    <a class="hero" href="/post/@doc.Title">
+      <img src="/post/@Uri.EscapeDataString(doc.Title)/@doc.CoverImage" loading="lazy">
+      <div class="hero-text">
+        <h4>@doc.Title</h4>
+        <h5>@doc.Date?.ToString("dd. MMM yyyy")</h5>
+      </div>
+    </a>
+  }
+</div>

@@ -1,0 +1,29 @@
+
+.content {
+  display: flex;
+  gap: 25px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 15px 0px 30px 15px;
+}
+
+.content a img {
+  width: 60vw;
+  height: 20vh;
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+h5 {
+  font-size: 0.8em;
+}
+
+.hero .hero-text {
+  inline-size: 55vw;
+  overflow: hidden;
+}
