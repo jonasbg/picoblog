@@ -59,11 +59,11 @@
 
         favoriteButton.addEventListener("click", () => {
             switchFavorite();
-            const favorite = localStorage.getItem(window.location.href);
+            const favorite = localStorage.getItem(window.location.pathname);
             if (favorite != null) {
-                localStorage.removeItem(window.location.href);
+                localStorage.removeItem(window.location.pathname);
             } else {
-                localStorage.setItem(window.location.href, "favorite");
+                localStorage.setItem(window.location.pathname, "favorite");
             }
         });
 
@@ -76,7 +76,7 @@
 
         function setFavorite() {
             console.log("Onload hit");
-            const favorite = localStorage.getItem(window.location.href);
+            const favorite = localStorage.getItem(window.location.pathname);
             if (favorite != null) {
                 switchFavorite();
             }
