@@ -2,12 +2,28 @@ main {
   margin-top: 0 !important;
 }
 
+.top-left {
+  position: absolute;
+  color: white;
+  top: 1em;
+  left: 0;
+  padding: 6vh 3vh 3vh 3vh;
+  border: 0;
+  background: none;
+}
+
+.hidden{
+  display: none;
+}
+
 .top-right {
   position: absolute;
   color: white;
-  top: 0;
+  top: 1em;
   right: 0;
   padding: 6vh 3vh 3vh 3vh;
+  border: 0;
+  background: none;
 }
 
 .date h2 {
