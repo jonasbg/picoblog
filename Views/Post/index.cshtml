@@ -57,6 +57,10 @@
                 } catch (err) { }
         }
 
+        backButton.addEventListener("click", () => {
+            window.location.href = document.referrer;
+        });
+
         favoriteButton.addEventListener("click", () => {
             switchFavorite();
             const favorite = localStorage.getItem(window.location.pathname);
