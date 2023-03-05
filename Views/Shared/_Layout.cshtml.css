@@ -72,14 +72,14 @@ nav{
   }
 }
 
-/* @media all and (display-mode: browser) {
+@media all and (display-mode: browser) {
   menu {
     display: none !important;
   }
   .menu {
     display: none !important;
   }
-} */
+}
 
 
 menu{
