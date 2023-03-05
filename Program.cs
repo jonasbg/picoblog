@@ -6,11 +6,21 @@ using picoblog.Models;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.DataProtection;
+// using SixLabors.ImageSharp.Web.DependencyInjection;
+// using SixLabors.ImageSharp;
+// using Microsoft.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
+// builder.Services.AddImageSharp(options => {
+//   options.Configuration = Configuration.Default;
+//   options.MemoryStreamManager = new RecyclableMemoryStreamManager();
+//   options.BrowserMaxAge = TimeSpan.FromDays(7);
+//   options.CacheMaxAge = TimeSpan.FromDays(365);
+//   options.CacheHashLength = 8;
+// });
 
 if (Config.Password != null)
 {
@@ -37,6 +47,7 @@ else
   });
 
 var app = builder.Build();
+// app.UseImageSharp();
 
 if (Config.Password != null)
 {
@@ -65,18 +76,6 @@ app.UseRequestLocalization(new RequestLocalizationOptions{
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Use(async (context, next) =>
-{
-  await next();
-  if (context.Response.StatusCode != 200)
-  {
-    var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-    Console.WriteLine($"[RemoteIP::{ip}]:[StatusCode::{context.Response.StatusCode}]:{context.Request.Path}");
-    context.Request.Path = "/";
-    await next();
-  }
-});
 
 Console.WriteLine("Starting searching for markdown files (*.md)");
 var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
@@ -162,13 +161,13 @@ if (Cache.Models.Any(p => string.IsNullOrEmpty(p.Title))){
   Cache.Models = Cache.Models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
 }
 
-app.UseExceptionHandler(exceptionHandlerApp =>
-{
-  exceptionHandlerApp.Run(async context =>
-  {
-    var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-    Console.WriteLine(exceptionHandlerPathFeature?.Error);
-  });
-});
+// app.UseExceptionHandler(exceptionHandlerApp =>
+// {
+//   exceptionHandlerApp.Run(async context =>
+//   {
+//     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+//     Console.WriteLine(exceptionHandlerPathFeature?.Error);
+//   });
+// });
 
 app.Run();
