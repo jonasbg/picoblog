@@ -13,12 +13,12 @@
 </button>
 </div>
 
-<div>
+<div id="favorites_header">
   <div class="header">
     <h2>Favorites</h2>
     <a href="#">See All</a>
   </div>
-  @await Html.PartialAsync("./index.content.cshtml", Model.Take(5))
+  <div id="favorites"></div>
 </div>
 
 <div>
@@ -26,7 +26,7 @@
     <h2>Highlights</h2>
     <a href="#">See All</a>
   </div>
-  @await Html.PartialAsync("./index.content.cshtml", Model.Take(5))
+  <div id="memories"></div>
 </div>
 
 <div>
@@ -34,8 +34,21 @@
     <h2>Yearly</h2>
     <a href="#">See All</a>
   </div>
-  @await Html.PartialAsync("./index.content.cshtml")
+  @await Html.PartialAsync("_index.content")
 </div>
+
+<script>
+  var memoriesContent = document.getElementById("memories");
+  fetch("/memories")
+  .then((response) => response.text())
+  .then((html) => memoriesContent.innerHTML = html);
+
+  var favorites = window.localStorage.key
+  var memoriesContent = document.getElementById("memories");
+  fetch("/memories?favorites=", favorites)
+  .then((response) => response.text())
+  .then((html) => memoriesContent.innerHTML = html);
+</script>
 
 @* <div class="banner-grid">
 @foreach (var doc in Model)
