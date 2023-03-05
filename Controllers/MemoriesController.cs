@@ -11,14 +11,10 @@ public class MemoriesController : Controller
   [Route("[Controller]")]
   public IActionResult Index(){
     var today = DateTime.Now;
-    var onThisDay = Cache.Models.Where(p => p.Date?.Month == today.Month && p.Date?.Day == today.Day);
-    var onThisDayWeek = Cache.Models
-    .Where(
+    var onThisDay = Cache.Models.Where(
       p => p.Date?.Month == today.Month &&
-      p.Date?.DayOfWeek == today.DayOfWeek &&
-      p.Date <= today.AddDays(7) &&
-      p.Date >= today.AddDays(-7));
-    onThisDay.Concat(onThisDayWeek);
+      p.Date?.Day <= today.AddDays(7).Day &&
+      p.Date?.Day >= today.AddDays(-7).Day);
     return Ok(onThisDay);
   }
 }
