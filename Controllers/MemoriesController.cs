@@ -7,6 +7,15 @@ public class MemoriesController : Controller
 {
   private readonly ILogger<MemoriesController> _logger;
 
+  [HttpPost]
+  [IgnoreAntiforgeryToken]
+  public IActionResult Index([FromBody] string[] json){
+    if( json == null || !json.Any() )
+      return new EmptyResult();
+    var favorites = Cache.Models.Where(p => json.Contains(p.Title));
+    return PartialView("_index.content", favorites);
+  }
+
   [HttpGet]
   [Route("[Controller]")]
   public IActionResult Index(){

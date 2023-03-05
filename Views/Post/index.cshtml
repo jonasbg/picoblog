@@ -64,11 +64,22 @@
         favoriteButton.addEventListener("click", () => {
             switchFavorite();
             const favorite = localStorage.getItem(window.location.pathname);
-            if (favorite != null) {
-                localStorage.removeItem(window.location.pathname);
-            } else {
-                localStorage.setItem(window.location.pathname, "favorite");
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+
+            var favorites = JSON.parse(localStorage.getItem("favorites"));
+            if (favorites == null){
+                favorites = [];
             }
+
+            const index = favorites.indexOf(title);
+            if (index !== -1){
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(title)
+            }
+
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+
         });
 
         function switchFavorite() {
@@ -80,8 +91,10 @@
 
         function setFavorite() {
             console.log("Onload hit");
-            const favorite = localStorage.getItem(window.location.pathname);
-            if (favorite != null) {
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+            const favorites = JSON.parse(localStorage.getItem("favorites"));
+            const index = favorites.indexOf(title);
+            if (index >= 0 ){
                 switchFavorite();
             }
         }

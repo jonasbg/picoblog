@@ -13,20 +13,24 @@
 </button>
 </div>
 
-<div id="favorites_header">
-  <div class="header">
-    <h2>Favorites</h2>
-    <a href="#">See All</a>
-  </div>
-  <div id="favorites"></div>
-</div>
-
 <div>
   <div class="header">
     <h2>Highlights</h2>
     <a href="#">See All</a>
   </div>
-  <div id="memories"></div>
+  <div id="memories">
+    <p>No memories found, try again tomorrow...</p>
+  </div>
+</div>
+
+<div id="favorites_header">
+  <div class="header">
+    <h2>Favorites</h2>
+    <a href="#">See All</a>
+  </div>
+  <div id="favorites">
+    <p>No favorites found, try to add a favorite...</p>
+  </div>
 </div>
 
 <div>
@@ -43,11 +47,16 @@
   .then((response) => response.text())
   .then((html) => memoriesContent.innerHTML = html);
 
-  var favorites = window.localStorage.key
-  var memoriesContent = document.getElementById("memories");
-  fetch("/memories?favorites=", favorites)
+  var favoritesContent = document.getElementById("favorites");
+  fetch("/memories", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: localStorage.getItem("favorites"),
+  })
   .then((response) => response.text())
-  .then((html) => memoriesContent.innerHTML = html);
+  .then((html) => favoritesContent.innerHTML = html);
 </script>
 
 @* <div class="banner-grid">
