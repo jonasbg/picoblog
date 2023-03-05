@@ -16,6 +16,19 @@
   display: none;  /* Safari and Chrome */
 }
 
+.hidden {
+  display:none
+}
+
+.top-right {
+  position: absolute;
+  color: white;
+  top: 2vh;
+  right: 2vw;
+  border: 0;
+  background: none;
+}
+
 .content a img {
   width: 60vw;
   height: 20vh;
