@@ -40,8 +40,11 @@ main {
   }
 
   .content {
-    padding-top: 55vw;
+    padding-top: 60vw;
     z-index: 100;
+  }
+  .top-left {
+    display: none;
   }
 }
 /* display-mode:standalone */
@@ -52,7 +55,7 @@ main {
 
   .content {
     z-index: 100;
-    padding-top: 55vw;
+    padding-top: 60vw;
     background-color: white;
     border-radius: 19px 19px 0px 0px;
     position: absolute;
