@@ -37,7 +37,7 @@ a {
 }
 
 .content a img {
-  width: 60vw;
+  /* width: 60vw; */
   height: 20vh;
 }
 
