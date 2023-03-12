@@ -84,7 +84,7 @@ h1, h2, h3 {
 }
 
 img {
-  /* width: 100% */
+  max-width: 100%
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
