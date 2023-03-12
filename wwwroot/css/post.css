@@ -24,6 +24,7 @@ img:not(.hero > img) {
   bottom: 0;
   top:0;
   position: absolute;
+  width: 100vw;
  }
 
 .hero .hero-text {
