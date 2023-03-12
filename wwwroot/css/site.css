@@ -13,6 +13,25 @@
   box-shadow: 0 0 100px 0px #00000021;
 }
 
+.container {
+  padding-right: 0;
+  padding-left: 0;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+header {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+footer, header, .header, .content, .banner-grid {
+  padding-right: var(--bs-gutter-x,.75rem);
+  padding-left: var(--bs-gutter-x,.75rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .v-center{
   display: flex;
   justify-content: center;
