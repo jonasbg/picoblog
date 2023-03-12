@@ -40,7 +40,18 @@ a {
   /* width: 60vw; */
   height: 30vh;
   max-width: fit-content;
-  width: 80vw;
+}
+
+@media (orientation: portrait) {
+  .content a img {
+    width: 80vw;
+  }
+}
+
+@media (orientation: landscape) {
+  .content a img {
+    width: 40vw;
+  }
 }
 
 h4 {
