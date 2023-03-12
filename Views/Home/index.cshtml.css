@@ -50,7 +50,7 @@ a {
 
 @media (orientation: landscape) {
   .content a img {
-    width: 40vw;
+    width: 25vw;
   }
 }
 
