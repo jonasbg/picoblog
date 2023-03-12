@@ -25,7 +25,8 @@ public class MemoriesController : Controller
     var onThisDay = Cache.Models.Where(
       p => p.Date?.Month == today.Month &&
       p.Date?.Day <= upper &&
-      p.Date?.Day >= lower)
+      p.Date?.Day >= lower &&
+      p.Date.Year != today.year)
       .OrderByDescending(f => f.Date);
     return PartialView("_index.content", onThisDay);
   }
