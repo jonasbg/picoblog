@@ -32,6 +32,8 @@
 .content a img {
   /* width: 60vw; */
   height: 30vh;
+  max-width: fit-content;
+  width: 80vw;
 }
 
 h4 {
