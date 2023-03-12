@@ -31,19 +31,18 @@
 
 .content a img {
   /* width: 60vw; */
+  height: 30vh;
   max-width: fit-content;
 }
 
 @media (orientation: portrait) {
   .content a img {
-    height: 30vh;
     width: 80vw;
   }
 }
 
 @media (orientation: landscape) {
   .content a img {
-    height: 20vh;
     width: 25vw;
   }
 }
