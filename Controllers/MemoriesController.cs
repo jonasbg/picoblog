@@ -12,7 +12,7 @@ public class MemoriesController : Controller
   public IActionResult Index([FromBody] string[] json){
     if( json == null || !json.Any() )
       return new EmptyResult();
-    var favorites = Cache.Models.Where(p => json.Contains(p.Title));
+    var favorites = Cache.Models.Where(p => json.Contains(p.Title)).OrderByDescending(f => f.Date);
     return PartialView("_index.content", favorites);
   }
 
@@ -25,7 +25,8 @@ public class MemoriesController : Controller
     var onThisDay = Cache.Models.Where(
       p => p.Date?.Month == today.Month &&
       p.Date?.Day <= upper &&
-      p.Date?.Day >= lower);
+      p.Date?.Day >= lower)
+      .OrderByDescending(f => f.Date);
     return PartialView("_index.content", onThisDay);
   }
 }
