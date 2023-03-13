@@ -12,9 +12,10 @@ public class HomeController : Controller
 {
   private readonly ILogger<HomeController> _logger;
 
-  public HomeController(ILogger<HomeController> logger)
+  public HomeController(ILogger<HomeController> logger, MonitorLoop monitorLoop)
   {
     _logger = logger;
+    monitorLoop.StartMonitorLoop();
   }
 
   [AllowAnonymous]

@@ -13,10 +13,11 @@ public class PostController : Controller
   private readonly ILogger<PostController> _logger;
   private readonly IMemoryCache _memoryCache;
 
-  public PostController(ILogger<PostController> logger, IMemoryCache memoryCache)
+  public PostController(ILogger<PostController> logger, IMemoryCache memoryCache, MonitorLoop monitorLoop)
   {
     _logger = logger;
     _memoryCache = memoryCache;
+    monitorLoop.StartMonitorLoop();
   }
 
   [HttpGet]
