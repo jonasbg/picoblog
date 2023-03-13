@@ -52,6 +52,7 @@ public class MonitorLoop
   {
     _logger.LogInformation("Starting searching for markdown files (*.md)");
     var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+    var models = new List<MarkdownModels>();
     foreach (var file in files)
     {
       Console.Write($"Found file: {file} ");
@@ -72,10 +73,10 @@ public class MonitorLoop
             {
               model.Public = true;
               model.Path = file;
-              if (!Cache.Models.Any(p => p.Path == model.Path))
+              if (!models.Any(p => p.Path == model.Path))
               {
                 System.Console.WriteLine($"{model.Path} exists in Cache IGNORING");
-                Cache.Models.Add(model);
+                models.Add(model);
               }
             }
           }
@@ -112,7 +113,7 @@ public class MonitorLoop
           break;
         counter++;
       }
-      if (Cache.Models.LastOrDefault() == model)
+      if (models.LastOrDefault() == model)
       {
         Console.Write("ADDED");
         if (model.Visible)
@@ -121,36 +122,43 @@ public class MonitorLoop
           Console.WriteLine();
       }
 
-      if (Cache.Models.LastOrDefault() != model)
+      if (models.LastOrDefault() != model)
         Console.WriteLine("IGNORED");
     }
 
-    if (Cache.Models.Any(p => p.Visible == false))
+    if (models.Any(p => p.Visible == false))
     {
-      Console.WriteLine($"FOUND {Cache.Models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
-      foreach (var model in Cache.Models.Where(p => p.Visible == false))
+      Console.WriteLine($"FOUND {models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
+      foreach (var model in models.Where(p => p.Visible == false))
         Console.WriteLine($"{Config.Domain}/post/{model.Title}");
     }
 
-    if (Cache.Models.Any(p => string.IsNullOrEmpty(p.Title)))
+    if (models.Any(p => string.IsNullOrEmpty(p.Title)))
     {
-      Console.WriteLine($"FOUND {Cache.Models.Where(p => string.IsNullOrEmpty(p.Title)).Count()} POSTS WITHOUT TITLES");
-      foreach (var model in Cache.Models.Where(p => string.IsNullOrEmpty(p.Title)))
+      Console.WriteLine($"FOUND {models.Where(p => string.IsNullOrEmpty(p.Title)).Count()} POSTS WITHOUT TITLES");
+      foreach (var model in models.Where(p => string.IsNullOrEmpty(p.Title)))
       { Console.WriteLine($"{model.Path}"); }
-      Cache.Models = Cache.Models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
+      models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
     }
 
-    var duplicates = Cache.Models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
+    var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
     if (duplicates.Any()){
       System.Console.WriteLine($"FOUND DUPLICATES, REMOVED FROM SET");
       foreach (var title in duplicates)
       {
-        var models = Cache.Models.Where(p => p.Title == title);
+        var models = models.Where(p => p.Title == title);
         foreach(var dup in models)
           System.Console.WriteLine($"[{dup.Title}] {dup.Path} ");
       }
-      Cache.Models = Cache.Models.Where(p => !duplicates.Contains(p.Title)).ToList();
-
+      models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
     }
+    var deleted = Cache.Models.Where(p => !models.Any(n => n.path == p.Path));
+    if(deleted.Any()){
+      System.Console.WriteLine("FOUND DELETED FILES");
+      foreach (var del in deleted)
+        System.Console.WriteLine($"{del}");
+    }
+
+    Cache.Models = models;
   }
 }
