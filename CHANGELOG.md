@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.7]
 ### Added
 - Background polling for new files
+- Image optmization support stored in memory
+- Memories - view previous events on this day in history
+- Favorites support - store favorites in browser
 
 ## [0.0.6] - 2023-02-06
 ### Added
