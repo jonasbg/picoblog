@@ -40,7 +40,7 @@ main {
   }
 
   .content {
-    padding-top: 60vw;
+    padding-top: 40vw;
     z-index: 100;
   }
   .top-left {
@@ -55,7 +55,7 @@ main {
 
   .content {
     z-index: 100;
-    padding-top: 60vw;
+    padding-top: 40vw;
     background-color: white;
     border-radius: 19px 19px 0px 0px;
     position: absolute;

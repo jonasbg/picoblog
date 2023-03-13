@@ -2,13 +2,20 @@ img:not(.hero > img) {
   border-radius: 5px;
 }
 
+h1, h2, h3 {
+  text-align: center!important;
+  font-variant: small-caps;
+  margin-top: 3em;
+  margin-bottom: 1.5em;
+}
+
 .date, .date > *{
   text-transform: capitalize;
   margin-bottom: 1.5vh;
 }
 
 .hero {
-  height: 60vw;
+  height: 50vw;
   width: 100vw;
   /* background: black; */
   overflow: hidden;
