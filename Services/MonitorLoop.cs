@@ -52,7 +52,7 @@ public class MonitorLoop
   {
     _logger.LogInformation("Starting searching for markdown files (*.md)");
     var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
-    var models = new List<MarkdownModels>();
+    var models = new List<MarkdownModel>();
     foreach (var file in files)
     {
       Console.Write($"Found file: {file} ");
@@ -146,13 +146,13 @@ public class MonitorLoop
       System.Console.WriteLine($"FOUND DUPLICATES, REMOVED FROM SET");
       foreach (var title in duplicates)
       {
-        var models = models.Where(p => p.Title == title);
-        foreach(var dup in models)
+        var dups = models.Where(p => p.Title == title);
+        foreach(var dup in dups)
           System.Console.WriteLine($"[{dup.Title}] {dup.Path} ");
       }
       models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
     }
-    var deleted = Cache.Models.Where(p => !models.Any(n => n.path == p.Path));
+    var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
     if(deleted.Any()){
       System.Console.WriteLine("FOUND DELETED FILES");
       foreach (var del in deleted)

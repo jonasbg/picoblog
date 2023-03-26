@@ -11,12 +11,10 @@ namespace picoblog.Controllers;
 public class PostController : Controller
 {
   private readonly ILogger<PostController> _logger;
-  private readonly IMemoryCache _memoryCache;
 
-  public PostController(ILogger<PostController> logger, IMemoryCache memoryCache, MonitorLoop monitorLoop)
+  public PostController(ILogger<PostController> logger, MonitorLoop monitorLoop)
   {
     _logger = logger;
-    _memoryCache = memoryCache;
     monitorLoop.StartMonitorLoop();
   }
 
@@ -47,7 +45,6 @@ public class PostController : Controller
   }
 
   private async Task<IActionResult> Synology(string path) {
-    Byte[]? file = null;
     if (Config.Synology)
     {
       var synologyFile = Path.GetFileName(path);
@@ -76,11 +73,15 @@ public class PostController : Controller
     }
 
   private async Task<byte[]> resize(string path) {
-    if (_memoryCache.TryGetValue(path, out byte[] cacheValue))
-      return cacheValue;
-
-    var cacheEntryOptions = new MemoryCacheEntryOptions()
-          .SetSlidingExpiration(TimeSpan.FromMinutes(Config.CacheTimeInMinutes));
+    var fileName = $"{Config.ConfigDir}/images{path}";
+    if (System.IO.File.Exists(fileName)) {
+      using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open))
+      {
+        var result = new byte[SourceStream.Length];
+        await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+        return result;
+      }
+    }
 
     using (var outputStream = new MemoryStream())
     {
@@ -89,16 +90,24 @@ public class PostController : Controller
           int width = image.Width / 2;
           int height = image.Height / 2;
           width = 0;
-          height = Config.ImageMaxHeight;
-          image.Mutate(x => x.Resize(width, height));
+          height = 0;
+          if(image.Height > image.Width && height > Config.ImageMaxSize)
+            height = Config.ImageMaxSize;
+          if (image.Width > image.Height && width > Config.ImageMaxSize)
+            width = Config.ImageMaxSize;
+
+          if (width + height != 0)
+            image.Mutate(x => x.Resize(width, height));
           JpegEncoder encoder = new JpegEncoder();
           encoder.Quality = Config.ImageQuality;
-          image.SaveAsJpeg(outputStream, encoder);
+          await image.SaveAsJpegAsync(outputStream, encoder);
       }
+      outputStream.Position = 0;
+      Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+      using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
+      await outputStream.CopyToAsync(destination);
 
-    var data = outputStream.ToArray();
-    _memoryCache.Set(path, data, cacheEntryOptions);
-    return data;
+      return outputStream.ToArray();
     }
   }
 }

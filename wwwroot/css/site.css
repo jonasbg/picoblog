@@ -6,6 +6,13 @@
   src: url("/fonts/Comfortaa-Medium.woff2") format("woff");
   src: url("/fonts/Comfortaa-SemiBold.woff2") format("woff");
   }
+@font-face {
+  font-family: "texgyreadventor";
+  src: url("/fonts/texgyreadventor-bold.otf") format("opentype");
+  src: url("/fonts/texgyreadventor-bolditalic.otf") format("opentype");
+  src: url("/fonts/texgyreadventor-italic.otf") format("opentype");
+  src: url("/fonts/texgyreadventor-regular.otf") format("opentype");
+  }
 
 .login-form{
   border: 1px solid #0003;
@@ -67,7 +74,9 @@ footer, header, .header, .content, .banner-grid {
     font-size: 16px;
 }
 
-body,
+body {
+  font-family: Comfortaa, Georgia, Times New Roman, Times, serif !important
+}
 h1,
 h2,
 h3,
@@ -75,7 +84,7 @@ h4,
 h5,
 h6,
 .font-serif {
-  font-family: Comfortaa, Georgia, Times New Roman, Times, serif !important
+  font-family: texgyreadventor, Georgia, Times New Roman, Times, serif !important
 }
 
 html {

@@ -5,7 +5,7 @@ public static class Config{
   private static int maxheight;
   private static int imagequality;
   public static double CacheTimeInMinutes => double.TryParse(Environment.GetEnvironmentVariable("IMAGE_CACHE_MINUTES"), out _cachetime) ? _cachetime : 4.0;
-  public static int ImageMaxHeight => int.TryParse(Environment.GetEnvironmentVariable("IMAGE_MAX_HEIGHT"), out maxheight) ? maxheight : 1280;
+  public static int ImageMaxSize => int.TryParse(Environment.GetEnvironmentVariable("IMAGE_MAX_SIZE"), out maxheight) ? maxheight : 1280;
   public static int ImageQuality => int.TryParse(Environment.GetEnvironmentVariable("IMAGE_QUALITY"), out imagequality) ? imagequality : 65;
   public static string CustomHeader => Environment.GetEnvironmentVariable("CUSTOM_HEADER");
   public static string ConfigDir => Environment.GetEnvironmentVariable("CONFIG_DIR");
