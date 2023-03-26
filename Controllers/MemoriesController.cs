@@ -18,16 +18,24 @@ public class MemoriesController : Controller
 
   [HttpGet]
   [Route("[Controller]")]
-  public IActionResult Index(){
+  public IActionResult Index()
+  {
     var today = DateTime.Now;
-    var lower = today.AddDays(-7).Day > today.Day ? 0 : today.AddDays(-7).Day;
-    var upper = today.AddDays(7).Day < today.Day ? 0 : today.AddDays(7).Day;
-    var onThisDay = Cache.Models.Where(
-      p => p.Date?.Month == today.Month &&
-      p.Date?.Day <= upper &&
-      p.Date?.Day >= lower &&
+    var lower = today.AddDays(-7);
+    var upper = today.AddDays(7);
+    var min = toInt(lower);
+    var max = toInt(upper);
+    var onThisDay = Cache.Models.Where(p =>
+      toInt(p.Date) <= max &&
+      toInt(p.Date) >= min &&
       p.Date?.Year != today.Year)
       .OrderByDescending(f => f.Date);
     return PartialView("_index.content", onThisDay);
   }
+
+  private static int? toInt(DateTime? date){
+    if (date != null)
+     return int.Parse($"{date?.Month.ToString("00")}{date?.Day.ToString("00")}");
+    return null;
+    }
 }
