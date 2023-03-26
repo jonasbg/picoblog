@@ -23,19 +23,25 @@ public class MemoriesController : Controller
     var today = DateTime.Now;
     var lower = today.AddDays(-7);
     var upper = today.AddDays(7);
+    var december = lower.Month == 12;
     var min = toInt(lower);
-    var max = toInt(upper);
+    var max = toInt(upper, december);
     var onThisDay = Cache.Models.Where(p =>
       toInt(p.Date) <= max &&
-      toInt(p.Date) >= min &&
+      toInt(p.Date, december) >= min &&
       p.Date?.Year != today.Year)
       .OrderByDescending(f => f.Date);
     return PartialView("_index.content", onThisDay);
   }
 
-  private static int? toInt(DateTime? date){
-    if (date != null)
-     return int.Parse($"{date?.Month.ToString("00")}{date?.Day.ToString("00")}");
+  private static int? toInt(DateTime? date, bool isDecember = false){
+
+    if (date != null){
+     var intDate = int.Parse($"{date?.Month.ToString("00")}{date?.Day.ToString("00")}");
+      if (isDecember && date?.Month == 1)
+        intDate *= 100;
+      return intDate;
+     }
     return null;
     }
 }
