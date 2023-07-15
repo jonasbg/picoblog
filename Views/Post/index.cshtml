@@ -111,7 +111,7 @@
     return;
     }
 
-    <div>
+    <div class="rendered-markdown">
         @{
         var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
         var html = Markdown.ToHtml(Model.Markdown, pipeline);
