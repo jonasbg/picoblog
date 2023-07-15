@@ -20,11 +20,11 @@ FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-previe
 EXPOSE 8080
 
 RUN apk add --no-cache icu-libs icu-data-full tzdata
-RUN adduser \
-  --disabled-password \
-  --no-create-home \
-  -S \
-  --gecos '' app
+# RUN adduser \
+#   --disabled-password \
+#   --no-create-home \
+#   -S \
+#   --gecos '' app
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENV DOTNET_RUNNING_IN_CONTAINER=true
