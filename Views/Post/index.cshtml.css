@@ -5,7 +5,7 @@ main {
 .rendered-markdown{
   margin: 0 auto; /* centers the container */
   padding: 1em; /* provides some space around the content */
-  max-width: 40em; /* limits the width of the container */
+  max-width: 50em; /* limits the width of the container */
   font-size: 16px; /* defines the base font size */
 }
 
