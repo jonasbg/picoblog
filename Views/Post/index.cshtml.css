@@ -9,12 +9,6 @@ main {
   font-size: 16px; /* defines the base font size */
 }
 
-@media (max-width: 600px) {
-  .rendered-markdown {
-    font-size: 0.875em; /* smaller font size for screens up to 600px wide */
-  }
-}
-
 .top-left {
   position: fixed;
   color: white;
