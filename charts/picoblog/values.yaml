@@ -31,7 +31,6 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 securityContext:
-  automountServiceAccountToken: false
   capabilities:
     drop:
     - ALL
