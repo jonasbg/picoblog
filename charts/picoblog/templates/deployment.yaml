@@ -8,6 +8,7 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  automountServiceAccountToken: false
   selector:
     matchLabels:
       {{- include "picoblog.selectorLabels" . | nindent 6 }}
