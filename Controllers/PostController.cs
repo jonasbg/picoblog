@@ -5,6 +5,7 @@ using picoblog.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
+using Microsoft.Extensions.Logging;
 
 namespace picoblog.Controllers;
 
