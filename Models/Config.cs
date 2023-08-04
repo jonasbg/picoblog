@@ -19,7 +19,7 @@ public static class Config{
       {
           string logLevelString = Environment.GetEnvironmentVariable("PICOBLOG_LOG_LEVEL");
   
-          return logLevelString.ToLower() switch
+          return logLevelString?.ToLower() switch
           {
               "trace" => 0,
               "debug" => 1,
@@ -28,7 +28,7 @@ public static class Config{
               "error" => 4,
               "critical" => 5,
               "none" => 6,
-              _ => 6, // default to "None" if the input doesn't match any of the expected values
+              _ => 2, // default to "Information" if the input doesn't match any of the expected values
           };
       }
   }
