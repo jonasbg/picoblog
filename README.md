@@ -125,13 +125,13 @@ git commit -m "Backup of markdown files"
 
 Some important work remains
 
-- [ ] Search for `.md` files at a given interval or events. (Background task initiated on site request within a given interval ie. once every 5min if theres traffic to the site)
+- [x] ~~Search for `.md` files at a given interval or events. (Background task initiated on site request within a given interval ie. once every 5min if theres traffic to the site)~~
 
 - [x] ~~Better mobile responsive support~~
 
 - [ ] Tags in posts. This is not implemented but will be `tags: ["tag1", "tag2"]`
 
-- [ ] Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*
+- [x] ~~Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*~~__Note: HEIC is not supported__
 
 - [ ] Big Picture and carousel mode with basic `EXIF`support such as
 
