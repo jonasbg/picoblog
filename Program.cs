@@ -11,6 +11,24 @@ using Microsoft.AspNetCore.DataProtection;
 // using Microsoft.IO;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
+{
+    // Add environment variable
+    config.AddEnvironmentVariables();
+
+    // Override logging level from environment variable
+    var logLevel = Environment.GetEnvironmentVariable("PICOBLOG_LOG_LEVEL");
+    if (!string.IsNullOrEmpty(logLevel))
+    {
+        config.AddInMemoryCollection(new[]
+        {
+            new KeyValuePair<string, string>("Logging:LogLevel:Default", logLevel),
+        });
+    }
+});
+
+
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
