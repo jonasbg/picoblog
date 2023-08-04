@@ -13,6 +13,19 @@ public class CalendarController : Controller
   }
 
   [HttpGet]
+  [Route("[Controller]/all")]
+  public async Task<IActionResult> All()
+  {
+    ViewBag.Calendar = "class = active";
+    var models = Cache.Models.Where(p => p.Visible).OrderBy(p => p.Date).ToList();
+    var dictionary = new Dictionary<int, List<MarkdownModel>>();
+    var months = models.Where(p => p.Date != null).Select(p => p.Date?.Month).Distinct().ToArray();
+    foreach(int month in months)
+      dictionary.Add(month, models.Where(p => p.Date?.Month == month).ToList());
+    return View(dictionary);
+  }
+
+  [HttpGet]
   [Route("[Controller]/{year}")]
   public async Task<IActionResult> Year(int? year)
   {
