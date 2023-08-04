@@ -90,41 +90,46 @@ public class PostController : Controller
     }
 
   private async Task<byte[]> resize(string path) {
-    var fileName = $"{Config.ConfigDir}/images{path}";
-    if (System.IO.File.Exists(fileName)) {
-      using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open))
-      {
-        var result = new byte[SourceStream.Length];
-        await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
-        return result;
+    try{
+      var fileName = $"{Config.ConfigDir}/images{path}";
+      if (System.IO.File.Exists(fileName)) {
+        using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open))
+        {
+          var result = new byte[SourceStream.Length];
+          await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+          return result;
+        }
       }
-    }
-
-    using (var outputStream = new MemoryStream())
-    {
-      using (var image = await Image.LoadAsync(path))
+  
+      using (var outputStream = new MemoryStream())
       {
-          int width = image.Width / 2;
-          int height = image.Height / 2;
-          width = 0;
-          height = 0;
-          if(image.Height > image.Width && height > Config.ImageMaxSize)
-            height = Config.ImageMaxSize;
-          if (image.Width > image.Height && width > Config.ImageMaxSize)
-            width = Config.ImageMaxSize;
-
-          if (width + height != 0)
-            image.Mutate(x => x.Resize(width, height));
-          JpegEncoder encoder = new JpegEncoder();
-          encoder.Quality = Config.ImageQuality;
-          await image.SaveAsJpegAsync(outputStream, encoder);
+        using (var image = await Image.LoadAsync(path))
+        {
+            int width = image.Width / 2;
+            int height = image.Height / 2;
+            width = 0;
+            height = 0;
+            if(image.Height > image.Width && height > Config.ImageMaxSize)
+              height = Config.ImageMaxSize;
+            if (image.Width > image.Height && width > Config.ImageMaxSize)
+              width = Config.ImageMaxSize;
+  
+            if (width + height != 0)
+              image.Mutate(x => x.Resize(width, height));
+            JpegEncoder encoder = new JpegEncoder();
+            encoder.Quality = Config.ImageQuality;
+            await image.SaveAsJpegAsync(outputStream, encoder);
+        }
+        outputStream.Position = 0;
+        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+        using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
+        await outputStream.CopyToAsync(destination);
+  
+        return outputStream.ToArray();
       }
-      outputStream.Position = 0;
-      Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-      using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
-      await outputStream.CopyToAsync(destination);
-
-      return outputStream.ToArray();
+    } catch(Exception e){
+      Console.WriteLine("Error Reading File: {0}", path);
+      throw;
     }
   }
 }
