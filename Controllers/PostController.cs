@@ -69,7 +69,13 @@ public class PostController : Controller
     
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
-    await HttpContext.Response.Body.WriteAsync(await resize(path));
+    if(path.EndsWith("HEIC", StringComparison.OrdinalIgnoreCase)){
+      HttpContext.Response.Headers.Add("Content-Type", "image/heic");
+      var image = await System.IO.File.ReadAllBytesAsync(path);
+      await HttpContext.Response.Body.WriteAsync(image);
+    } else {
+      await HttpContext.Response.Body.WriteAsync(await resize(path));
+    }
     return new EmptyResult();
   }
 
