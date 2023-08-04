@@ -17,7 +17,7 @@ public class CalendarController : Controller
   public async Task<IActionResult> All()
   {
     ViewBag.Calendar = "class = active";
-    var models = Cache.Models.Where(p => p.Visible).OrderBy(p => p.Date).ToList();
+    var models = Cache.Models.Where(p => p.Visible).Where(p => p.Date != null).OrderBy(p => p.Date).ToList();
     return View(models);
   }
 
