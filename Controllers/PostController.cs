@@ -55,12 +55,29 @@ public class PostController : Controller
       if (System.IO.File.Exists(synologyPath))
         path = synologyPath;
     }
-    if (!System.IO.File.Exists(path))
-      return NotFound();
+    
+    if (!System.IO.File.Exists(path)){
+      if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
+        path = ToggleCaseExtension(path);  
+        if (!System.IO.File.Exists(path)){
+          return NotFound();
+        }
+      } else {
+        return NotFound();
+      }
+    }
+    
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
     await HttpContext.Response.Body.WriteAsync(await resize(path));
     return new EmptyResult();
+  }
+
+  private string ToggleCaseExtension(string path)
+  {
+    string ext = System.IO.Path.GetExtension(path);
+    string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
+    return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
   }
 
   private string ComputeMD5(string s)
