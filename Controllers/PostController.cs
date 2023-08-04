@@ -24,28 +24,46 @@ public class PostController : Controller
   [AllowAnonymous]
   public async Task<IActionResult> Index(Payload payload)
   {
+    _logger.LogInformation("Index method started for payload: {Payload}", payload);
+    
     var model = Cache.Models.SingleOrDefault(f => f.Title == payload.Title);
     if(model == null)
+    {
+      _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
       return NotFound();
+    }
+  
     if (string.IsNullOrEmpty(payload.Image))
     {
-        model.Markdown = System.IO.File.ReadAllText(model.Path);
-        return View(model);
+      _logger.Debug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
+      model.Markdown = System.IO.File.ReadAllText(model.Path);
+      return View(model);
     }
-
-  if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true) {
-    if(!model.CoverImage.Contains(payload.Image))
-      if (Config.Password != null && !User.Identity.IsAuthenticated)
-        return NotFound();
-
+  
+    if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true) 
+    {
+      if(!model.CoverImage.Contains(payload.Image))
+      {
+        if (Config.Password != null && !User.Identity.IsAuthenticated)
+        {
+          _logger.Warning("Unauthenticated request with Config.Password set.");
+          return NotFound();
+        }
+      }
+      
       var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";
+      _logger.Debug("Calling Synology method with path: {Path}", path);
       return await Synology(path);
     }
-    return NotFound();
+    else
+    {
+      _logger.Warning("Payload image not found in CoverImage and Markdown.");
+      return NotFound();
+    }
   }
 
+
   private async Task<IActionResult> Synology(string path) {
-    Console.WriteLine(Config.Synology);
     if (Config.Synology)
     {
       var synologyFile = Path.GetFileName(path);
@@ -53,19 +71,21 @@ public class PostController : Controller
       var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
       synologyPath = $"{directory}/{synologyPath}";
 
-      Console.WriteLine(synologyPath);
-
-      if (System.IO.File.Exists(synologyPath))
+      if (System.IO.File.Exists(synologyPath)) {
         path = synologyPath;
+        _logger.Debug("Synology file exists. Updated path to: {0}", path);
+      }
     }
     
     if (!System.IO.File.Exists(path)){
       if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
         path = ToggleCaseExtension(path);  
         if (!System.IO.File.Exists(path)){
+          _logger.Warning("File does not exist after toggling case of extension: {0}", path);
           return NotFound();
         }
       } else {
+        _logger.Warning("File does not exist after toggling case of extension: {0}", path);
         return NotFound();
       }
     }
@@ -80,6 +100,7 @@ public class PostController : Controller
   {
     string ext = System.IO.Path.GetExtension(path);
     string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
+    _logger.Debug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
     return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
   }
 
@@ -93,6 +114,7 @@ public class PostController : Controller
     }
 
   private async Task<byte[]> resize(string path) {
+    _logger.Debug("Resize method started for path: {0}", path);
     try{
       var fileName = $"{Config.ConfigDir}/images{path}";
       if (System.IO.File.Exists(fileName)) {
@@ -131,7 +153,7 @@ public class PostController : Controller
         return outputStream.ToArray();
       }
     } catch(Exception e){
-      Console.WriteLine("Error Reading File: {0}", path);
+      _logger.LogError(e, "Error Reading File: {0}", path);
       throw;
     }
   }
