@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.SetMinimumLevel(Config.LogLevel);
+builder.Logging.SetMinimumLevel((LogLevel)Config.LogLevel);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
