@@ -45,12 +45,14 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 
 | Variable name    | Default value | Description                                                                                            |
 | ----------------:|:-------------:| ------------------------------------------------------------------------------------------------------ |
-| SYNOLOGY_SUPPORT | `false`        | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found. |
-| PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment. Remember to mount `/config` dir to persist login between restarts. |
-| CONFIG_DIR | `/config` | When using `PASSWORD` env variabel, mount a `CONFIG_DIR` so that logins are persisted between container restarts. |
+| CONFIG_DIR       | `/config`     | When using `PASSWORD` env variable, mount a `CONFIG_DIR` so that logins are persisted between container restarts. |
 | DATA_DIR         | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.             |
-| DOMAIN           | `localhost`   | This is primarly to support the Open Graph Protocol and link previews of your site.                    |
+| DOMAIN           | `localhost`   | This is primarily to support the Open Graph Protocol and link previews of your site.                    |
+| PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment. Remember to mount `/config` dir to persist login between restarts. |
+| PICOBLOG_LOG_LEVEL | `Information` | Sets the logging level. Available levels are `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, and `None`. Default is `Information`.|
 | SYNOLOGY_SIZE    | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.       |
+| SYNOLOGY_SUPPORT | `false`        | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found. |
+
 
 # Install
 
