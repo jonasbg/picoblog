@@ -92,4 +92,29 @@ using (var serviceScope = app.Services.CreateScope())
     monitorLoop.StartMonitorLoop();
 }
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next.Invoke();
+        
+        // If status code is not 200, log it
+        if (context.Response.StatusCode != 200)
+        {
+            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            Console.WriteLine($"[RemoteIP::{ip}]:[StatusCode::{context.Response.StatusCode}]:{context.Request.Path}");
+        }
+    }
+    catch (Exception ex)
+    {
+        if (context.Response.StatusCode == 500)
+        {
+            Console.WriteLine(ex);
+        }
+        
+        // Re-throw the exception so it can be handled by other middleware
+        throw;
+    }
+});
+
 app.Run();
