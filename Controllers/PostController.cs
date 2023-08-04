@@ -45,12 +45,15 @@ public class PostController : Controller
   }
 
   private async Task<IActionResult> Synology(string path) {
+    Console.WriteLine(Config.Synology);
     if (Config.Synology)
     {
       var synologyFile = Path.GetFileName(path);
       var directory = Path.GetDirectoryName(path);
       var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
       synologyPath = $"{directory}/{synologyPath}";
+
+      Console.WriteLine(synologyPath);
 
       if (System.IO.File.Exists(synologyPath))
         path = synologyPath;
