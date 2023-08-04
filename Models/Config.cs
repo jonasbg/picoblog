@@ -13,7 +13,25 @@ public static class Config{
   public static string? Password => string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PASSWORD")) ? null : Environment.GetEnvironmentVariable("PASSWORD");
   public static string DataDir => Environment.GetEnvironmentVariable("DATA_DIR");
   public static string Domain => $"https://{Environment.GetEnvironmentVariable("DOMAIN")}";
-
+  public static int LogLevel
+  {
+      get
+      {
+          string logLevelString = Environment.GetEnvironmentVariable("PICOBLOG_LOG_LEVEL");
+  
+          return logLevelString.ToLower() switch
+          {
+              "trace" => 0,
+              "debug" => 1,
+              "information" => 2,
+              "warning" => 3,
+              "error" => 4,
+              "critical" => 5,
+              "none" => 6,
+              _ => 6, // default to "None" if the input doesn't match any of the expected values
+          };
+      }
+  }
 
   public static string SynologySize() {
     var sizeEnv = Environment.GetEnvironmentVariable("SYNOLOGY_SIZE");
