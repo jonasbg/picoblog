@@ -5,7 +5,6 @@ using picoblog.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
-using Microsoft.Extensions.Logging;
 
 namespace picoblog.Controllers;
 
@@ -36,7 +35,7 @@ public class PostController : Controller
   
     if (string.IsNullOrEmpty(payload.Image))
     {
-      _logger.Debug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
+      _logger.LogDebug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
       model.Markdown = System.IO.File.ReadAllText(model.Path);
       return View(model);
     }
@@ -47,18 +46,18 @@ public class PostController : Controller
       {
         if (Config.Password != null && !User.Identity.IsAuthenticated)
         {
-          _logger.Warning("Unauthenticated request with Config.Password set.");
+          _logger.LogWarning("Unauthenticated request with Config.Password set.");
           return NotFound();
         }
       }
       
       var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";
-      _logger.Debug("Calling Synology method with path: {Path}", path);
+      _logger.LogDebug("Calling Synology method with path: {Path}", path);
       return await Synology(path);
     }
     else
     {
-      _logger.Warning("Payload image not found in CoverImage and Markdown.");
+      _logger.LogWarning("Payload image not found in CoverImage and Markdown.");
       return NotFound();
     }
   }
@@ -74,7 +73,7 @@ public class PostController : Controller
 
       if (System.IO.File.Exists(synologyPath)) {
         path = synologyPath;
-        _logger.Debug("Synology file exists. Updated path to: {0}", path);
+        _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
       }
     }
     
@@ -82,11 +81,11 @@ public class PostController : Controller
       if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
         path = ToggleCaseExtension(path);  
         if (!System.IO.File.Exists(path)){
-          _logger.Warning("File does not exist after toggling case of extension: {0}", path);
+          _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
           return NotFound();
         }
       } else {
-        _logger.Warning("File does not exist after toggling case of extension: {0}", path);
+        _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
         return NotFound();
       }
     }
@@ -101,7 +100,7 @@ public class PostController : Controller
   {
     string ext = System.IO.Path.GetExtension(path);
     string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
-    _logger.Debug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
+    _logger.LogDebug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
     return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
   }
 
@@ -115,7 +114,7 @@ public class PostController : Controller
     }
 
   private async Task<byte[]> resize(string path) {
-    _logger.Debug("Resize method started for path: {0}", path);
+    _logger.LogDebug("Resize method started for path: {0}", path);
     try{
       var fileName = $"{Config.ConfigDir}/images{path}";
       if (System.IO.File.Exists(fileName)) {
