@@ -107,10 +107,7 @@ app.Use(async (context, next) =>
     }
     catch (Exception ex)
     {
-        if (context.Response.StatusCode == 500)
-        {
-            Console.WriteLine(ex);
-        }
+        Console.WriteLine(ex);
         
         // Re-throw the exception so it can be handled by other middleware
         throw;
