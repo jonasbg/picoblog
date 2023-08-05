@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated the README to reflect new environment variables and features.
 
+## Fixed
+- Potential bug when finding frontmatter with the `MarkdownModel.cs` class.
+
 ## [0.0.7]
 ### Added
 - Background polling for new files
