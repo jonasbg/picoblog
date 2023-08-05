@@ -51,6 +51,5 @@ public class BackupService : BackgroundService
         process.WaitForExit();
         
         _logger.LogInformation($"Backup created: {backupFile}");
-
     }
 }
