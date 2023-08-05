@@ -32,7 +32,7 @@ public class BackupService : BackgroundService
 
     private void PerformBackup()
     {
-        string backupDirectory = Path.Combine(Config.ConfigDir, "backup");
+        string backupDirectory = Path.Combine(Config.ConfigDir, "backups");
         string backupFile = $"{backupDirectory}/{DateTime.Now:yyyy-MM-dd}.tar.bz2";
         string sourceDirectory = Config.DataDir; // Base directory for relative paths
         
