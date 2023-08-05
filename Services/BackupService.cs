@@ -34,21 +34,27 @@ public class BackupService : BackgroundService
     {
         string backupDirectory = Path.Combine(Config.ConfigDir, "backup");
         string backupFile = $"{backupDirectory}/{DateTime.Now:yyyy-MM-dd}.tar.bz2";
-        string sourceDirectory = Config.DataDir;
+        string sourceDirectory = Config.DataDir; // Base directory for relative paths
         
         // Create the backup directory if it doesn't exist
         Directory.CreateDirectory(backupDirectory);
         
-        // Use the find and tar commands to create the tar.bz2 archive, including only Markdown files
-        Process process = new Process();
-        process.StartInfo.FileName = "bash";
-        process.StartInfo.Arguments = $"-c \"find {sourceDirectory} -name '*.md' | tar -cvjf {backupFile} -T -\"";
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.CreateNoWindow = true;
+        // Create a tar archive
+        using (var tarStream = File.OpenWrite(backupFile))
+        using (var bz2Stream = new BZip2Stream(tarStream, CompressionMode.Compress))
+        using (var archive = TarArchive.Create())
+        {
+            // Add all Markdown files from the Cache.Models to the tar archive
+            foreach (var model in Cache.Models)
+            {
+                var filePath = model.Path;
+                var entryName = filePath.Substring(sourceDirectory.Length).TrimStart(Path.DirectorySeparatorChar);
+                archive.AddEntry(entryName, filePath);
+            }
         
-        process.Start();
-        process.WaitForExit();
+            // Save the tar archive as a BZip2-compressed file
+            archive.SaveTo(bz2Stream, new WriterOptions(CompressionType.BZip2));
+        }
         
         _logger.LogInformation($"Backup created: {backupFile}");
     }
