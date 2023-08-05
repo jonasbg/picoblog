@@ -41,7 +41,7 @@ public class BackupService : BackgroundService
         
         // Create a tar archive
         using (var tarStream = File.OpenWrite(backupFile))
-        using (var bz2Stream = new BZip2Stream(tarStream, CompressionMode.Compress))
+        using (var bz2Stream = new BZip2Stream(tarStream, CompressionMode.Compress, false))
         using (var archive = TarArchive.Create())
         {
             // Add all Markdown files from the Cache.Models to the tar archive
