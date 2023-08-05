@@ -5,9 +5,14 @@ using picoblog.Models;
 
 public class BackupService : BackgroundService
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<BackupService> _logger;
+
+    public BackupService(ILogger<BackupService> logger)
+    {
+        _logger = logger;
+    }
     
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken, ILogger<BackupService> logger)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         bool enableBackup = Config.EnableBackup; 
         if (enableBackup)
