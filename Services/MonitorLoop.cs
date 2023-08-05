@@ -54,62 +54,38 @@ public class MonitorLoop
     foreach (var file in files)
     {
       Console.Write($"Found file: {file} ");
-      int counter = 0;
       var model = new MarkdownModel();
 
-      foreach (string line in System.IO.File.ReadLines(file))
+      string content = File.ReadAllText(file);
+      Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
+      
+      if (match.Success)
       {
-        if (counter == 0 && !line.Trim().Equals("---"))
-        {
-          break;
-        }
-        if (counter > 0 && counter < 10)
-        {
-          if (line.StartsWith("public", StringComparison.InvariantCultureIgnoreCase))
+          string frontmatter = match.Groups[1].Value;
+          foreach (var line in frontmatter.Split('\n'))
           {
-            if (line.Trim().EndsWith("true", StringComparison.InvariantCultureIgnoreCase))
-            {
-              model.Public = true;
-              model.Path = file;
-              if (!models.Any(p => p.Path == model.Path))
+              string[] parts = line.Split(':', 2);
+              if (parts.Length < 2) continue;
+      
+              string key = parts[0].Trim();
+              string value = parts[1].Trim();
+      
+              if (key.Equals("public", StringComparison.InvariantCultureIgnoreCase) && value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
               {
-                System.Console.WriteLine($"{model.Path} exists in Cache IGNORING");
-                models.Add(model);
+                  model.Public = true;
+                  model.Path = file;
+                  if (!models.Any(p => p.Path == model.Path))
+                  {
+                      _logger.LogInformation($"{model.Path} exists in Cache IGNORING");
+                      models.Add(model);
+                  }
               }
-            }
+              else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
+              else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
+              else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Visible = value.ToLower() != "true";
+              else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
+              else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
           }
-          if (line.Trim().StartsWith(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase))
-          {
-            var title = line.Split(':')[1].Trim();
-            model.Title = title;
-          }
-          if (line.Trim().StartsWith(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase))
-          {
-            var date = line.Replace("date:", "", System.StringComparison.InvariantCultureIgnoreCase).Trim();
-            model.Date = DateTime.Parse(date);
-          }
-          if (line.Trim().StartsWith(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase))
-          {
-            var draft = line.Split(':')[1].Trim().ToLower();
-            model.Visible = draft != "true";
-          }
-          if (line.Trim().StartsWith(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase))
-          {
-            var cover = line.Split(':')[1].Trim();
-            model.CoverImage = $"{cover}";
-          }
-          if (line.Trim().StartsWith(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase))
-          {
-            var description = line.Split(':')[1].Trim();
-            model.Description = description;
-          }
-
-          if (line.Trim().Equals("---"))
-            break;
-        }
-        if (counter >= 10)
-          break;
-        counter++;
       }
       if (models.LastOrDefault() == model)
       {
