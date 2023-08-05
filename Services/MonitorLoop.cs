@@ -1,5 +1,3 @@
-using picoblog.Models;
-
 public class MonitorLoop
 {
   private readonly IBackgroundTaskQueue _taskQueue;
