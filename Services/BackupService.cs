@@ -2,14 +2,23 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-class BackupService
+public class BackupService : BackgroundService
 {
-    public static void Start(TimeSpan interval)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        System.Threading.Timer _timer = new System.Threading.Timer(BackupTask, null, TimeSpan.Zero, interval);
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var now = DateTime.Now;
+            var nextRunTime = now.Date.AddDays(1); // Next midnight
+            var delay = nextRunTime - now;
+
+            await Task.Delay(delay, stoppingToken); // Wait until midnight
+
+            PerformBackup(); // Your backup logic here
+        }
     }
 
-    private static void BackupTask(object state)
+    private void PerformBackup()
     {
         string sourceDirectory = Config.DataDir;
         string backupFile = $"{Config.ConfigDir}/{DateTime.Now:yyyy-MM-dd}.tar.bz2";
