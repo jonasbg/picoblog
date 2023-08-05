@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.30.4" />
     <PackageReference Include="SixLabors.ImageSharp.Web" Version="2.0.2" />
-    <PackageReference Include="Quartz" Version="3.7.0" />
   </ItemGroup>
 
 </Project>
