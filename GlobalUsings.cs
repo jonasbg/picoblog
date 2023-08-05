@@ -1,12 +1,16 @@
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.DataProtection; 
+global using Microsoft.AspNetCore.Localization; 
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.Authorization; 
 global using Microsoft.Extensions.Caching.Memory;
 global using picoblog.Models;
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Jpeg;
 global using SixLabors.ImageSharp.Processing;
 global using System.Diagnostics;
+global using System.Globalization; 
 global using System.Security.Claims;
 global using System.Threading.Channels;
