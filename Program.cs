@@ -1,15 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using picoblog.Models;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.DataProtection;
-// using SixLabors.ImageSharp.Web.DependencyInjection;
-// using SixLabors.ImageSharp;
-// using Microsoft.IO;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.SetMinimumLevel((LogLevel)Config.LogLevel);
