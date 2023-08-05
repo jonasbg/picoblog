@@ -5,13 +5,16 @@ using picoblog.Models;
 
 public class BackupService : BackgroundService
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private readonly ILogger _logger;
+    
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken, ILogger<BackupService> logger)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
             var now = DateTime.Now;
             var nextRunTime = now.Date.AddDays(1); // Next midnight
             var delay = nextRunTime - now;
+            _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm}");
 
             await Task.Delay(delay, stoppingToken); // Wait until midnight
 
@@ -35,6 +38,6 @@ public class BackupService : BackgroundService
         process.Start();
         process.WaitForExit();
 
-        Console.WriteLine($"Backup created: {backupFile}");
+        _logger.LogInformation($"Backup created: {backupFile}");
     }
 }
