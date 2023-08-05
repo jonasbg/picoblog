@@ -19,6 +19,7 @@ global using SharpCompress.Archives;
 global using SharpCompress.Archives.Tar;
 global using SharpCompress.Compressors;
 global using SharpCompress.Compressors.BZip2;
+global using SharpCompress.Common;
 global using SharpCompress.Writers;
 global using System;
 global using System.IO;
