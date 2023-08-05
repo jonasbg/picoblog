@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using picoblog.Models;
-
 namespace picoblog.Controllers;
 
 public class MemoriesController : Controller
