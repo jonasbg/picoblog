@@ -32,20 +32,25 @@ public class BackupService : BackgroundService
 
     private void PerformBackup()
     {
+        string backupDirectory = Path.Combine(Config.ConfigDir, "backup");
+        string backupFile = $"{backupDirectory}/{DateTime.Now:yyyy-MM-dd}.tar.bz2";
         string sourceDirectory = Config.DataDir;
-        string backupFile = $"{Config.ConfigDir}/{DateTime.Now:yyyy-MM-dd}.tar.bz2";
-
-        // Use the tar command to create the tar.gz archive
+        
+        // Create the backup directory if it doesn't exist
+        Directory.CreateDirectory(backupDirectory);
+        
+        // Use the find and tar commands to create the tar.bz2 archive, including only Markdown files
         Process process = new Process();
-        process.StartInfo.FileName = "tar";
-        process.StartInfo.Arguments = $"-cvjf {backupFile} -C {sourceDirectory} ."; // Include subdirectories
+        process.StartInfo.FileName = "bash";
+        process.StartInfo.Arguments = $"-c \"find {sourceDirectory} -name '*.md' | tar -cvjf {backupFile} -T -\"";
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.CreateNoWindow = true;
-
+        
         process.Start();
         process.WaitForExit();
-
+        
         _logger.LogInformation($"Backup created: {backupFile}");
+
     }
 }
