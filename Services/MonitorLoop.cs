@@ -3,7 +3,7 @@ public class MonitorLoop
   private readonly IBackgroundTaskQueue _taskQueue;
   private readonly ILogger _logger;
   private readonly CancellationToken _cancellationToken;
-  private DateTime _lastSync;
+  private DateTime _lastSync = DateTime.MinValue;
 
   public MonitorLoop(IBackgroundTaskQueue taskQueue,
       ILogger<MonitorLoop> logger,
@@ -33,7 +33,7 @@ public class MonitorLoop
 
     try
     {
-      if (_lastSync == null || _lastSync <= DateTime.Now.AddMinutes(-5))
+      if (_lastSync == DateTime.MinValue || _lastSync <= DateTime.Now.AddMinutes(-5))
       {
         _logger.LogInformation("Queued Background Task {Guid} is starting.", guid);
         FindFiles();
@@ -48,58 +48,62 @@ public class MonitorLoop
 
   private void FindFiles()
   {
-    _logger.LogInformation("Starting searching for markdown files (*.md)");
-    var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
-    var models = new List<MarkdownModel>();
-    foreach (var file in files)
-    {
-      Console.Write($"Found file: {file} ");
-      var model = new MarkdownModel();
-
-      string content = File.ReadAllText(file);
-      Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
-      
-      if (match.Success)
+      _logger.LogInformation("Starting searching for markdown files (*.md)");
+      var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+      var models = new ConcurrentBag<MarkdownModel>();
+  
+      Parallel.ForEach(files, file =>
       {
-          string frontmatter = match.Groups[1].Value;
-          foreach (var line in frontmatter.Split('\n'))
+          var model = new MarkdownModel();
+          string content = File.ReadAllText(file);
+          Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
+          
+          if (match.Success)
+              ProcessFrontMatter(model, match.Groups[1].Value, file, models);
+      });
+  
+      ProcessResults(models);
+      Cache.Models = models.ToList();
+  }
+  
+  private void ProcessFrontMatter(MarkdownModel model, string frontmatter, string file, ConcurrentBag<MarkdownModel> models)
+  {
+      foreach (var line in frontmatter.Split('\n'))
+      {
+          string[] parts = line.Split(':', 2);
+          if (parts.Length < 2) continue;
+    
+          string key = parts[0].Trim();
+          string value = parts[1].Trim();
+    
+          if (key.Equals("public", StringComparison.InvariantCultureIgnoreCase) && value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
           {
-              string[] parts = line.Split(':', 2);
-              if (parts.Length < 2) continue;
-      
-              string key = parts[0].Trim();
-              string value = parts[1].Trim();
-      
-              if (key.Equals("public", StringComparison.InvariantCultureIgnoreCase) && value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-              {
-                  model.Public = true;
-                  model.Path = file;
-                  if (!models.Any(p => p.Path == model.Path))
-                  {
-                      _logger.LogInformation($"{model.Path} exists in Cache IGNORING");
-                      models.Add(model);
-                  }
-              }
-              else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
-              else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
-              else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Visible = value.ToLower() != "true";
-              else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
-              else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
+              model.Public = true;
+              model.Path = file;
+              models.Add(model);
           }
+          else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
+          else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
+          else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Visible = value.ToLower() != "true";
+          else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
+          else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
       }
+    
       if (models.LastOrDefault() == model)
       {
-        Console.Write("ADDED");
-        if (model.Visible)
-          Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
-        else
-          Console.WriteLine();
+          Console.Write("ADDED");
+          if (model.Visible)
+            Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
+          else
+            Console.WriteLine();
       }
-
+      
       if (models.LastOrDefault() != model)
-        Console.WriteLine("IGNORED");
-    }
-
+      Console.WriteLine("IGNORED");
+  }
+  
+  private void ProcessResults(ConcurrentBag<MarkdownModel> models)
+  {
     if (models.Any(p => p.Visible == false))
     {
       Console.WriteLine($"FOUND {models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
@@ -132,7 +136,5 @@ public class MonitorLoop
       foreach (var del in deleted)
         System.Console.WriteLine($"{del}");
     }
-
-    Cache.Models = models;
   }
 }
