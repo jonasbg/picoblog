@@ -9,16 +9,24 @@ public class BackupService : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken, ILogger<BackupService> logger)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        bool enableBackup = Config.EnableBackup; 
+        if (enableBackup)
         {
-            var now = DateTime.Now;
-            var nextRunTime = now.Date.AddDays(1); // Next midnight
-            var delay = nextRunTime - now;
-            _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm}");
-
-            await Task.Delay(delay, stoppingToken); // Wait until midnight
-
-            PerformBackup(); // Your backup logic here
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var now = DateTime.Now;
+                var nextRunTime = now.Date.AddDays(1); // Next midnight
+                var delay = nextRunTime - now;
+                _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm}");
+        
+                await Task.Delay(delay, stoppingToken); // Wait until midnight
+        
+                PerformBackup(); // Your backup logic here
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Backup is disabled.");
         }
     }
 
