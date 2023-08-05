@@ -14,6 +14,8 @@ global using System.Diagnostics;
 global using System.Globalization; 
 global using System.Security.Claims;
 global using System.Threading.Channels;
+global using System.Threading.Tasks;
+global using System.Collections.Concurrent;
 global using System.Text.RegularExpressions;
 global using SharpCompress.Archives;
 global using SharpCompress.Archives.Tar;
