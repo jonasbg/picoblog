@@ -17,9 +17,9 @@ builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
 
+builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<MonitorLoop>();
 builder.Services.AddHostedService<QueuedHostedService>();
-builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 {
     return new BackgroundTaskQueue(1);
