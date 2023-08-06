@@ -28,8 +28,10 @@ public class HomeController : Controller
       if (!ModelState.IsValid)
           return View(model);
 
-      if (!model.Password.Equals(Config.Password))
+      if (!model.Password.Equals(Config.Password)) {
+        _logger.LogWarning("Failed login attempt by user with IP {IP}", HttpContext.Connection.RemoteIpAddress.ToString());
         return View(model);
+      }
 
       var claims = new List<Claim>
       {
@@ -45,7 +47,7 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && model.ReturnURL.StartsWith("/"))
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
         return Redirect(model.ReturnURL);
       return RedirectToAction("/");
   }
