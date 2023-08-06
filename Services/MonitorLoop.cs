@@ -82,6 +82,7 @@ public class MonitorLoop
               model.Public = true;
               model.Path = file;
               models.Add(model);
+              _logger.LogInformation("FOUND: {File} - URL: {Url}", file, $"{Config.Domain}/post/{model.Title}");
           }
           else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
           else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
@@ -89,18 +90,6 @@ public class MonitorLoop
           else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
           else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
       }
-    
-      if (models.LastOrDefault() == model)
-      {
-          Console.Write("ADDED");
-          if (model.Visible)
-            Console.WriteLine($" ->  {Config.Domain}/post/{model.Title}");
-          else
-            Console.WriteLine();
-      }
-      
-      if (models.LastOrDefault() != model)
-      Console.WriteLine("IGNORED");
   }
   
   private void ProcessResults(IList<MarkdownModel> models)
