@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduced an optional daily backup feature controlled by the `PICOBLOG_ENABLE_BACKUP` environment variable.
 - Implemented global usings through `GlobalUsings.cs` for cleaner code (if applicable to your .NET version).
+- Parallel processing of markdown files during search
   
 ### Changed
 - Updated the README to reflect new environment variables and features.
 
 ### Fixed
 - Potential bug when finding frontmatter with the `MarkdownModel.cs` class.
+
+### Chore
+- Optimized the `MarkdownModel.cs` class.
 
 ## [0.0.7]
 ### Added
