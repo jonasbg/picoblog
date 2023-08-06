@@ -25,3 +25,4 @@ global using SharpCompress.Common;
 global using SharpCompress.Writers;
 global using System;
 global using System.IO;
+global using Microsoft.AspNetCore.HttpOverrides;
