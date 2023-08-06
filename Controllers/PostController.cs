@@ -110,7 +110,7 @@ public class PostController : Controller
     try{
       var fileName = $"{Config.ConfigDir}/images{path}";
       if (System.IO.File.Exists(fileName)) {
-        using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open))
+        using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
           var result = new byte[SourceStream.Length];
           await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
