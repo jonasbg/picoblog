@@ -115,7 +115,11 @@
         @{
         var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
         var html = Markdown.ToHtml(Model.Markdown, pipeline);
-        html = html.Replace("<p><img src=\"", $"<p class=\"image-wrapper\"><div class=\"spinner\"></div><img class=\"lazy-load\" loading=\"lazy\" src=\"{Model.Title}/");
+
+        string pattern = @"<p><img src=\""([^\""]+)\""(.*?)<\/p>";
+        string replacement = $"<p class=\"image-wrapper\"><img class=\"lazy-load\" loading=\"lazy\" src=\"{Model.Title}/$1\" $2 /><div class=\"spinner\"></div></p>";
+
+        html = Regex.Replace(html, pattern, replacement);
         html = html.Replace($"{Model.Title}/https://", "https://");
         html = html.Replace($"{Model.Title}/http://", "http://");
         }
