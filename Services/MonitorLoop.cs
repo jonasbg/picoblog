@@ -50,7 +50,7 @@ public class MonitorLoop
   {
       _logger.LogInformation("Starting searching for markdown files (*.md)");
       var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
-      var models = new ConcurrentBag<MarkdownModel>();
+      var concurrentModels = new ConcurrentBag<MarkdownModel>();
   
       Parallel.ForEach(files, file =>
       {
@@ -59,11 +59,12 @@ public class MonitorLoop
           Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
           
           if (match.Success)
-              ProcessFrontMatter(model, match.Groups[1].Value, file, models);
+              ProcessFrontMatter(model, match.Groups[1].Value, file, concurrentModels);
       });
-  
+
+      var models = concurrentModels.ToList();
       ProcessResults(models);
-      Cache.Models = models.ToList();
+      Cache.Models = models;
   }
   
   private void ProcessFrontMatter(MarkdownModel model, string frontmatter, string file, ConcurrentBag<MarkdownModel> models)
@@ -102,7 +103,7 @@ public class MonitorLoop
       Console.WriteLine("IGNORED");
   }
   
-  private void ProcessResults(ConcurrentBag<MarkdownModel> models)
+  private void ProcessResults(IList<MarkdownModel> models)
   {
     if (models.Any(p => p.Visible == false))
     {
