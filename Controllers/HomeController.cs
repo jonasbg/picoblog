@@ -47,8 +47,10 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
-        return Redirect(model.ReturnURL);
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL)){
+          string encodedUrl = Uri.EscapeUriString(model.ReturnURL);
+          return Redirect(encodedUrl);
+      }
       return RedirectToAction("/");
   }
 
