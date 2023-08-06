@@ -14,6 +14,57 @@
   .standalone {
     display: none;
   }
+  .flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 15px;
+}
+
+.banner-grid{
+  display: grid;
+  gap: 15px;
+}
+
+.banner-grid img {
+  max-height: 25em;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.hero {
+  position: relative;
+ }
+
+ .flex-container img {
+  height: 200px;
+  width: 200px;
+ }
+
+ .hero img{
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+ }
+
+ .hero .hero-text {
+  position: absolute;
+  bottom: 1vh;
+  left: 5%;
+  transform: none !important;
+  color: white;
+  text-align: left;
+ }
+
+ .hero .hero-text h5 {
+  font-size: 1rem;
+ }
+ .hero .hero-text h3 {
+  font-weight: 900;
+ }
 }
 
 #searchButton svg {
