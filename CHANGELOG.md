@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Potential bug when finding frontmatter with the `MarkdownModel.cs` class.
 - Redirection Validation: Ensure that the redirection is to a local URL to prevent open redirect attacks.
+- Multiple read bug in `resize` method in `PostController`
 
 ### Chore
 - Optimized the `MarkdownModel.cs` class.
