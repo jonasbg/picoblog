@@ -54,12 +54,11 @@ public class MonitorLoop
   
       Parallel.ForEach(files, file =>
       {
-          var model = new MarkdownModel();
           string content = File.ReadAllText(file);
           Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
           
           if (match.Success)
-              ProcessFrontMatter(model, match.Groups[1].Value, file, concurrentModels);
+              ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels);
       });
 
       var models = concurrentModels.ToList();
@@ -67,8 +66,9 @@ public class MonitorLoop
       Cache.Models = models;
   }
   
-  private void ProcessFrontMatter(MarkdownModel model, string frontmatter, string file, ConcurrentBag<MarkdownModel> models)
+  private void ProcessFrontMatter(string frontmatter, string file, ConcurrentBag<MarkdownModel> models)
   {
+      var model = new MarkdownModel();
       foreach (var line in frontmatter.Split('\n'))
       {
           string[] parts = line.Split(':', 2);
@@ -81,8 +81,6 @@ public class MonitorLoop
           {
               model.Public = true;
               model.Path = file;
-              models.Add(model);
-              _logger.LogInformation("FOUND: {File} - URL: {Url}", file, $"{Config.Domain}/post/{model.Title}");
           }
           else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
           else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
@@ -90,6 +88,8 @@ public class MonitorLoop
           else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
           else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
       }
+      _logger.LogInformation("FOUND: {Title} - Path: {Path} - URL: {Url}", model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
+      models.Add(model);
   }
   
   private void ProcessResults(IList<MarkdownModel> models)
@@ -99,7 +99,7 @@ public class MonitorLoop
         var hiddenPosts = models.Where(p => p.Visible == false);
         _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
         foreach (var model in hiddenPosts)
-            _logger.LogInformation($"HIDDEN POST: {Config.Domain}/post/{model.Title}");
+            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Title}");
     }
 
     if (models.Any(p => string.IsNullOrEmpty(p.Title)))
