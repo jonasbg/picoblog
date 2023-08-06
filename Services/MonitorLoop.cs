@@ -96,35 +96,40 @@ public class MonitorLoop
   {
     if (models.Any(p => p.Visible == false))
     {
-      Console.WriteLine($"FOUND {models.Where(p => p.Visible == false).Count()} HIDDEN POSTS");
-      foreach (var model in models.Where(p => p.Visible == false))
-        Console.WriteLine($"{Config.Domain}/post/{model.Title}");
+        var hiddenPosts = models.Where(p => p.Visible == false);
+        _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
+        foreach (var model in hiddenPosts)
+            _logger.LogInformation($"HIDDEN POST: {Config.Domain}/post/{model.Title}");
     }
 
     if (models.Any(p => string.IsNullOrEmpty(p.Title)))
     {
-      Console.WriteLine($"FOUND {models.Where(p => string.IsNullOrEmpty(p.Title)).Count()} POSTS WITHOUT TITLES");
-      foreach (var model in models.Where(p => string.IsNullOrEmpty(p.Title)))
-      { Console.WriteLine($"{model.Path}"); }
+        var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
+        _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
+        
+      foreach (var model in postsWithoutTitles)
+            _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
+      
       models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
     }
 
     var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
     if (duplicates.Any()){
-      System.Console.WriteLine($"FOUND DUPLICATES, REMOVED FROM SET");
+      _logger.LogInformation("FOUND DUPLICATES, REMOVED FROM SET");
       foreach (var title in duplicates)
       {
-        var dups = models.Where(p => p.Title == title);
-        foreach(var dup in dups)
-          System.Console.WriteLine($"[{dup.Title}] {dup.Path} ");
+          var dups = models.Where(p => p.Title == title);
+          foreach(var dup in dups)
+              _logger.LogInformation("Duplicate found: Title: {Title}, Path: {Path}", dup.Title, dup.Path);
       }
       models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
     }
     var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
-    if(deleted.Any()){
-      System.Console.WriteLine("FOUND DELETED FILES");
-      foreach (var del in deleted)
-        System.Console.WriteLine($"{del}");
+    if (deleted.Any())
+    {
+        _logger.LogInformation("FOUND DELETED FILES");
+        foreach (var del in deleted)
+            _logger.LogInformation("DELETED FILE: Title: {Title}, Path: {Path}", del.Title, del.Path);
     }
   }
 }
