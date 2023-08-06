@@ -28,9 +28,12 @@ public class HomeController : Controller
       if (!ModelState.IsValid)
           return View(model);
 
-      if (!model.Password.Equals(Config.Password)) {
-        _logger.LogWarning("Failed login attempt by user with IP {IP}", HttpContext.Connection.RemoteIpAddress.ToString());
-        return View(model);
+      if (!model.Password.Equals(Config.Password))
+      {
+          var headers = HttpContext.Request.Headers;
+          var headersString = string.Join("; ", headers.Select(h => $"{h.Key}: {h.Value}"));
+          _logger.LogWarning("Failed login attempt by user with IP {IP}. Headers: {Headers}", HttpContext.Connection.RemoteIpAddress.ToString(), headersString);
+          return View(model);
       }
 
       var claims = new List<Claim>

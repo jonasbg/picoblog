@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 namespace picoblog.Models;
 
 public class Payload {
