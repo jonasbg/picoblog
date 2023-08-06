@@ -48,6 +48,11 @@ else
 var app = builder.Build();
 // app.UseImageSharp();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
+
 if (Config.Password != null)
 {
   app.UseCookiePolicy();
