@@ -112,3 +112,38 @@ main {
     height: 3em;
   }
 }
+
+/* Start of CSS for lazy loading images with a spinner */
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.lazy-load {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lazy-load[loading='eager'] {
+  opacity: 1;
+}
+
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 5px solid #3498db;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+/* End of CSS for lazy loading images with a spinner */
