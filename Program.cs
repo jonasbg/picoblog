@@ -1,15 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using picoblog.Models;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.DataProtection;
-// using SixLabors.ImageSharp.Web.DependencyInjection;
-// using SixLabors.ImageSharp;
-// using Microsoft.IO;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.SetMinimumLevel((LogLevel)Config.LogLevel);
@@ -17,6 +5,7 @@ builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
 
+builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<MonitorLoop>();
 builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
@@ -58,6 +47,11 @@ else
 
 var app = builder.Build();
 // app.UseImageSharp();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
 
 if (Config.Password != null)
 {

@@ -1,5 +1,3 @@
-using System.Threading.Channels;
-
 public interface IBackgroundTaskQueue
 {
     ValueTask QueueBackgroundWorkItemAsync(Func<CancellationToken, ValueTask> workItem);

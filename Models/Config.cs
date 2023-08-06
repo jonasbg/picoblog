@@ -13,6 +13,8 @@ public static class Config{
   public static string? Password => string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PASSWORD")) ? null : Environment.GetEnvironmentVariable("PASSWORD");
   public static string DataDir => Environment.GetEnvironmentVariable("DATA_DIR");
   public static string Domain => $"https://{Environment.GetEnvironmentVariable("DOMAIN")}";
+  public static bool EnableBackup => 
+    Environment.GetEnvironmentVariable("PICOBLOG_ENABLE_BACKUP")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
   public static int LogLevel => Environment.GetEnvironmentVariable("PICOBLOG_LOG_LEVEL")?.ToLower() switch
   {
       "trace" => 0,

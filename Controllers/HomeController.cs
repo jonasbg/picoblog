@@ -1,11 +1,3 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using picoblog.Models;
-
 namespace picoblog.Controllers;
 [Route("")]
 public class HomeController : Controller
@@ -36,8 +28,10 @@ public class HomeController : Controller
       if (!ModelState.IsValid)
           return View(model);
 
-      if (!model.Password.Equals(Config.Password))
+      if (!model.Password.Equals(Config.Password)) {
+        _logger.LogWarning("Failed login attempt by user with IP {IP}", HttpContext.Connection.RemoteIpAddress.ToString());
         return View(model);
+      }
 
       var claims = new List<Claim>
       {
@@ -53,7 +47,7 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && model.ReturnURL.StartsWith("/"))
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
         return Redirect(model.ReturnURL);
       return RedirectToAction("/");
   }
