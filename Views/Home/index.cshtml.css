@@ -3,6 +3,19 @@
   border: none;
 }
 
+@media all and (display-mode: standalone) {
+  /* Your PWA specific styles here */
+  .browser {
+    display: none;
+  }
+}
+@media all and (display-mode: browser) {
+  /* Your browser specific styles here */
+  .standalone {
+    display: none;
+  }
+}
+
 #searchButton svg {
   color: #4f4f4fc7;
 }
