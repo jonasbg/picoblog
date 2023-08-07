@@ -30,15 +30,14 @@ public class HomeController : Controller
 
       if (!model.Password.Equals(Config.Password))
       {
-          var headers = HttpContext.Request.Headers;
-          var headersString = string.Join("; ", headers.Select(h => $"{h.Key}: {h.Value}"));
-          _logger.LogWarning("Failed login attempt by user with IP {IP}. Headers: {Headers}", HttpContext.Connection.RemoteIpAddress.ToString(), headersString);
+          string clientIp = HttpContext.Request.Headers["Cf-Connecting-Ip"].FirstOrDefault() ?? HttpContext.Connection.RemoteIpAddress.ToString();
+          _logger.LogWarning("Failed login attempt by user with IP {IP}.", clientIp);
           return View(model);
       }
 
       var claims = new List<Claim>
       {
-          new Claim(nameof(LoginViewModel.Password), model.Password)
+          new Claim(ClaimTypes.Name, "shared password user")
       };
 
       var claimsIdentity = new ClaimsIdentity(
@@ -50,10 +49,9 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL)){
-          string encodedUrl = Uri.EscapeUriString(model.ReturnURL);
-          return Redirect(encodedUrl);
-      }
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
+        return Redirect(model.ReturnURL);
+
       return RedirectToAction("/");
   }
 
