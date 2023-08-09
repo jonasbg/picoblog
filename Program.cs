@@ -93,7 +93,7 @@ app.Use(async (context, next) =>
     try
     {
         await next.Invoke();
-        
+
         // If status code is not 200, log it
         if (context.Response.StatusCode != 200)
         {
@@ -104,7 +104,7 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         Console.WriteLine(ex);
-        
+
         // Re-throw the exception so it can be handled by other middleware
         throw;
     }
