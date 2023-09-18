@@ -66,10 +66,7 @@
             const favorite = localStorage.getItem(window.location.pathname);
             const title = decodeURI(window.location.pathname.replace("/post/",""));
 
-            var favorites = JSON.parse(localStorage.getItem("favorites"));
-            if (favorites == null){
-                favorites = [];
-            }
+            var favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
             const index = favorites.indexOf(title);
             if (index !== -1){
@@ -90,9 +87,8 @@
         }
 
         function setFavorite() {
-            console.log("Onload hit");
             const title = decodeURI(window.location.pathname.replace("/post/",""));
-            const favorites = JSON.parse(localStorage.getItem("favorites"));
+            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
             const index = favorites.indexOf(title);
             if (index >= 0 ){
                 switchFavorite();
@@ -127,4 +123,5 @@
             <img style="height: 3vw; margin-bottom: 10vh;" src="/icon/arrow_up.svg">
         </a>
     </div>
+    @Html.Partial("_ImageViewer")
 </div>

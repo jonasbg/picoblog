@@ -2,6 +2,10 @@ img:not(.hero > img) {
   border-radius: 5px;
 }
 
+.clickable-image {
+  cursor: pointer;
+}
+
 h1, h2, h3 {
   text-align: center!important;
   font-variant: small-caps;

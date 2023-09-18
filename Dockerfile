@@ -43,8 +43,9 @@ ENV SYNOLOGY_SUPPORT=false
 ENV IMAGE_CACHE_MINUTES=15
 ENV IMAGE_QUALITY=65
 ENV IMAGE_MAX_SIZE=1280
-# Trace, Debug, Information, Warning, Error, Critical, or None. 
+# Trace, Debug, Information, Warning, Error, Critical, or None.
 ENV PICOBLOG_LOG_LEVEL=Information
+ENV PICOBLOG_ENABLE_BACKUP=false
 
 WORKDIR /app
 RUN mkdir $CONFIG_DIR $DATA_DIR && chown app $CONFIG_DIR $DATA_DIR

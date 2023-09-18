@@ -15,11 +15,14 @@ public class BackupService : BackgroundService
             while (!stoppingToken.IsCancellationRequested)
             {
                 var now = DateTime.Now;
+                _logger.LogDebug($"Current time is: {now:yyyy-MM-dd HH:mm}");
                 var nextRunTime = now.Date.AddDays(1); // Next midnight
                 var delay = nextRunTime - now;
-                _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm}");
+                _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm} which is in {(int)delay.TotalHours} hours and {delay.Minutes} minutes");
 
                 await Task.Delay(delay, stoppingToken); // Wait until midnight
+
+                _logger.LogDebug($"Current time is: {now:yyyy-MM-dd HH:mm}");
 
                 PerformBackup(); // Your backup logic here
             }
@@ -54,9 +57,9 @@ public class BackupService : BackgroundService
             foreach (var model in Cache.Models)
             {
                 var filePath = model.Path;
+                _logger.LogDebug($"Adding {model.Title} to archive: {filePath}");
                 var entryName = filePath.Substring(sourceDirectory.Length).TrimStart(Path.DirectorySeparatorChar);
                 archive.AddEntry(entryName, filePath);
-                _logger.LogDebug($"Added file to archive: {filePath}");
             }
 
             // Save the tar archive as a BZip2-compressed file

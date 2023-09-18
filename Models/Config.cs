@@ -13,19 +13,8 @@ public static class Config{
   public static string? Password => string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PASSWORD")) ? null : Environment.GetEnvironmentVariable("PASSWORD");
   public static string DataDir => Environment.GetEnvironmentVariable("DATA_DIR") ?? "/data";
   public static string Domain => $"https://{Environment.GetEnvironmentVariable("DOMAIN")}" ?? "localhost";
-  public static bool EnableBackup => 
+  public static bool EnableBackup =>
     Environment.GetEnvironmentVariable("PICOBLOG_ENABLE_BACKUP")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
-  public static int LogLevel => Environment.GetEnvironmentVariable("PICOBLOG_LOG_LEVEL")?.ToLower() switch
-  {
-      "trace" => 0,
-      "debug" => 1,
-      "information" => 2,
-      "warning" => 3,
-      "error" => 4,
-      "critical" => 5,
-      "none" => 6,
-      _ => 2, // default to "Information" if the input doesn't match any of the expected values or if the environment variable is not set
-  };
 
   public static string SynologySize() {
     var sizeEnv = Environment.GetEnvironmentVariable("SYNOLOGY_SIZE");

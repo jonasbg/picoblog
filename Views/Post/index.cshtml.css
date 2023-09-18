@@ -9,6 +9,11 @@ main {
   font-size: 16px; /* defines the base font size */
 }
 
+.no-scroll {
+  overflow: hidden; /* disables scrolling */
+  height: 100%; /* keeps the layout stable */
+}
+
 .top-left {
   position: fixed;
   color: white;

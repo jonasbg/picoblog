@@ -1,6 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.SetMinimumLevel((LogLevel)Config.LogLevel);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 builder.Services.AddHealthChecks();
@@ -45,6 +44,12 @@ else
       options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
   });
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.MinifyJsFiles("**/*.js");
+    pipeline.MinifyCssFiles("css/**/*.css");
+});
+
 var app = builder.Build();
 // app.UseImageSharp();
 
@@ -60,6 +65,7 @@ if (Config.Password != null)
   app.UseAuthorization();
 }
 
+app.UseWebOptimizer();
 app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureToResponseHeaders = true });
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
@@ -109,5 +115,14 @@ app.Use(async (context, next) =>
         throw;
     }
 });
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+logger.LogTrace("Trace level log");
+logger.LogDebug("Debug level log");
+logger.LogInformation("Information level log");
+logger.LogWarning("Warning level log");
+logger.LogError("Error level log");
+logger.LogCritical("Critical level log");
 
 app.Run();

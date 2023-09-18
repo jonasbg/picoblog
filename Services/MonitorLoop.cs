@@ -51,12 +51,12 @@ public class MonitorLoop
       _logger.LogInformation("Starting searching for markdown files (*.md)");
       var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
       var concurrentModels = new ConcurrentBag<MarkdownModel>();
-  
+
       Parallel.ForEach(files, file =>
       {
           string content = File.ReadAllText(file);
           Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
-          
+
           if (match.Success)
               ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels);
       });
@@ -65,7 +65,7 @@ public class MonitorLoop
       ProcessResults(models);
       Cache.Models = models;
   }
-  
+
   private void ProcessFrontMatter(string frontmatter, string file, ConcurrentBag<MarkdownModel> models)
   {
       var model = new MarkdownModel();
@@ -73,15 +73,12 @@ public class MonitorLoop
       {
           string[] parts = line.Split(':', 2);
           if (parts.Length < 2) continue;
-    
+
           string key = parts[0].Trim();
           string value = parts[1].Trim();
-    
-          if (key.Equals("public", StringComparison.InvariantCultureIgnoreCase) && value.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-          {
-              model.Public = true;
-              model.Path = file;
-          }
+
+          model.Path = file;
+          if (key.Equals(MetadataHeader.Public, StringComparison.InvariantCultureIgnoreCase)) model.Public = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
           else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
           else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
           else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Visible = value.ToLower() != "true";
@@ -91,7 +88,7 @@ public class MonitorLoop
       _logger.LogInformation("FOUND: {Title} - Path: {Path} - URL: {Url}", model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
       models.Add(model);
   }
-  
+
   private void ProcessResults(IList<MarkdownModel> models)
   {
     if (models.Any(p => p.Visible == false))
@@ -106,10 +103,10 @@ public class MonitorLoop
     {
         var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
         _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
-        
+
       foreach (var model in postsWithoutTitles)
             _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
-      
+
       models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
     }
 
