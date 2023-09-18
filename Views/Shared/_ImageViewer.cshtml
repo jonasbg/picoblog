@@ -1,0 +1,114 @@
+<!-- _ImageViewer.cshtml -->
+
+<div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <button id="prevImage" class="prev">←</button>
+    <div class="modal-flex-container" id="modal-container">  <!-- This is our inner flex container -->
+        <img class="modal-image-content" id="modalImage">
+    </div>
+    <button id="nextImage" class="next">→</button>
+    <div id="caption"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById("imageModal");
+    var modalContainer = document.getElementById("modal-container");
+    var modalImg = document.getElementById("modalImage");
+    var captionText = document.getElementById("caption");
+    var images = document.querySelectorAll(".rendered-markdown img");
+    var currentIndex;
+
+    modalImg.onclick = function(event) {
+        event.stopPropagation();
+    }
+
+    images.forEach((img, index) => {
+    img.classList.add('clickable-image');  // Adding the CSS class
+        img.onclick = function() {
+            modal.style.display = "block";
+            modalImg.src = this.src;
+            captionText.innerHTML = this.alt;
+            currentIndex = index;
+            document.body.classList.add('no-scroll');
+            document.body.style.overflow = 'hidden';
+        }
+    });
+
+    document.getElementById("prevImage").addEventListener("click", function() {
+        event.stopPropagation();
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        modalImg.src = images[currentIndex].src;
+        captionText.innerHTML = images[currentIndex].alt;
+    });
+
+    document.getElementById("nextImage").addEventListener("click", function() {
+        event.stopPropagation();
+        currentIndex = (currentIndex + 1) % images.length;
+        modalImg.src = images[currentIndex].src;
+        captionText.innerHTML = images[currentIndex].alt;
+    });
+
+    var span = document.getElementsByClassName("close")[0];
+    span.onclick = function() {
+        event.stopPropagation();  // Prevent the click from propagating up
+        closeModal();
+    }
+
+    modalContainer.onclick = function(event) {
+        if (event.target === modalContainer) {
+            closeModal();
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+        document.body.classList.remove('no-scroll');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (modal.style.display === "block") {
+            switch (event.key) {
+                case "Escape":
+                    closeModal();
+                    break;
+                case "ArrowLeft":
+                    document.getElementById("prevImage").click();
+                    break;
+                case "ArrowRight":
+                    document.getElementById("nextImage").click();
+                    break;
+            }
+        }
+    });
+
+    // Swipe functionality
+    let startX;
+
+    modalImg.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            startX = e.touches[0].clientX;
+        } else {
+            startX = null;
+        }
+    });
+
+    modalImg.addEventListener('touchmove', function(e) {
+        if (startX) {
+            let endX = e.touches[0].clientX;
+            let diffX = startX - endX;
+
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0) {
+                    document.getElementById("nextImage").click();
+                } else {
+                    document.getElementById("prevImage").click();
+                }
+                startX = null;
+            }
+        }
+    });
+
+});
+</script>
