@@ -53,6 +53,8 @@ spec:
               readOnly: true
             - mountPath: /tmp
               name: tempfs
+            - mountPath: /app/obj/WebOptimizerCache
+              name: tempfs
             {{- if .Values.env.PASSWORD }}
             - mountPath: /config
               name: picoblog-config
