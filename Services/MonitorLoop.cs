@@ -49,7 +49,7 @@ public class MonitorLoop
   private void FindFiles()
   {
       _logger.LogInformation("Starting searching for markdown files (*.md)");
-      var files = Directory.GetFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+      var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
       var concurrentModels = new ConcurrentBag<MarkdownModel>();
 
       Parallel.ForEach(files, file =>
