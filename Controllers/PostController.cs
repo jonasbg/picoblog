@@ -120,12 +120,6 @@ public class PostController : Controller
   
       using (var outputStream = new MemoryStream())
       {
-        var format = await Image.DetectFormatAsync(path);
-        if (format == null)
-        {
-            var originalFileBytes = await File.ReadAllBytesAsync(path);
-            return originalFileBytes;
-        }
         using (var image = await Image.LoadAsync(path))
         {
             int width = image.Width / 2;
@@ -152,7 +146,8 @@ public class PostController : Controller
       }
     } catch(Exception e){
       _logger.LogError(e, "Error Reading File: {0}", path);
-      throw;
+      var originalFileBytes = await File.ReadAllBytesAsync(path);
+      return originalFileBytes;
     }
   }
 }
