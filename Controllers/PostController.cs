@@ -120,6 +120,12 @@ public class PostController : Controller
   
       using (var outputStream = new MemoryStream())
       {
+        var format = await Image.DetectFormatAsync(path);
+        if (format == null)
+        {
+            var originalFileBytes = await File.ReadAllBytesAsync(path);
+            return originalFileBytes;
+        }
         using (var image = await Image.LoadAsync(path))
         {
             int width = image.Width / 2;
