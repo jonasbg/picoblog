@@ -65,7 +65,7 @@ if (Config.Password != null)
   app.UseAuthorization();
 }
 
-app.UseWebOptimizer();
+//app.UseWebOptimizer();
 app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureToResponseHeaders = true });
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
