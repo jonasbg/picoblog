@@ -44,11 +44,11 @@ else
       options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
   });
 
-builder.Services.AddWebOptimizer(pipeline =>
-{
-    pipeline.MinifyJsFiles("**/*.js");
-    pipeline.MinifyCssFiles("css/**/*.css");
-});
+// builder.Services.AddWebOptimizer(pipeline =>
+// {
+//    pipeline.MinifyJsFiles("**/*.js");
+//    pipeline.MinifyCssFiles("css/**/*.css");
+// });
 
 var app = builder.Build();
 // app.UseImageSharp();
@@ -110,7 +110,6 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         Console.WriteLine(ex);
-
         // Re-throw the exception so it can be handled by other middleware
         throw;
     }
