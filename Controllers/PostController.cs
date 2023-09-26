@@ -146,8 +146,7 @@ public class PostController : Controller
       }
     } catch(Exception e){
       _logger.LogError(e, "Error Reading File: {0}", path);
-      var originalFileBytes = await File.ReadAllBytesAsync(path);
-      return originalFileBytes;
+      throw;
     }
   }
 }
