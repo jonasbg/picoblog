@@ -25,10 +25,14 @@ if (Config.Password != null)
   builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
      .AddCookie(options =>
      {
-       options.Cookie.HttpOnly = true; options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; options.Cookie.SameSite = SameSiteMode.Strict;
+       options.Cookie.HttpOnly = true; 
+       options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+       options.Cookie.SameSite = SameSiteMode.Strict;
+       options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
        options.ExpireTimeSpan = TimeSpan.FromDays(30);
        options.SlidingExpiration = true;
-       options.Cookie.Name = "Picoblog.AuthCookie"; options.LoginPath = "/login";
+       options.Cookie.Name = "Picoblog.AuthCookie"; 
+       options.LoginPath = "/login";
      });
   builder.Services.AddControllersWithViews(options =>
   {
