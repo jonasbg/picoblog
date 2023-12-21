@@ -1,0 +1,17 @@
+# 1
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+RUN apt-get update \
+    && apt-get install unzip \
+    && curl -sSL https://aka.ms/getvsdbgsh | /bin/sh /dev/stdin -v latest -l /vsdbg
+
+# 2
+WORKDIR /app
+COPY . .
+
+# 3
+ENV ASPNETCORE_URLS=http://*:8080
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# 5
+ENTRYPOINT ["dotnet", "watch", "run"]

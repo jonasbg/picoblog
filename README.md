@@ -53,6 +53,16 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 | SYNOLOGY_SIZE        | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.                           |
 | SYNOLOGY_SUPPORT     | `false`       | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found.                   |
 
+# Debug and contribute
+<details>
+  <summary>Docker Compose</summary>
+
+```bash
+docker compose up --build webapi
+```
+
+</details>
+
 # Install
 
 <details>
