@@ -52,6 +52,8 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 | PICOBLOG_ENABLE_BACKUP | `false`      | Enables automatic daily backups of posts. Set to `true` to enable, `false` to disable.                                    |
 | SYNOLOGY_SIZE        | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.                           |
 | SYNOLOGY_SUPPORT     | `false`       | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found.                   |
+| TITLE     | `Picoblog`       | The title of your blog and RSS feed                   |
+| DESCRIPTION     | `A simple zero fraction blogging platform`       | The description of your blog and RSS feed                   |
 
 # Debug and contribute
 <details>
