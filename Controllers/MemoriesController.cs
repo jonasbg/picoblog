@@ -15,7 +15,25 @@ public class MemoriesController : Controller
 
   [HttpGet]
   [Route("[Controller]")]
-  public IActionResult Index()
+  public async Task<IActionResult> Index()
+  {
+    var today = DateTime.Now;
+    var lower = today.AddDays(-7);
+    var upper = today.AddDays(7);
+    var december = lower.Month == 12;
+    var min = toInt(lower);
+    var max = toInt(upper, december);
+    var onThisDay = Cache.Models.Where(p =>
+      toInt(p.Date) <= max &&
+      toInt(p.Date, december) >= min &&
+      p.Date?.Year != today.Year)
+      .OrderByDescending(f => f.Date);
+    return View(onThisDay);
+  }
+
+  [HttpGet]
+  [Route("api/[Controller]")]
+  public IActionResult ApiIndex()
   {
     var today = DateTime.Now;
     var lower = today.AddDays(-7);
