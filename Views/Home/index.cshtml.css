@@ -15,7 +15,7 @@
   .standalone {
     display: none;
   }
-  
+
   .flex-container {
   display: flex;
   flex-direction: row;
@@ -24,7 +24,7 @@
   justify-content: space-around;
   gap: 15px;
 }
-  
+
 .banner-grid {
   display: grid;
   gap: 15px;
@@ -45,14 +45,24 @@
   border-radius: 10px;
 }
 
+.container {
+  max-width: 90vw !important;
+}
+
 /* Media Query for mobile devices */
 @media (max-width: 600px) { /* Adjust the max-width as needed */
+  .container {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
   .banner-grid .hero {
     height: 20em; /* Reduced height for mobile */
   }
 
   .banner-grid h4 {
-    font-size: 2em; /* Reduced font size for mobile */
+    font-size: 3em; /* Reduced font size for mobile */
   }
 
   /* Additional mobile-specific styles can go here */
@@ -114,7 +124,7 @@ a {
 
 .content {
   display: flex;
-  gap: 25px;
+  gap: 35px;
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-x: scroll;
