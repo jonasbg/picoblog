@@ -9,11 +9,13 @@
     display: none;
   }
 }
+
 @media all and (display-mode: browser) {
   /* Your browser specific styles here */
   .standalone {
     display: none;
   }
+  
   .flex-container {
   display: flex;
   flex-direction: row;
@@ -22,18 +24,18 @@
   justify-content: space-around;
   gap: 15px;
 }
-
-.banner-grid{
+  
+.banner-grid {
   display: grid;
   gap: 15px;
 }
 
 .banner-grid .hero {
-  height: 40em;
+  height: 40em; /* Adjusted by media query for smaller screens */
 }
 
 .banner-grid h4 {
-  font-size: 5em;
+  font-size: 5em; /* Adjusted by media query for smaller screens */
 }
 
 .banner-grid img {
@@ -41,6 +43,19 @@
   width: 100%;
   object-fit: cover;
   border-radius: 10px;
+}
+
+/* Media Query for mobile devices */
+@media (max-width: 600px) { /* Adjust the max-width as needed */
+  .banner-grid .hero {
+    height: 20em; /* Reduced height for mobile */
+  }
+
+  .banner-grid h4 {
+    font-size: 2em; /* Reduced font size for mobile */
+  }
+
+  /* Additional mobile-specific styles can go here */
 }
 
 .hero {
