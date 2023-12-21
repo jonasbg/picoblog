@@ -18,7 +18,7 @@ public class PostController : Controller
   {
     _logger.LogInformation("Index method started for payload: {Payload}", payload);
 
-    var model = Cache.Models.SingleOrDefault(f => f.Date.HasValue && f.Date.Value.Year == year && f => f.Title == payload.Title);
+    var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == payload.Year && f.Title == payload.Title);
     if(model == null)
     {
       _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
