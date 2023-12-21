@@ -28,9 +28,17 @@
   gap: 15px;
 }
 
+.banner-grid .hero {
+  height: 40em;
+}
+
+.banner-grid h4 {
+  font-size: 5em;
+}
+
 .banner-grid img {
-  max-height: 25em;
-  height: auto;
+  height: 100%;
+  width: 100%;
   object-fit: cover;
   border-radius: 10px;
 }
