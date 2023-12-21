@@ -9,6 +9,7 @@ namespace picoblog.Controllers;
 public class RssFeedController : Controller
 {
   [HttpGet]
+  [AllowAnonymous]
   [Route("/feed")]
   [Route("/rss")]
   public ContentResult Get()
