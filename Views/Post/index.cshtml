@@ -3,8 +3,8 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  ViewData["Url"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}";
-  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
+  ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
 }
 
 @if(!string.IsNullOrEmpty(Model.CoverImage)){
@@ -102,7 +102,7 @@
     <div  class="center" style="margin-bottom:8vh">
         <h1>Members only</h1>
         <p>You have to login to view the content of this page.</p>
-        <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Title'" type="button">Login</button>
+        <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
     </div>
     return;
     }

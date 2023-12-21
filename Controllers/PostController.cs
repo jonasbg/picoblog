@@ -11,28 +11,28 @@ public class PostController : Controller
   }
 
   [HttpGet]
-  [Route("[Controller]/{title}/{**image}")]
-  [Route("[Controller]/{title}")]
+  [Route("[Controller]/{year:int}/{title}/{**image}")]
+  [Route("[Controller]/{year:int}/{title}")]
   [AllowAnonymous]
   public async Task<IActionResult> Index(Payload payload)
   {
     _logger.LogInformation("Index method started for payload: {Payload}", payload);
-    
-    var model = Cache.Models.SingleOrDefault(f => f.Title == payload.Title);
+
+    var model = Cache.Models.SingleOrDefault(f => f.Date.HasValue && f.Date.Value.Year == year && f => f.Title == payload.Title);
     if(model == null)
     {
       _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
       return NotFound();
     }
-  
+
     if (string.IsNullOrEmpty(payload.Image))
     {
       _logger.LogDebug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
       model.Markdown = System.IO.File.ReadAllText(model.Path);
       return View(model);
     }
-  
-    if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true) 
+
+    if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true)
     {
       if(!model.CoverImage.Contains(payload.Image))
       {
@@ -42,7 +42,7 @@ public class PostController : Controller
           return NotFound();
         }
       }
-      
+
       var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";
       _logger.LogDebug("Calling Synology method with path: {Path}", path);
       return await Synology(path);
@@ -68,10 +68,10 @@ public class PostController : Controller
         _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
       }
     }
-    
+
     if (!System.IO.File.Exists(path)){
       if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
-        path = ToggleCaseExtension(path);  
+        path = ToggleCaseExtension(path);
         if (!System.IO.File.Exists(path)){
           _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
           return NotFound();
@@ -81,7 +81,7 @@ public class PostController : Controller
         return NotFound();
       }
     }
-    
+
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
     await HttpContext.Response.Body.WriteAsync(await resize(path));
@@ -117,7 +117,7 @@ public class PostController : Controller
           return result;
         }
       }
-  
+
       using (var outputStream = new MemoryStream())
       {
         using (var image = await Image.LoadAsync(path))
@@ -130,7 +130,7 @@ public class PostController : Controller
               height = Config.ImageMaxSize;
             if (image.Width > image.Height && width > Config.ImageMaxSize)
               width = Config.ImageMaxSize;
-  
+
             if (width + height != 0)
               image.Mutate(x => x.Resize(width, height));
             JpegEncoder encoder = new JpegEncoder();
@@ -141,7 +141,7 @@ public class PostController : Controller
         Directory.CreateDirectory(Path.GetDirectoryName(fileName));
         using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
         await outputStream.CopyToAsync(destination);
-  
+
         return outputStream.ToArray();
       }
     } catch(Exception e){

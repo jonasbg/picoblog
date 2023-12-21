@@ -96,7 +96,7 @@ public class MonitorLoop
         var hiddenPosts = models.Where(p => p.Visible == false);
         _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
         foreach (var model in hiddenPosts)
-            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Title}");
+            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Date?.Year}/{model.Title}");
     }
 
     if (models.Any(p => string.IsNullOrEmpty(p.Title)))
