@@ -19,12 +19,9 @@ RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tm
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-alpine
 EXPOSE 8080
 
+USER root
+
 RUN apk add --no-cache icu-libs icu-data-full tzdata
-RUN adduser \
-  --disabled-password \
-  --no-create-home \
-  -S \
-  --gecos '' app
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
 ENV DOTNET_RUNNING_IN_CONTAINER=true
@@ -48,9 +45,9 @@ ENV PICOBLOG_LOG_LEVEL=Information
 ENV PICOBLOG_ENABLE_BACKUP=false
 
 WORKDIR /app
-RUN mkdir $CONFIG_DIR $DATA_DIR && chown app $CONFIG_DIR $DATA_DIR
+RUN mkdir $CONFIG_DIR $DATA_DIR && chown $APP_UID $CONFIG_DIR $DATA_DIR
 
-COPY --from=backend --chown=app /publish .
-USER app
+COPY --from=backend --chown=$APP_UID /publish .
+USER $APP_UID
 
 ENTRYPOINT ["/app/picoblog"]
