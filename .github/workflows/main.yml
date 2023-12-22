@@ -71,9 +71,16 @@ jobs:
       #     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.meta.outputs.tags }})
       #     sed -i 's/digest: .*/digest: "$DIGEST"/' picoblog/values.yaml
 
+      # Create Helm chart
+      - name: Create Helm chart
+        run: |
+          cd .charts
+          helm package picoblog
+
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
+          cd .charts
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH_NAME" = "main" ]; then
             CHART_REF="ghcr.io/${{ github.repository }}/helm/picoblog"
