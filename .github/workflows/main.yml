@@ -94,9 +94,9 @@ jobs:
           cd .charts
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH_NAME" = "main" ]; then
-            CHART_REF="ghcr.io/${{ github.repository }}/helm/picoblog"
+            CHART_REF="ghcr.io/${{ github.repository }}/picoblog"
           else
-            CHART_REF="ghcr.io/${{ github.repository }}/helm/picoblog-$BRANCH_NAME"
+            CHART_REF="ghcr.io/${{ github.repository }}/picoblog-$BRANCH_NAME"
           fi
           helm chart save picoblog $CHART_REF
           helm chart push $CHART_REF
