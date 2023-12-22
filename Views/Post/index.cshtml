@@ -119,9 +119,16 @@
     </div>
 
     <div class="center">
-        <a href="#top">
+        <a onclick="scrollToTop(event)">
             <img style="height: 3vw; margin-bottom: 10vh;" src="/icon/arrow_up.svg">
         </a>
     </div>
     @Html.Partial("_ImageViewer")
 </div>
+
+<script>
+    function scrollToTop(event) {
+        event.preventDefault();
+        window.scrollTo(0, 0);
+    }
+</script>
