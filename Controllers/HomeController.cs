@@ -49,7 +49,7 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL) && IsValidReturnUrl(model.ReturnURL))
         return Redirect(model.ReturnURL);
 
       return RedirectToAction("/");
@@ -60,5 +60,11 @@ public class HomeController : Controller
   {
     ViewBag.Home = "class = active";
     return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));
+  }
+
+  private bool IsValidReturnUrl(string url)
+  {
+    var safeUrls = new List<string> { "/post", "/calendar", "/memories" };
+    return safeUrls.Any(safeUrl => url.StartsWith(safeUrl, StringComparison.OrdinalIgnoreCase));
   }
 }
