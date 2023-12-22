@@ -97,6 +97,6 @@ jobs:
           if [ "$BRANCH_NAME" = "main" ]; then
             CHART_REF="ghcr.io/${{ github.repository }}/picoblog"
           else
-            CHART_REF="oci://ghcr.io/${{ github.repository }}/$BRANCH_NAME"
+            CHART_REF="oci://ghcr.io/${{ github.repository }}"
           fi
           helm chart push picoblog $CHART_REF
