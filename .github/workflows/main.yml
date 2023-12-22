@@ -56,9 +56,10 @@ jobs:
         run: |
           helm pull https://ghcr.io/${{ github.repository }}
           file=$(ls picoblog-*.tgz)
-          version=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
-          new_version=$(echo $version | awk -F. '{print $1"."$2"."$3+1}')
-          echo $new_version
+          CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          echo $NEW_VERSION
+          sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' .charts/picoblog/Chart.yaml
 
       # # Update chart version
       # - name: Update Helm chart version
