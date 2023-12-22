@@ -91,7 +91,7 @@ jobs:
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
-          echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u --password-stdin
+          echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH_NAME" = "main" ]; then
