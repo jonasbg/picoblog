@@ -35,7 +35,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
 
       # # Build and push Docker image to GitHub Container Registry
       # - name: Build and push Docker image
@@ -84,7 +84,7 @@ jobs:
           useOCIRegistry: true
           registry-url: oci://ghcr.io/${{ github.repository }}
           username: ${{ github.actor }}
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          access-token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
           force: true
           chart-folder: .charts/picoblog
 
