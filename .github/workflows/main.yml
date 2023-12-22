@@ -1,4 +1,4 @@
-name: ci
+name: CI with Helm and GitHub OCI Registry
 
 on:
   push:
@@ -6,40 +6,69 @@ on:
       - "*"
 
 jobs:
-  docker:
+  helm-and-docker:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
-      -
-        name: Set up QEMU
+
+      # Set up Docker environment
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Docker Metadata action
         uses: docker/metadata-action@v4.3.0
         id: meta
         with:
-          images: jonasbg/picoblog
+          images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
-      -
-        name: Login to Docker Hub
+              type=ref,event=branch
+              type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+              type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
+
+      # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      # Build and push Docker image to GitHub Container Registry
+      - name: Build and push Docker image
         uses: docker/build-push-action@v4
+        id: build-docker-image
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Helm setup
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      # Push Helm chart to GitHub Container Registry
+      - name: Push Helm chart
+        if: github.ref == 'refs/heads/main'
+        run: |
+          helm pull oci://ghcr.io/${{ github.repository }}/picoblog
+          file=$(ls picoblog-*.tgz)
+          CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          echo $NEW_VERSION
+          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
+
+          DIGEST=${{steps.build-docker-image.outputs.digest}}
+          DIGEST="latest@$DIGEST"
+          sed -i "s/tag: \"latest\"/tag: \"$DIGEST\"/" .charts/picoblog/values.yaml
+
+          echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+          cd .charts
+          helm package picoblog
+
+          helm push *.tgz oci://ghcr.io/${{ github.repository }}
