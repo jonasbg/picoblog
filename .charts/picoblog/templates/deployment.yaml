@@ -20,6 +20,7 @@ spec:
       labels:
         {{- include "picoblog.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -33,6 +34,11 @@ spec:
         - name: picoblog-nfs
           nfs:
           {{- toYaml .Values.nfs | nindent 12}}
+        {{- if .Values.env.PASSWORD }}
+        - name: picoblog-config
+          persistentVolumeClaim:
+            claimName: picoblog-pv
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -46,6 +52,8 @@ spec:
               name: picoblog-nfs
               readOnly: true
             - mountPath: /tmp
+              name: tempfs
+            - mountPath: /app/obj/WebOptimizerCache
               name: tempfs
             {{- if .Values.env.PASSWORD }}
             - mountPath: /config
@@ -83,13 +91,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  volumeClaimTemplates:
-    - metadata:
-        name: picoblog-config
-      spec:
-        accessModes: ["ReadWriteMany"]
-        resources:
-          requests:
-            storage: 64Mi
-          limits:
-            storage: 128Mi
