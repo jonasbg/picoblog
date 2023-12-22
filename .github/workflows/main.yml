@@ -89,4 +89,5 @@ jobs:
           cd .charts
           helm package picoblog
           ls -lah
+          helm chart save picoblog oci://ghcr.io/${{ github.repository }}
           helm chart push oci://ghcr.io/${{ github.repository }}
