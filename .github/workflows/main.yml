@@ -12,22 +12,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # # Set up Docker environment
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v2
+      # Set up Docker environment
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      # - name: Docker Metadata action
-      #   uses: docker/metadata-action@v4.3.0
-      #   id: meta
-      #   with:
-      #     images: ghcr.io/${{ github.repository }}/picoblog
-      #     tags: |
-              # type=ref,event=branch
-              # type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-              # type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
+      - name: Docker Metadata action
+        uses: docker/metadata-action@v4.3.0
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}/picoblog
+          tags: |
+              type=ref,event=branch
+              type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+              type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
 
       # Login to GitHub Container Registry
       - name: Login to GitHub Container Registry
@@ -37,15 +37,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
 
-      # # Build and push Docker image to GitHub Container Registry
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     platforms: linux/amd64,linux/arm64
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
+      # Build and push Docker image to GitHub Container Registry
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        id: build-docker-image
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       # Helm setup
       - name: Install Helm
@@ -84,7 +85,8 @@ jobs:
           echo $NEW_VERSION
           sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
 
-          DIGEST=${{steps.'Build and push Docker image'.outputs.digest}}
+          DIGEST=${{steps.build-docker-image.outputs.digest}}
+          DIGEST="latest@$DIGEST"
           sed -i "s/tag: \"latest\"/tag: \"$DIGEST\"/" .charts/picoblog/values.yaml
 
           cat .charts/picoblog/values.yaml
