@@ -78,15 +78,15 @@ jobs:
           cd .charts
           helm package picoblog
 
-      - name: Push Helm chart to OCI compatible registry (Github)
-        uses: bsord/helm-push@v4.2.0
-        with:
-          useOCIRegistry: true
-          registry-url: oci://ghcr.io/${{ github.repository }}
-          username: ${{ github.actor }}
-          access-token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
-          force: true
-          chart-folder: .charts/picoblog
+      # - name: Push Helm chart to OCI compatible registry (Github)
+      #   uses: bsord/helm-push@v4.2.0
+      #   with:
+      #     useOCIRegistry: true
+      #     registry-url: oci://ghcr.io/${{ github.repository }}
+      #     username: ${{ github.actor }}
+      #     access-token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+      #     force: true
+      #     chart-folder: .charts/picoblog
 
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
