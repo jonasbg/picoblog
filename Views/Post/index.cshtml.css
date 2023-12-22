@@ -9,6 +9,10 @@ main {
   font-size: 16px; /* defines the base font size */
 }
 
+a{
+  cursor: pointer;
+}
+
 .no-scroll {
   overflow: hidden; /* disables scrolling */
   height: 100%; /* keeps the layout stable */
