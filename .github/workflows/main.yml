@@ -86,7 +86,7 @@ jobs:
           username: ${{ github.actor }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           force: true
-          chart-folder: .charts
+          chart-folder: .charts/picoblog
 
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
