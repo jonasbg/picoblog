@@ -50,10 +50,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v1
 
-      # Create Helm chart
-      - name: Create Helm chart
-        run: helm create picoblog
-
       # # Get the latest Helm chart values
       # - name: Get latest Helm chart values
       #   run: |
