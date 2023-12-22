@@ -93,10 +93,4 @@ jobs:
         run: |
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          if [ "$BRANCH_NAME" = "main" ]; then
-            CHART_REF="ghcr.io/${{ github.repository }}/picoblog"
-          else
-            CHART_REF="oci://ghcr.io/${{ github.repository }}"
-          fi
-          helm chart push picoblog $CHART_REF
+          helm chart push picoblog oci://ghcr.io/${{ github.repository }}
