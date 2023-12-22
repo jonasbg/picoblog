@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="~/css/home.css" />
 @model IEnumerable<MarkdownModel>
 
+@if( Model.Any()){
 <div class="banner-grid">
   @foreach (var doc in Model)
   {
@@ -13,3 +14,11 @@
     </a>
   }
 </div>
+} else {
+  <div class="centered-content">
+    <div class="center">
+      <h3>🌟 New Adventures Awaits! 🌟</h3>
+      <p class="transparent-30">No new memories today, but check back tomorrow for more discoveries!</p>
+    </div>
+  </div>
+}
