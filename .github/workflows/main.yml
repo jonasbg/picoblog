@@ -12,6 +12,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Set BRANCH_NAME
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
       # Set up Docker environment
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
