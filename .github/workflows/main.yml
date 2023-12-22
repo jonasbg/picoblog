@@ -12,9 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set BRANCH_NAME
-        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
       # Set up Docker environment
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -82,6 +79,10 @@ jobs:
       - name: Push Helm chart
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          CHART_REF=ghcr.io/${{ github.repository }}/helm/picoblog${{ BRANCH_NAME == 'main' ? '' : "-$BRANCH_NAME" }}
+          if [ "$BRANCH_NAME" = "main" ]; then
+            CHART_REF="ghcr.io/${{ github.repository }}/helm/picoblog"
+          else
+            CHART_REF="ghcr.io/${{ github.repository }}/helm/picoblog-$BRANCH_NAME"
+          fi
           helm chart save picoblog $CHART_REF
           helm chart push $CHART_REF
