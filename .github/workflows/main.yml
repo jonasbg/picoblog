@@ -71,8 +71,4 @@ jobs:
           cd .charts
           helm package picoblog
 
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          CHART_REF_SUFFIX=${BRANCH_NAME == 'main' ? '' : "$BRANCH_NAME"}
-          CHART_REF="oci://ghcr.io/${{ github.repository }}/picoblog/$CHART_REF_SUFFIX"
-          echo "Pushing Helm chart to $CHART_REF"
-          helm push *.tgz $CHART_REF
+          helm push *.tgz oci://ghcr.io/${{ github.repository }}
