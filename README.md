@@ -103,10 +103,15 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtow
 <details>
   <summary>HELM</summary>
 
+Install
 ```bash
-helm repo add picoblog https://jonasbg.github.io/picoblog
-helm repo install picoblog/picoblog --name picoblog
+helm install picoblog oci://ghcr.io/jonasbg/picoblog/picoblog
 ```
+
+Download latest version
+```bash
+helm pull oci://ghcr.io/jonasbg/picoblog/picoblog
+``````
 
 ### Restart
 ```bash
