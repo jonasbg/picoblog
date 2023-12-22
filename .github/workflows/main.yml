@@ -54,26 +54,26 @@ jobs:
       - name: Create Helm chart
         run: helm create picoblog
 
-      # Get the latest Helm chart values
-      - name: Get latest Helm chart values
-        run: |
-          helm repo add my-repo https://ghcr.io/${{ github.repository }}/helm
-          helm repo update
-          helm pull my-repo/picoblog --untar
-          cp picoblog/values.yaml .
+      # # Get the latest Helm chart values
+      # - name: Get latest Helm chart values
+      #   run: |
+      #     helm repo add my-repo https://ghcr.io/${{ github.repository }}/helm
+      #     helm repo update
+      #     helm pull my-repo/picoblog --untar
+      #     cp picoblog/values.yaml .
 
-      # Update chart version
-      - name: Update Helm chart version
-        run: |
-          CURRENT_VERSION=$(grep "version:" picoblog/Chart.yaml | cut -d " " -f2)
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$2++;print}')
-          sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' picoblog/Chart.yaml
+      # # Update chart version
+      # - name: Update Helm chart version
+      #   run: |
+      #     CURRENT_VERSION=$(grep "version:" picoblog/Chart.yaml | cut -d " " -f2)
+      #     NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$2++;print}')
+      #     sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' picoblog/Chart.yaml
 
-      # Update Helm values with digest
-      - name: Update Helm values with digest
-        run: |
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.meta.outputs.tags }})
-          sed -i 's/digest: .*/digest: "$DIGEST"/' picoblog/values.yaml
+      # # Update Helm values with digest
+      # - name: Update Helm values with digest
+      #   run: |
+      #     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.meta.outputs.tags }})
+      #     sed -i 's/digest: .*/digest: "$DIGEST"/' picoblog/values.yaml
 
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
