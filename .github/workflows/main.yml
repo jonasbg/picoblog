@@ -89,4 +89,4 @@ jobs:
           cd .charts
           helm package picoblog
           ls -lah
-          helm push picoblog-0.0.3.tgz oci://ghcr.io/${{ github.repository }}
+          helm push *.tgz oci://ghcr.io/${{ github.repository }}
