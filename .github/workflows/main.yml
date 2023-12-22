@@ -82,7 +82,7 @@ jobs:
           CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
           echo $NEW_VERSION
-          sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' .charts/picoblog/Chart.yaml
+          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
 
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
