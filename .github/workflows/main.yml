@@ -88,4 +88,5 @@ jobs:
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
           helm package picoblog
+          ls -lah
           helm chart push picoblog oci://ghcr.io/${{ github.repository }}
