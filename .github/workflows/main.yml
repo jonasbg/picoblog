@@ -49,7 +49,7 @@ jobs:
 
       # Helm setup
       - name: Install Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
 
       # Get the latest Helm chart values
       # - name: Get latest Helm chart values
@@ -89,4 +89,4 @@ jobs:
           cd .charts
           helm package picoblog
           ls -lah
-          helm chart push picoblog-0.0.3.tgz oci://ghcr.io/${{ github.repository }}
+          helm push picoblog-0.0.3.tgz oci://ghcr.io/${{ github.repository }}
