@@ -55,7 +55,7 @@ jobs:
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
-          helm pull oci://ghcr.io/${{ github.repository }}
+          helm pull oci://ghcr.io/${{ github.repository }}/picoblog
           file=$(ls picoblog-*.tgz)
           CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
