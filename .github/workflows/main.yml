@@ -84,6 +84,12 @@ jobs:
           echo $NEW_VERSION
           sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
 
+          DIGEST=${{steps.'Build and push Docker image'.outputs.digest}}
+          sed -i "s/tag: \"latest\"/tag: \"$DIGEST\"/" .charts/picoblog/values.yaml
+
+          cat .charts/picoblog/values.yaml
+          cat .charts/picoblog/Chart.yaml
+
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
           helm package picoblog
