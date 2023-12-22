@@ -52,29 +52,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
 
-      # # Update chart version
-      # - name: Update Helm chart version
-      #   run: |
-      #     CURRENT_VERSION=$(grep "version:" picoblog/Chart.yaml | cut -d " " -f2)
-      #     NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$2++;print}')
-      #     sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' picoblog/Chart.yaml
-
-      # # Update Helm values with digest
-      # - name: Update Helm values with digest
-      #   run: |
-      #     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.meta.outputs.tags }})
-      #     sed -i 's/digest: .*/digest: "$DIGEST"/' picoblog/values.yaml
-
-      # - name: Push Helm chart to OCI compatible registry (Github)
-      #   uses: bsord/helm-push@v4.2.0
-      #   with:
-      #     useOCIRegistry: true
-      #     registry-url: oci://ghcr.io/${{ github.repository }}
-      #     username: ${{ github.actor }}
-      #     access-token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
-      #     force: true
-      #     chart-folder: .charts/picoblog
-
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
