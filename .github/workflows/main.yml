@@ -23,7 +23,7 @@ jobs:
         uses: docker/metadata-action@v4.3.0
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/picoblog
+          images: ghcr.io/${{ github.repository }}
           tags: |
               type=ref,event=branch
               type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
@@ -55,16 +55,16 @@ jobs:
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
-          helm pull oci://ghcr.io/${{ github.repository }}/picoblog
-          file=$(ls picoblog-*.tgz)
-          CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
-          echo $NEW_VERSION
-          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
+          # helm pull oci://ghcr.io/${{ github.repository }}
+          # file=$(ls picoblog-*.tgz)
+          # CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
+          # NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          # echo $NEW_VERSION
+          # sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" .charts/picoblog/Chart.yaml
 
-          DIGEST=${{steps.build-docker-image.outputs.digest}}
-          DIGEST="latest@$DIGEST"
-          sed -i "s/tag: \"latest\"/tag: \"$DIGEST\"/" .charts/picoblog/values.yaml
+          # DIGEST=${{steps.build-docker-image.outputs.digest}}
+          # DIGEST="latest@$DIGEST"
+          # sed -i "s/tag: \"latest\"/tag: \"$DIGEST\"/" .charts/picoblog/values.yaml
 
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
