@@ -72,12 +72,6 @@ jobs:
       #     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.meta.outputs.tags }})
       #     sed -i 's/digest: .*/digest: "$DIGEST"/' picoblog/values.yaml
 
-      # Create Helm chart
-      - name: Create Helm chart
-        run: |
-          cd .charts
-          helm package picoblog
-
       # - name: Push Helm chart to OCI compatible registry (Github)
       #   uses: bsord/helm-push@v4.2.0
       #   with:
@@ -93,4 +87,5 @@ jobs:
         run: |
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
+          helm package picoblog
           helm chart push picoblog oci://ghcr.io/${{ github.repository }}
