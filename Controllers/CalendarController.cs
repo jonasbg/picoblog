@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using picoblog.Models;
-
 namespace picoblog.Controllers;
 
 public class CalendarController : Controller
@@ -10,6 +7,15 @@ public class CalendarController : Controller
   public CalendarController(ILogger<CalendarController> logger)
   {
     _logger = logger;
+  }
+
+  [HttpGet]
+  [Route("[Controller]/all")]
+  public async Task<IActionResult> All()
+  {
+    ViewBag.Calendar = "class = active";
+    var models = Cache.Models.Where(p => p.Visible).Where(p => p.Date != null).OrderBy(p => p.Date).ToList();
+    return View(models);
   }
 
   [HttpGet]

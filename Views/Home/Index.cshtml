@@ -1,18 +1,75 @@
 ﻿<link rel="stylesheet" href="~/css/home.css" />
+@model IEnumerable<MarkdownModel>
 
 @{
   ViewData["Title"] = "Picoblog";
 }
+  @*
+  <div class="left">
+    <button id="searchButton">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+    </svg>
+  </button>
+  </div>
 
-<div class="banner-grid">
+  <div>
+    <div class="header">
+      <h2>Highlights</h2>
+      <a href="#">See All</a>
+    </div>
+    <div id="memories">
+      <p>No memories found, try again tomorrow...</p>
+    </div>
+  </div>
+
+  <div id="favorites_header">
+    <div class="header">
+      <h2>Favorites</h2>
+      <a href="#">See All</a>
+    </div>
+    <div id="favorites">
+      <p>No favorites found, try to add a favorite...</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="header">
+      <h2>Yearly</h2>
+      <a href="#">See All</a>
+    </div>
+    @await Html.PartialAsync("_index.content")
+  </div>
+
+  <script>
+    var memoriesContent = document.getElementById("memories");
+    fetch("/memories")
+    .then((response) => response.text())
+    .then((html) => memoriesContent.innerHTML = html);
+
+    var favoritesContent = document.getElementById("favorites");
+    fetch("/memories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: localStorage.getItem("favorites"),
+    })
+    .then((response) => response.text())
+    .then((html) => favoritesContent.innerHTML = html);
+  </script>
+*@
+
+<div class="banner-grid browser">
 @foreach (var doc in Model)
 {
-    <a class="hero" href="/post/@doc.Title">
-      <img src="/post/@Uri.EscapeDataString(doc.Title)/@doc.CoverImage" loading="lazy">
+    <a class="hero" href="/post/@doc.Date?.Year/@doc.Title">
+      <img src="/post/@doc.Date?.Year/@Uri.EscapeDataString(doc.Title)/@doc.CoverImage" loading="lazy">
       <div class="hero-text">
-        <h3>@doc.Title</h3>
+        <h4>@doc.Title</h4>
         <h5>@doc.Date?.ToString("dd. MMM yyyy")</h5>
       </div>
     </a>
 }
 </div>
+

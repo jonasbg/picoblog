@@ -5,6 +5,22 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug .NET Core in Docker",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickRemoteProcess}",
+      "sourceFileMap": {
+          "/app": "${workspaceRoot}/"
+      },
+      "pipeTransport": {
+          "pipeCwd": "${workspaceRoot}",
+          "pipeProgram": "docker",
+          "pipeArgs": ["exec", "-i", "webapi"],
+          "quoteArgs": false,
+          "debuggerPath": "/vsdbg/vsdbg"
+      }
+    },
+    {
       "name": ".NET Core Launch (web)",
       "type": "coreclr",
       "request": "launch",
@@ -21,8 +37,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SYNOLOGY_SUPPORT": "false",
         "SYNOLOGY_SIZE": "SM",
-        "DATA_DIR": "/data",
-        "CONFIG_DIR": "/tmp",
+        "DATA_DIR": "./data/posts",
+        "CONFIG_DIR": "./data/tmp",
         "DOMAIN": "localhost:8080",
         "PASSWORD": "",
         "CUSTOM_HEADER": ""

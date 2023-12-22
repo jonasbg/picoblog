@@ -1,20 +1,13 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using picoblog.Models;
-
 namespace picoblog.Controllers;
 [Route("")]
 public class HomeController : Controller
 {
   private readonly ILogger<HomeController> _logger;
 
-  public HomeController(ILogger<HomeController> logger)
+  public HomeController(ILogger<HomeController> logger, MonitorLoop monitorLoop)
   {
     _logger = logger;
+    monitorLoop.StartMonitorLoop();
   }
 
   [AllowAnonymous]
@@ -36,11 +29,15 @@ public class HomeController : Controller
           return View(model);
 
       if (!model.Password.Equals(Config.Password))
-        return View(model);
+      {
+          string clientIp = HttpContext.Request.Headers["Cf-Connecting-Ip"].FirstOrDefault() ?? HttpContext.Connection.RemoteIpAddress.ToString();
+          _logger.LogWarning("Failed login attempt by user with IP {IP}.", clientIp);
+          return View(model);
+      }
 
       var claims = new List<Claim>
       {
-          new Claim(nameof(LoginViewModel.Password), model.Password)
+          new Claim(ClaimTypes.Name, "shared password user")
       };
 
       var claimsIdentity = new ClaimsIdentity(
@@ -52,8 +49,9 @@ public class HomeController : Controller
           new ClaimsPrincipal(claimsIdentity),
           authProperties);
 
-      if (!String.IsNullOrEmpty(model.ReturnURL) && model.ReturnURL.StartsWith("/"))
+      if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL))
         return Redirect(model.ReturnURL);
+
       return RedirectToAction("/");
   }
 

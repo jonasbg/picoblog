@@ -2,11 +2,11 @@
 
 @{
   string GetModel(int? year){
-    var models = Cache.Models.Where(f => f.Date?.Year == year).ToList();
+    var models = Cache.Models.Where(f => f.Date?.Year == year && string.IsNullOrEmpty(f.CoverImage) == false).ToList();
     Random rnd = new Random();
-    int index  = rnd.Next(0, models.Count());
+    int index = rnd.Next(0, models.Count());
     var model = models[index];
-    return $"/post/{Uri.EscapeDataString(model.Title)}/{model.CoverImage}";
+    return $"/post/{model.Date?.Year}/{Uri.EscapeDataString(model.Title)}/{model.CoverImage}";
   }
 }
 

@@ -1,0 +1,60 @@
+
+.content {
+  display: flex;
+  gap: 25px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 15px 0px 30px 15px;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.content::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+.hidden {
+  display:none
+}
+
+.top-right {
+  position: absolute;
+  color: white;
+  top: 2vh;
+  right: 2vw;
+  border: 0;
+  background: none;
+}
+
+.content a img {
+  height: 30vh;
+  max-width: fit-content;
+}
+
+@media (orientation: portrait) {
+  .content a img {
+    width: 80vw;
+  }
+}
+
+@media (orientation: landscape) {
+  .content a img {
+    width: 25vw;
+  }
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+h5 {
+  font-size: 0.8em;
+}
+
+.hero .hero-text {
+  inline-size: 75vw;
+  overflow: hidden;
+}

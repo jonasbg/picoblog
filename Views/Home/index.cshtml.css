@@ -1,0 +1,160 @@
+#searchButton{
+  background: none;
+  border: none;
+}
+
+@media all and (display-mode: standalone) {
+  /* Your PWA specific styles here */
+  .browser {
+    display: none;
+  }
+}
+
+@media all and (display-mode: browser) {
+  /* Your browser specific styles here */
+  .standalone {
+    display: none;
+  }
+
+  .flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 15px;
+}
+
+.banner-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.banner-grid .hero {
+  height: 40em; /* Adjusted by media query for smaller screens */
+}
+
+.banner-grid h4 {
+  font-size: 5em; /* Adjusted by media query for smaller screens */
+}
+
+.banner-grid img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.container {
+  max-width: 90vw !important;
+}
+
+/* Media Query for mobile devices */
+@media (max-width: 600px) { /* Adjust the max-width as needed */
+  .container {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .banner-grid .hero {
+    height: 20em; /* Reduced height for mobile */
+  }
+
+  .banner-grid h4 {
+    font-size: 3em; /* Reduced font size for mobile */
+  }
+
+  /* Additional mobile-specific styles can go here */
+}
+
+.hero {
+  position: relative;
+ }
+
+ .flex-container img {
+  height: 200px;
+  width: 200px;
+ }
+
+ .hero img{
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+ }
+
+ .hero .hero-text {
+  position: absolute;
+  bottom: 1vh;
+  left: 5%;
+  transform: none !important;
+  color: white;
+  text-align: left;
+ }
+
+ .hero .hero-text h5 {
+  font-size: 1rem;
+ }
+ .hero .hero-text h3 {
+  font-weight: 900;
+ }
+}
+
+#searchButton svg {
+  color: #4f4f4fc7;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 2em;
+}
+
+a {
+  color: #96c1ff;
+  text-decoration: none;
+  font-size: smaller;
+}
+
+.left {
+  display: flex;
+  justify-content: end;
+}
+
+.content {
+  display: flex;
+  gap: 35px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 15px 0px 30px 15px;
+}
+
+.content a img {
+  /* width: 60vw; */
+  height: 30vh;
+  max-width: fit-content;
+}
+
+@media (orientation: portrait) {
+  .content a img {
+    width: 80vw;
+  }
+}
+
+@media (orientation: landscape) {
+  .content a img {
+    width: 25vw;
+  }
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+h5 {
+  font-size: 0.8em;
+}

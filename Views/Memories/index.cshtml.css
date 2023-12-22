@@ -1,0 +1,18 @@
+.hero {
+  height: 30em;
+}
+
+.hero img{
+  height: 100%;
+  width: 100%;
+}
+
+.banner-grid{
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 600px) {
+  .banner-grid {
+      grid-template-columns: 1fr; /* Stack columns vertically on small screens */
+  }
+}

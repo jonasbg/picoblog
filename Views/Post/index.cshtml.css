@@ -2,16 +2,122 @@ main {
   margin-top: 0 !important;
 }
 
-.top-right {
-  position: absolute;
+.rendered-markdown {
+  margin: 0 auto; /* centers the container */
+  padding: 1em; /* provides some space around the content */
+  max-width: 50em; /* limits the width of the container */
+  font-size: 16px; /* defines the base font size */
+}
+
+a{
+  cursor: pointer;
+}
+
+.no-scroll {
+  overflow: hidden; /* disables scrolling */
+  height: 100%; /* keeps the layout stable */
+}
+
+.top-left {
+  position: fixed;
   color: white;
-  top: 0;
+  top: 1em;
+  left: 0;
+  padding: 6vh 3vh 3vh 3vh;
+  border: 0;
+  background: none;
+}
+
+.hidden{
+  display: none;
+}
+
+.top-right {
+  position: fixed;
+  color: white;
+  top: 1em;
   right: 0;
   padding: 6vh 3vh 3vh 3vh;
+  border: 0;
+  background: none;
+}
+
+.date h2 {
+  margin-bottom: 0px;
+}
+.date p {
+  color: #c2c2c2;
+  font-size: 0.8em;
 }
 
 @media all and (display-mode: browser) {
-  .top-right {
+  #shareButton {
     display:none;
+  }
+
+  .content {
+    padding-top: 40vw;
+    z-index: 100;
+  }
+  .top-left {
+    display: none;
+  }
+}
+/* display-mode:standalone */
+@media all and (display-mode: standalone) {
+  menu{
+    display: none !important;
+  }
+
+  .content {
+    z-index: 100;
+    padding-top: 40vw;
+    background-color: white;
+    border-radius: 19px 19px 0px 0px;
+    position: absolute;
+    left: 0;
+    padding: 5vw 5vw 18vw 5vw;
+    top: 53vh;
+  }
+
+  .hero {
+    height: 120vw;
+    width: 100vw;
+    /* background: rgba(0, 0, 0, 0.27); */
+    overflow: hidden;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: -1;
+  }
+
+  .hero img {
+    object-fit: cover;
+    /* opacity: 0.9; */
+    bottom: 0;
+    top: 0;
+    position: absolute;
+    height: 100%;
+    width: 100vw;
+  }
+
+  #shareButton {
+    top: -5vw !important;
+    right: 10vw !important;
+  }
+
+  .circle {
+    border: 0;
+    position: absolute;
+    color: rgb(103, 103, 103);
+    z-index: 3;
+    padding: 12px;
+    border-radius: 50%;
+    background-color: white !important;
+    box-shadow: 0 0 39px 1px rgb(236, 236, 236);
+    width: 3em;
+    height: 3em;
   }
 }

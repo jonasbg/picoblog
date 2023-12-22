@@ -43,14 +43,27 @@ Its possible to lock down the site with a password that is set with the environm
 
 These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](https://github.com/jonasbg/picoblog/blob/main/Models/Config.cs)
 
-| Variable name    | Default value | Description                                                                                            |
-| ----------------:|:-------------:| ------------------------------------------------------------------------------------------------------ |
-| SYNOLOGY_SUPPORT | `false`        | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found. |
-| PASSWORD         | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment. Remember to mount `/config` dir to persist login between restarts. |
-| CONFIG_DIR | `/config` | When using `PASSWORD` env variabel, mount a `CONFIG_DIR` so that logins are persisted between container restarts. |
-| DATA_DIR         | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.             |
-| DOMAIN           | `localhost`   | This is primarly to support the Open Graph Protocol and link previews of your site.                    |
-| SYNOLOGY_SIZE    | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.       |
+| Variable name        | Default value | Description                                                                                                             |
+| --------------------:|:-------------:| ----------------------------------------------------------------------------------------------------------------------- |
+| CONFIG_DIR           | `/config`     | When using `PASSWORD` env variable, mount a `CONFIG_DIR` so that logins are persisted between container restarts.        |
+| DATA_DIR             | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.                               |
+| DOMAIN               | `localhost`   | This is primarily to support the Open Graph Protocol and link previews of your site.                                      |
+| PASSWORD             | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment.                       |
+| PICOBLOG_ENABLE_BACKUP | `false`      | Enables automatic daily backups of posts. Set to `true` to enable, `false` to disable.                                    |
+| SYNOLOGY_SIZE        | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.                           |
+| SYNOLOGY_SUPPORT     | `false`       | Synology Support is turned off by default, and it will automatically fallback if `@eaDir` is not found.                   |
+| TITLE     | `Picoblog`       | The title of your blog and RSS feed                   |
+| DESCRIPTION     | `A simple zero fraction blogging platform`       | The description of your blog and RSS feed                   |
+
+# Debug and contribute
+<details>
+  <summary>Docker Compose</summary>
+
+```bash
+docker compose up --build webapi
+```
+
+</details>
 
 # Install
 
@@ -123,13 +136,13 @@ git commit -m "Backup of markdown files"
 
 Some important work remains
 
-- [ ] Search for `.md` files at a given interval or events. (Background task initiated on site request within a given interval ie. once every 5min if theres traffic to the site)
+- [x] ~~Search for `.md` files at a given interval or events. (Background task initiated on site request within a given interval ie. once every 5min if theres traffic to the site)~~
 
 - [x] ~~Better mobile responsive support~~
 
 - [ ] Tags in posts. This is not implemented but will be `tags: ["tag1", "tag2"]`
 
-- [ ] Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*
+- [x] ~~Image optimization where `SYNOLOGY_SUPPORT` is unavailable - *or Synology optimized imagere are **too** optimized for your taste*~~__Note: HEIC is not supported__
 
 - [ ] Big Picture and carousel mode with basic `EXIF`support such as
 

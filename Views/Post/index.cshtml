@@ -3,73 +3,132 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  ViewData["Url"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}";
-  ViewData["Image"] = $"{Config.Domain}/post/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
+  ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
 }
 
 @if(!string.IsNullOrEmpty(Model.CoverImage)){
 <div class="hero">
     <img class="full-screen-width" src=@(Uri.EscapeDataString(Model.Title)+"/"+Model.CoverImage) alt="Banner Image">
-    <div class="hero-text">
+    @* <div class="hero-text">
         <h1>@Model.Title</h1>
-    </div>
+    </div> *@
  </div>
-<div class="center date">
-    <p>@Model.Date?.ToString("D")</p>
-</div>
-} else {
-<div class="center">
-    <h1>@Model.Title</h1>
-    <p>@Model.Date?.ToString("D")</p>
-</div>
 }
 
-<button id="shareButton" class="bg-transparent border-0 top-right">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-box-arrow-up" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"/>
-  <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V10.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708l3-3z"/>
-</svg>
+<button id="backButton" class="top-left">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16">
+        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+    </svg>
 </button>
+
+<button id="favoriteButton" class="top-right">
+    <svg id="favorite-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16">
+        <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
+    </svg>
+    <svg id="favorite-icon-fill" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bookmark-fill hidden" viewBox="0 0 16 16">
+        <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+    </svg>
+</button>
+
+<div class="content">
+    <div class="center date">
+        <h2>@Model.Title</h2>
+        <p>@Model.Date?.ToString("MMM dd, yyyy")</p>
+    </div>
+    <button id="shareButton" class="circle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share-fill" viewBox="0 0 16 16">
+            <path d="M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/>
+        </svg>
+    </button>
+    <script>
+        shareButton.addEventListener("click", onShare);
+        async function onShare() {
+            const title = document.title;
+            const url = document.querySelector("link[rel=canonical]")
+                ? document.querySelector("link[rel=canonical]").href
+                : document.location.href;
+            try {
+                await navigator
+                .share({
+                    title,
+                    url
+                })
+                } catch (err) { }
+        }
+
+        backButton.addEventListener("click", () => {
+            window.location.href = document.referrer;
+        });
+
+        favoriteButton.addEventListener("click", () => {
+            switchFavorite();
+            const favorite = localStorage.getItem(window.location.pathname);
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+
+            var favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+            const index = favorites.indexOf(title);
+            if (index !== -1){
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(title)
+            }
+
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+
+        });
+
+        function switchFavorite() {
+            const fav = document.getElementById("favorite-icon");
+            const favFill = document.getElementById("favorite-icon-fill");
+            fav.classList.toggle('hidden');
+            favFill.classList.toggle('hidden');
+        }
+
+        function setFavorite() {
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            const index = favorites.indexOf(title);
+            if (index >= 0 ){
+                switchFavorite();
+            }
+        }
+        setFavorite();
+    </script>
+
+    @if (Config.Password != null && !User.Identity.IsAuthenticated)
+    {
+    <div  class="center" style="margin-bottom:8vh">
+        <h1>Members only</h1>
+        <p>You have to login to view the content of this page.</p>
+        <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
+    </div>
+    return;
+    }
+
+    <div class="rendered-markdown">
+        @{
+        var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
+        var html = Markdown.ToHtml(Model.Markdown, pipeline);
+        html = html.Replace("<p><img src=\"", $"<p><img loading=\"lazy\" src=\"{Model.Title}/");
+        html = html.Replace($"{Model.Title}/https://", "https://");
+        html = html.Replace($"{Model.Title}/http://", "http://");
+        }
+        @Html.Raw(html)
+    </div>
+
+    <div class="center">
+        <a onclick="scrollToTop(event)">
+            <img style="height: 3vw; margin-bottom: 10vh;" src="/icon/arrow_up.svg">
+        </a>
+    </div>
+    @Html.Partial("_ImageViewer")
+</div>
+
 <script>
-    shareButton.addEventListener("click", onShare);
-    async function onShare() {
-        const title = document.title;
-        const url = document.querySelector("link[rel=canonical]")
-            ? document.querySelector("link[rel=canonical]").href
-            : document.location.href;
-        try {
-            await navigator
-            .share({
-                title,
-                url
-            })
-            } catch (err) { }
+    function scrollToTop(event) {
+        event.preventDefault();
+        window.scrollTo(0, 0);
     }
 </script>
-
-@if (Config.Password != null && !User.Identity.IsAuthenticated)
-{
-<div  class="center" style="margin-bottom:8vh">
-    <h1>Members only</h1>
-    <p>You have to login to view the content of this page.</p>
-    <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Title'" type="button">Login</button>
-</div>
-return;
-}
-
-<div>
-    @{
-     var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
-     var html = Markdown.ToHtml(Model.Markdown, pipeline);
-     html = html.Replace("<p><img src=\"", $"<p><img src=\"{Model.Title}/");
-     html = html.Replace($"{Model.Title}/https://", "https://");
-     html = html.Replace($"{Model.Title}/http://", "http://");
-    }
-    @Html.Raw(html)
-</div>
-
-<div class="center">
-    <a href="#top">
-        <img style="height: 3vw; margin-bottom: 10vh;" src="/icon/arrow_up.svg">
-    </a>
-</div>

@@ -1,0 +1,11 @@
+version: "3"
+services:
+  webapi:
+    container_name: webapi
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.dev
+    volumes:
+      - ./:/app
+    ports:
+      - 8080:8080
