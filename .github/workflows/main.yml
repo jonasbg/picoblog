@@ -79,7 +79,7 @@ jobs:
           helm package picoblog
 
       - name: Push Helm chart to OCI compatible registry (Github)
-        uses: bsord/helm-push@4.2.0
+        uses: bsord/helm-push
         with:
           useOCIRegistry: true
           registry-url: oci://ghcr.io/${{ github.repository }}
