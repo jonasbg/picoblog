@@ -25,8 +25,9 @@ jobs:
       #   with:
       #     images: ghcr.io/${{ github.repository }}/picoblog
       #     tags: |
-      #       type=ref,event=branch
-      #       type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+              # type=ref,event=branch
+              # type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+              # type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
 
       # Login to GitHub Container Registry
       - name: Login to GitHub Container Registry
@@ -36,15 +37,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push Docker image to GitHub Container Registry
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      # # Build and push Docker image to GitHub Container Registry
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     platforms: linux/amd64,linux/arm64
+      #     push: true
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
 
       # Helm setup
       - name: Install Helm
