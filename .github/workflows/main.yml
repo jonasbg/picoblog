@@ -54,7 +54,7 @@ jobs:
       # Get the latest Helm chart values
       - name: Get latest Helm chart values
         run: |
-          helm pull https://ghcr.io/${{ github.repository }}
+          helm pull oci://ghcr.io/${{ github.repository }}
           file=$(ls picoblog-*.tgz)
           CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
