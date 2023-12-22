@@ -51,16 +51,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
 
-      # Get the latest Helm chart values
-      - name: Get latest Helm chart values
-        run: |
-          helm pull oci://ghcr.io/${{ github.repository }}/picoblog
-          file=$(ls picoblog-*.tgz)
-          CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
-          echo $NEW_VERSION
-          sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' .charts/picoblog/Chart.yaml
-
       # # Update chart version
       # - name: Update Helm chart version
       #   run: |
@@ -87,8 +77,15 @@ jobs:
       # Push Helm chart to GitHub Container Registry
       - name: Push Helm chart
         run: |
+          helm pull oci://ghcr.io/${{ github.repository }}/picoblog
+          file=$(ls picoblog-*.tgz)
+          CURRENT_VERSION=$(echo $file | grep -oP 'picoblog-\K[0-9]+\.[0-9]+\.[0-9]+')
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          echo $NEW_VERSION
+          sed -i 's/version: $CURRENT_VERSION/version: $NEW_VERSION/' .charts/picoblog/Chart.yaml
+
           echo ${{ secrets.REGISTRY_ACCESS_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
           cd .charts
           helm package picoblog
           ls -lah
-          helm push *.tgz oci://ghcr.io/${{ github.repository }}
+        #helm push *.tgz oci://ghcr.io/${{ github.repository }}
