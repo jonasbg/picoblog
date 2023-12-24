@@ -53,8 +53,10 @@ else
 //    pipeline.MinifyJsFiles("**/*.js");
 //    pipeline.MinifyCssFiles("css/**/*.css");
 // });
+builder.Services.AddHttpLogging(o => { });
 
 var app = builder.Build();
+app.UseHttpLogging();
 // app.UseImageSharp();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
