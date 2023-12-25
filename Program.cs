@@ -53,10 +53,13 @@ else
 //    pipeline.MinifyJsFiles("**/*.js");
 //    pipeline.MinifyCssFiles("css/**/*.css");
 // });
-builder.Services.AddHttpLogging(o => { });
+builder.services.AddSingleton<SimpleConsoleLogger>(); // register the logger in DI
+
+builder.services.AddHttpClient("foo") // add a client
+    .RemoveAllLoggers() // remove previous logging
+    .AddLogger<SimpleConsoleLogger>(); // add the custom logger
 
 var app = builder.Build();
-app.UseHttpLogging();
 // app.UseImageSharp();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
