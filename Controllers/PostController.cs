@@ -16,8 +16,6 @@ public class PostController : Controller
   [AllowAnonymous]
   public async Task<IActionResult> Index(Payload payload)
   {
-    _logger.LogInformation("Index method started for payload: {Payload}", payload);
-
     var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == payload.Year && f.Title == payload.Title);
     if(model == null)
     {

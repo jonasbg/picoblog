@@ -1,4 +1,14 @@
+using Microsoft.AspNetCore.HttpLogging;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = HttpLoggingFields.RequestMethod |
+                            HttpLoggingFields.RequestPath |
+                            HttpLoggingFields.Duration |
+                            HttpLoggingFields.ResponseStatusCode;
+    logging.CombineLogs = true;
+});
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
@@ -53,7 +63,6 @@ else
 //    pipeline.MinifyJsFiles("**/*.js");
 //    pipeline.MinifyCssFiles("css/**/*.css");
 // });
-builder.Services.AddHttpLogging(o => { });
 
 var app = builder.Build();
 app.UseHttpLogging();
