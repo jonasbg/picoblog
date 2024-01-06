@@ -36,8 +36,8 @@ public class PostController : Controller
       {
         if (Config.Password != null && !User.Identity.IsAuthenticated)
         {
-          _logger.LogWarning("Unauthenticated request with Config.Password set.");
-          return NotFound();
+          _logger.LogWarning("Unauthenticated request with Config.Password set for image not as Cover");
+          return NotAuthenticated();
         }
       }
 
@@ -67,31 +67,13 @@ public class PostController : Controller
       }
     }
 
-    if (!System.IO.File.Exists(path)){
-      if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
-        path = ToggleCaseExtension(path);
-        if (!System.IO.File.Exists(path)){
-          _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
-          return NotFound();
-        }
-      } else {
-        _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
-        return NotFound();
-      }
-    }
+    if (!System.IO.File.Exists(path))
+      return NotFound();
 
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
     await HttpContext.Response.Body.WriteAsync(await resize(path));
     return new EmptyResult();
-  }
-
-  private string ToggleCaseExtension(string path)
-  {
-    string ext = System.IO.Path.GetExtension(path);
-    string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
-    _logger.LogDebug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
-    return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
   }
 
   private string ComputeMD5(string s)
