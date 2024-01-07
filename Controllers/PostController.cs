@@ -52,7 +52,6 @@ public class PostController : Controller
     }
   }
 
-
   private async Task<IActionResult> Synology(string path) {
     if (Config.Synology)
     {
@@ -65,6 +64,8 @@ public class PostController : Controller
         path = synologyPath;
         _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
       }
+    } else {
+      path = await ResizeIfNeeded(path);
     }
 
     if (!System.IO.File.Exists(path))
@@ -72,7 +73,7 @@ public class PostController : Controller
 
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
-    await HttpContext.Response.Body.WriteAsync(await resize(path));
+    await HttpContext.Response.Body.WriteAsync(System.IO.File.ReadAllBytes(path));
     return new EmptyResult();
   }
 
@@ -85,48 +86,43 @@ public class PostController : Controller
         }
     }
 
-  private async Task<byte[]> resize(string path) {
-    _logger.LogDebug("Resize method started for path: {0}", path);
-    try{
-      var fileName = $"{Config.ConfigDir}/images{path}";
-      if (System.IO.File.Exists(fileName)) {
-        using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-        {
-          var result = new byte[SourceStream.Length];
-          await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
-          return result;
-        }
+  private async Task<string> ResizeIfNeeded(string path) {
+      _logger.LogDebug("Checking if resize is needed for path: {0}", path);
+      var resizedPath = $"{Config.ConfigDir}/resized{path}";
+
+      if (System.IO.File.Exists(resizedPath))
+          return resizedPath;
+
+      try {
+          using (var image = await Image.LoadAsync(path)) {
+              int width, height;
+
+              if (image.Height > image.Width) {
+                  // Portrait or square
+                  height = Math.Min(image.Height, Config.ImageMaxSize);
+                  width = (image.Width * height) / image.Height;
+              } else {
+                  // Landscape
+                  width = Math.Min(image.Width, Config.ImageMaxSize);
+                  height = (image.Height * width) / image.Width;
+              }
+
+              if (image.Width != width || image.Height != height) {
+                  image.Mutate(x => x.Resize(width, height));
+                  await SaveResizedImage(image, resizedPath);
+              }
+          }
+      } catch (Exception e) {
+          _logger.LogError(e, "Error resizing file: {0}", path);
       }
 
-      using (var outputStream = new MemoryStream())
-      {
-        using (var image = await Image.LoadAsync(path))
-        {
-            int width = image.Width / 2;
-            int height = image.Height / 2;
-            width = 0;
-            height = 0;
-            if(image.Height > image.Width && height > Config.ImageMaxSize)
-              height = Config.ImageMaxSize;
-            if (image.Width > image.Height && width > Config.ImageMaxSize)
-              width = Config.ImageMaxSize;
-
-            if (width + height != 0)
-              image.Mutate(x => x.Resize(width, height));
-            JpegEncoder encoder = new JpegEncoder();
-            encoder.Quality = Config.ImageQuality;
-            await image.SaveAsJpegAsync(outputStream, encoder);
-        }
-        outputStream.Position = 0;
-        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-        using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
-        await outputStream.CopyToAsync(destination);
-
-        return outputStream.ToArray();
-      }
-    } catch(Exception e){
-      _logger.LogError(e, "Error Reading File: {0}", path);
-      throw;
-    }
+      return resizedPath;
   }
+
+  private async Task SaveResizedImage(Image image, string path) {
+      JpegEncoder encoder = new JpegEncoder { Quality = Config.ImageQuality };
+      Directory.CreateDirectory(Path.GetDirectoryName(path));
+      await image.SaveAsync(path, encoder);
+  }
+
 }
