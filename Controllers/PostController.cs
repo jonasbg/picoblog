@@ -52,30 +52,31 @@ public class PostController : Controller
     }
   }
 
-  private async Task<IActionResult> Synology(string path) {
-    if (Config.Synology)
-    {
-      var synologyFile = Path.GetFileName(path);
-      var directory = Path.GetDirectoryName(path);
-      var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
-      synologyPath = $"{directory}/{synologyPath}";
+private async Task<IActionResult> Synology(string path) {
+    if (Config.Synology) {
+        var synologyFile = Path.GetFileName(path);
+        var directory = Path.GetDirectoryName(path);
+        var synologyPath = $"{directory}/@eaDir/{synologyFile}/{Config.SynologySize()}";
 
-      if (System.IO.File.Exists(synologyPath)) {
-        path = synologyPath;
-        _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
-      }
-    } else {
-      path = await ResizeIfNeeded(path);
+        if (System.IO.File.Exists(synologyPath)) {
+            path = synologyPath;
+            _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
+        }
     }
 
-    if (!System.IO.File.Exists(path))
-      return NotFound();
+    if (!System.IO.File.Exists(path))) {
+        _logger.LogWarning("File does not exist at path: {0}", path);
+        return NotFound();
+    }
+
+    path = await ResizeIfNeeded(path);
 
     HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
     HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
     await HttpContext.Response.Body.WriteAsync(System.IO.File.ReadAllBytes(path));
     return new EmptyResult();
-  }
+}
+
 
   private string ComputeMD5(string s)
     {
