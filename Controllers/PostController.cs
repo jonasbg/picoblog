@@ -64,7 +64,7 @@ private async Task<IActionResult> Synology(string path) {
         }
     }
 
-    if (!System.IO.File.Exists(path))) {
+    if (!System.IO.File.Exists(path)) {
         _logger.LogWarning("File does not exist at path: {0}", path);
         return NotFound();
     }
