@@ -133,28 +133,7 @@
     }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let inCopyMode = false;
-    const footerOverlay = document.createElement('div');
-    footerOverlay.style.position = 'fixed';
-    footerOverlay.style.bottom = '0';
-    footerOverlay.style.left = '0';
-    footerOverlay.style.backgroundColor = '#17a2b8';
-    footerOverlay.style.padding = '10px';
-    footerOverlay.style.display = 'none';
-    footerOverlay.style.width = '100%';
-    footerOverlay.style.textAlign = 'center';
-    document.body.appendChild(footerOverlay);
-
     document.addEventListener('keydown', async function(event) {
-        // Toggle copy mode with 'Ctrl+:'
-        if (event.ctrlKey && event.key === '.') {
-            inCopyMode = !inCopyMode;
-            footerOverlay.style.display = inCopyMode ? 'block' : 'none';
-            footerOverlay.innerText = inCopyMode ? 'Copy mode activated. q: to quit' : '';
-            event.preventDefault();
-        }
-
-        if (inCopyMode) {
             let textToCopy = '';
 
             switch(event.key) {
@@ -166,14 +145,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     textToCopy = document.querySelector('.date p').innerText;
                     footerOverlay.innerText = 'Date copied';
                     break;
-                case 'c': // Content
+                case 'b': // Body
                     textToCopy = document.querySelector('.rendered-markdown').innerText;
                     footerOverlay.innerText = 'Content copied';
                     break;
-                case 'q': // Exit copy mode
-                    inCopyMode = false;
-                    footerOverlay.style.display = 'none';
-                    return;
             }
 
             if (textToCopy) {
@@ -185,7 +160,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             event.preventDefault();
-        }
     })
 });
 </script>
