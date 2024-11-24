@@ -111,7 +111,7 @@ public class PostController : Controller
         using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         {
           var result = new byte[SourceStream.Length];
-                    _ = await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+                    await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
           return result;
         }
       }

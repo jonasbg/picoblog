@@ -33,7 +33,7 @@ public class MonitorLoop
     public void StartMonitorLoop()
     {
         // Run a console user input loop in a background thread
-        _ = Task.Run(async () => await MonitorAsync());
+        Task.Run(async () => await MonitorAsync());
     }
 
     private async ValueTask MonitorAsync()
