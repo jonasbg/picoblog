@@ -193,6 +193,7 @@ a{
   gap: 2rem;
   color: #666;
   font-size: 0.9rem;
+  transform: translateY(-20px);
 }
 
 .stats span, .stats button {
