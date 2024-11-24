@@ -11,7 +11,8 @@ public class MonitorLoop
     public MonitorLoop(
         IBackgroundTaskQueue taskQueue,
         ILogger<MonitorLoop> logger,
-        IHostApplicationLifetime applicationLifetime)
+        IHostApplicationLifetime applicationLifetime
+    )
     {
         _taskQueue = taskQueue;
         _logger = logger;
@@ -20,35 +21,35 @@ public class MonitorLoop
         _parallelOptions = new ParallelOptions
         {
             MaxDegreeOfParallelism = Environment.ProcessorCount * 2,
-            CancellationToken = _cancellationToken
+            CancellationToken = _cancellationToken,
         };
 
-        _channel = Channel.CreateUnbounded<MarkdownModel>(new UnboundedChannelOptions
-        {
-            SingleReader = true,
-            SingleWriter = false
-        });
+        _channel = Channel.CreateUnbounded<MarkdownModel>(
+            new UnboundedChannelOptions { SingleReader = true, SingleWriter = false }
+        );
         _channelWriter = _channel.Writer;
     }
 
     public void StartMonitorLoop()
-  {
+    {
         // Run a console user input loop in a background thread
         _ = Task.Run(async () => await MonitorAsync());
-  }
+    }
 
     private async ValueTask MonitorAsync()
-  {
-    // Enqueue a background work item
-    await _taskQueue.QueueBackgroundWorkItemAsync(BuildWorkItem);
-  }
+    {
+        // Enqueue a background work item
+        await _taskQueue.QueueBackgroundWorkItemAsync(BuildWorkItem);
+    }
 
     private async Task FindFilesAsync()
     {
         _logger.LogInformation("Starting searching for markdown files (*.md)");
 
         // Get all files first
-        var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories).ToList();
+        var files = Directory
+            .EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories)
+            .ToList();
 
         // Process files in batches
         const int batchSize = 100;
@@ -69,23 +70,31 @@ public class MonitorLoop
 
     private async Task ProcessFileBatchAsync(List<string> files)
     {
-        await Parallel.ForEachAsync(files, _parallelOptions, async (file, token) =>
-        {
-            try
+        await Parallel.ForEachAsync(
+            files,
+            _parallelOptions,
+            async (file, token) =>
             {
-                string content = await File.ReadAllTextAsync(file, token);
-                var match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline | RegexOptions.Compiled);
-
-                if (match.Success)
+                try
                 {
-                    await ProcessFrontMatterAsync(match.Groups[1].Value, file);
+                    string content = await File.ReadAllTextAsync(file, token);
+                    var match = Regex.Match(
+                        content,
+                        @"^---\n(.*?)\n---",
+                        RegexOptions.Singleline | RegexOptions.Compiled
+                    );
+
+                    if (match.Success)
+                    {
+                        await ProcessFrontMatterAsync(match.Groups[1].Value, file);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing file: {File}", file);
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing file: {File}", file);
-            }
-        });
+        );
     }
 
     private async Task ProcessFrontMatterAsync(string frontmatter, string file)
@@ -95,12 +104,14 @@ public class MonitorLoop
         foreach (var line in frontmatter.Split('\n'))
         {
             int colonIndex = line.IndexOf(':');
-            if (colonIndex == -1) continue;
+            if (colonIndex == -1)
+                continue;
 
             string key = line[..colonIndex].Trim();
             string value = line[(colonIndex + 1)..].Trim();
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value)) continue;
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value))
+                continue;
 
             switch (key.ToLowerInvariant())
             {
@@ -116,18 +127,24 @@ public class MonitorLoop
                 case var k when k.Equals(MetadataHeader.Draft, StringComparison.OrdinalIgnoreCase):
                     model.Visible = value.ToLower() != "true";
                     break;
-                case var k when k.Equals(MetadataHeader.CoverImage, StringComparison.OrdinalIgnoreCase):
+                case var k
+                    when k.Equals(MetadataHeader.CoverImage, StringComparison.OrdinalIgnoreCase):
                     model.CoverImage = value;
                     break;
-                case var k when k.Equals(MetadataHeader.Description, StringComparison.OrdinalIgnoreCase):
+                case var k
+                    when k.Equals(MetadataHeader.Description, StringComparison.OrdinalIgnoreCase):
                     model.Description = value;
                     break;
             }
         }
 
         await _channelWriter.WriteAsync(model, _cancellationToken);
-        _logger.LogInformation("FOUND: {Title} - Path: {Path} - URL: {Url}",
-            model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
+        _logger.LogInformation(
+            "FOUND: {Title} - Path: {Path} - URL: {Url}",
+            model.Title,
+            model.Path,
+            $"{Config.Domain}/post/{model.Title}"
+        );
     }
 
     private async Task<List<MarkdownModel>> ReadModelsFromChannelAsync()
@@ -159,44 +176,56 @@ public class MonitorLoop
             // Prevent throwing if the Delay is cancelled
         }
     }
+
     private void ProcessResults(IList<MarkdownModel> models)
-  {
-    if (models.Any(p => p.Visible == false))
     {
-        var hiddenPosts = models.Where(p => p.Visible == false);
-        _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
-        foreach (var model in hiddenPosts)
-            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Date?.Year}/{model.Title}");
-    }
+        if (models.Any(p => p.Visible == false))
+        {
+            var hiddenPosts = models.Where(p => p.Visible == false);
+            _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
+            foreach (var model in hiddenPosts)
+                _logger.LogInformation(
+                    $"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Date?.Year}/{model.Title}"
+                );
+        }
 
-    if (models.Any(p => string.IsNullOrEmpty(p.Title)))
-    {
-        var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
-        _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
+        if (models.Any(p => string.IsNullOrEmpty(p.Title)))
+        {
+            var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
+            _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
 
-      foreach (var model in postsWithoutTitles)
-            _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
+            foreach (var model in postsWithoutTitles)
+                _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
 
-      models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
-    }
+            models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
+        }
 
-    var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
-    if (duplicates.Any()){
-      _logger.LogInformation("FOUND DUPLICATES, REMOVED FROM SET");
-      foreach (var title in duplicates)
-      {
-          var dups = models.Where(p => p.Title == title);
-          foreach(var dup in dups)
-              _logger.LogInformation("Duplicate found: Title: {Title}, Path: {Path}", dup.Title, dup.Path);
-      }
-      models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
+        var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
+        if (duplicates.Any())
+        {
+            _logger.LogInformation("FOUND DUPLICATES, REMOVED FROM SET");
+            foreach (var title in duplicates)
+            {
+                var dups = models.Where(p => p.Title == title);
+                foreach (var dup in dups)
+                    _logger.LogInformation(
+                        "Duplicate found: Title: {Title}, Path: {Path}",
+                        dup.Title,
+                        dup.Path
+                    );
+            }
+            models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
+        }
+        var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
+        if (deleted.Any())
+        {
+            _logger.LogInformation("FOUND DELETED FILES");
+            foreach (var del in deleted)
+                _logger.LogInformation(
+                    "DELETED FILE: Title: {Title}, Path: {Path}",
+                    del.Title,
+                    del.Path
+                );
+        }
     }
-    var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
-    if (deleted.Any())
-    {
-        _logger.LogInformation("FOUND DELETED FILES");
-        foreach (var del in deleted)
-            _logger.LogInformation("DELETED FILE: Title: {Title}, Path: {Path}", del.Title, del.Path);
-    }
-  }
 }

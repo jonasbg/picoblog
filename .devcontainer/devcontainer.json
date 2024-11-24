@@ -16,12 +16,13 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "dotnet restore src/",
+	"postCreateCommand": "dotnet restore src/ && dotnet tool install csharpier --global",
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-dotnettools.csharp",
-				"ms-dotnettools.csdevkit"
+				"ms-dotnettools.csdevkit",
+				"csharpier.csharpier-vscode"
 			]
 		}
 	},

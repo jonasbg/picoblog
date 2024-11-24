@@ -21,8 +21,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "SYNOLOGY_SUPPORT": "false",
         "SYNOLOGY_SIZE": "SM",
-        "DATA_DIR": "./data/posts",
-        "CONFIG_DIR": "./data/tmp",
+        "DATA_DIR": "../tests/posts",
+        "CONFIG_DIR": "/tmp",
         "DOMAIN": "localhost:8080",
         "PASSWORD": "",
         "CUSTOM_HEADER": ""

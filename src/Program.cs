@@ -1,13 +1,15 @@
-using Microsoft.AspNetCore.HttpLogging;
-
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddHttpLogging(logging =>
+builder.Services.AddLogging(logging =>
 {
-    logging.LoggingFields = HttpLoggingFields.RequestMethod |
-                            HttpLoggingFields.RequestPath |
-                            HttpLoggingFields.Duration |
-                            HttpLoggingFields.ResponseStatusCode;
-    logging.CombineLogs = true;
+    logging.ClearProviders();
+    logging.AddConsole(options =>
+    {
+        options.FormatterName = "Simple";
+        options.TimestampFormat = "yyyy/MM/dd HH:mm:ss ";
+    });
+
+    // Set minimum log level
+    logging.SetMinimumLevel(LogLevel.Information);
 });
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -65,7 +67,7 @@ else
 // });
 
 var app = builder.Build();
-app.UseHttpLogging();
+app.UseCustomLogging();
 // app.UseImageSharp();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -110,28 +112,8 @@ using (var serviceScope = app.Services.CreateScope())
     monitorLoop.StartMonitorLoop();
 }
 
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next.Invoke();
-
-        // If status code is not 200, log it
-        if (context.Response.StatusCode != 200)
-        {
-            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            Console.WriteLine($"[RemoteIP::{ip}]:[StatusCode::{context.Response.StatusCode}]:{context.Request.Path}");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex);
-        // Re-throw the exception so it can be handled by other middleware
-        throw;
-    }
-});
-
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Application started");
 
 logger.LogTrace("Trace level log");
 logger.LogDebug("Debug level log");
