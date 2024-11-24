@@ -52,7 +52,7 @@ public class HomeController : Controller
       if (!String.IsNullOrEmpty(model.ReturnURL) && Url.IsLocalUrl(model.ReturnURL) && IsValidReturnUrl(model.ReturnURL))
         return Redirect(model.ReturnURL);
 
-      return RedirectToAction("/");
+      return Redirect("/");
   }
 
   [Route("")]

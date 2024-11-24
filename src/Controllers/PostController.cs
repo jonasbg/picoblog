@@ -37,7 +37,7 @@ public class PostController : Controller
         if (Config.Password != null && !User.Identity.IsAuthenticated)
         {
           _logger.LogWarning("Unauthenticated request with Config.Password set.");
-          return NotFound();
+          return Unauthorized();
         }
       }
 
