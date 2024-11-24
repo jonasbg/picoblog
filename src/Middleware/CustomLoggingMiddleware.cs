@@ -26,25 +26,29 @@ public class CustomLoggingMiddleware
             var durationMs = duration.TotalMilliseconds;
 
             // Golang-style log format
-            var logMessage = $"{DateTime.UtcNow:yyyy/MM/dd HH:mm:ss} " +
-                           $"method={context.Request.Method} " +
-                           $"path={context.Request.Path} " +
-                           $"status={context.Response.StatusCode} " +
-                           $"duration={durationMs:F4}ms " +
-                           $"ip={context.Connection.RemoteIpAddress}";
+            var logMessage =
+                $"{DateTime.UtcNow:yyyy/MM/dd HH:mm:ss} "
+                + $"method={context.Request.Method} "
+                + $"path={context.Request.Path} "
+                + $"status={context.Response.StatusCode} "
+                + $"duration={durationMs:F4}ms "
+                + $"ip={context.Connection.RemoteIpAddress}";
 
-            // Choose log level based on status code
-            if (context.Response.StatusCode >= 500)
+            if (!$"{context.Request.Path}".Contains("/healthz"))
             {
-                _logger.LogError(logMessage);
-            }
-            else if (context.Response.StatusCode >= 400)
-            {
-                _logger.LogWarning(logMessage);
-            }
-            else
-            {
-                _logger.LogInformation(logMessage);
+                // Choose log level based on status code
+                if (context.Response.StatusCode >= 500)
+                {
+                    _logger.LogError(logMessage);
+                }
+                else if (context.Response.StatusCode >= 400)
+                {
+                    _logger.LogWarning(logMessage);
+                }
+                else
+                {
+                    _logger.LogInformation(logMessage);
+                }
             }
         }
     }
