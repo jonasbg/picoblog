@@ -105,6 +105,46 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapGet("/debug-headers", async context =>
+{
+    var headers = context.Request.Headers
+        .Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}")
+        .ToList();
+
+    await context.Response.WriteAsJsonAsync(new
+    {
+        RemoteIpAddress = context.Connection.RemoteIpAddress?.ToString(),
+        Headers = headers,
+        StandardProxyHeaders = new
+        {
+            XForwardedFor = context.Request.Headers["X-Forwarded-For"].ToString(),
+            XRealIP = context.Request.Headers["X-Real-IP"].ToString(),
+            XForwardedProto = context.Request.Headers["X-Forwarded-Proto"].ToString(),
+            XForwardedHost = context.Request.Headers["X-Forwarded-Host"].ToString()
+        },
+        CloudflareHeaders = new
+        {
+            CFConnectingIP = context.Request.Headers["CF-Connecting-IP"].ToString(),
+            CFIPCountry = context.Request.Headers["CF-IPCountry"].ToString(),
+            CFIPCity = context.Request.Headers["CF-IPCity"].ToString(),
+            CFIPRegion = context.Request.Headers["CF-IPRegion"].ToString(),
+            CFRay = context.Request.Headers["CF-Ray"].ToString(),
+            CFVisitorScheme = context.Request.Headers["CF-Visitor"].ToString(),
+            CFWorker = context.Request.Headers["CF-Worker"].ToString(),
+            CFRequestPriority = context.Request.Headers["CF-Request-Priority"].ToString(),
+            CFAccessAuthenticatedUser = context.Request.Headers["CF-Access-Authenticated-User-Email"].ToString()
+        },
+        TrustChain = new
+        {
+            ForwardedForChain = context.Request.Headers["X-Forwarded-For"]
+                .ToString()
+                .Split(',')
+                .Select(ip => ip.Trim())
+                .ToArray() // Changed to ToArray() to make it explicit
+        }
+    });
+});
+
 using (var serviceScope = app.Services.CreateScope())
 {
     var services = serviceScope.ServiceProvider;
