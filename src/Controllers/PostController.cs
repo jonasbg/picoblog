@@ -4,10 +4,9 @@ public class PostController : Controller
 {
   private readonly ILogger<PostController> _logger;
 
-  public PostController(ILogger<PostController> logger, MonitorLoop monitorLoop)
+  public PostController(ILogger<PostController> logger)
   {
     _logger = logger;
-    monitorLoop.StartMonitorLoop();
   }
 
   [HttpGet]
