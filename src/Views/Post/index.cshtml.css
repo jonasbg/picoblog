@@ -121,3 +121,46 @@ a{
     height: 3em;
   }
 }
+
+/* STATS */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-around;
+  /* margin: 0.5rem 0; */
+  flex-direction: row;
+  color: color(srgb 0.38 0.38 0.38);
+  width: 10%;
+}
+
+.stats span, .stats button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: color(srgb 0.38 0.38 0.38);
+}
+
+.like-button:hover svg {
+  color: #ff4545;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Make all icons the same size */
+.stats svg {
+  width: 16px;
+  height: 16px;
+}
+/* END STATS */

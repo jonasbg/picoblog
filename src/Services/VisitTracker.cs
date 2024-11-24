@@ -40,9 +40,53 @@ public class VisitTracker
                 Referrer TEXT
             );
             CREATE INDEX IF NOT EXISTS IX_Visits_PostTitle ON Visits(PostTitle);
-            CREATE INDEX IF NOT EXISTS IX_Visits_VisitTime ON Visits(VisitTime);";
+            CREATE INDEX IF NOT EXISTS IX_Visits_VisitTime ON Visits(VisitTime);
+
+            CREATE TABLE IF NOT EXISTS Likes (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                PostTitle TEXT NOT NULL,
+                Year INTEGER NOT NULL,
+                LikedAt DATETIME NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS IX_Likes_PostTitle ON Likes(PostTitle);";
 
         command.ExecuteNonQuery();
+    }
+
+    public async Task<bool> AddLikeAsync(string postTitle, int year)
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO Likes (PostTitle, Year, LikedAt)
+                VALUES (@title, @year, @time)";
+
+            command.Parameters.AddWithValue("@title", postTitle);
+            command.Parameters.AddWithValue("@year", year);
+            command.Parameters.AddWithValue("@time", DateTime.UtcNow);
+
+            await command.ExecuteNonQueryAsync();
+
+            // Update Cache
+            var model = Cache.Models.FirstOrDefault(m =>
+                m.Title == postTitle && m.Date?.Year == year);
+
+            if (model != null)
+            {
+                Interlocked.Increment(ref model.LikeCount);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding like for post {PostTitle}", postTitle);
+            return false;
+        }
     }
 
     private void UpdateCacheViewCounts()
@@ -52,31 +96,59 @@ public class VisitTracker
             using var connection = new SqliteConnection($"Data Source={_dbPath}");
             connection.Open();
 
-            var command = connection.CreateCommand();
-            command.CommandText = @"
+            // Get view counts
+            var viewCommand = connection.CreateCommand();
+            viewCommand.CommandText = @"
                 SELECT PostTitle, Year, COUNT(*) as ViewCount
                 FROM Visits
                 GROUP BY PostTitle, Year";
 
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            using (var reader = viewCommand.ExecuteReader())
             {
-                var postTitle = reader.GetString(0);
-                var year = reader.GetInt32(1);
-                var viewCount = reader.GetInt32(2);
-
-                var model = Cache.Models.FirstOrDefault(m =>
-                    m.Title == postTitle && m.Date?.Year == year);
-
-                if (model != null)
+                while (reader.Read())
                 {
-                    model.ViewCount = viewCount;
+                    var postTitle = reader.GetString(0);
+                    var year = reader.GetInt32(1);
+                    var viewCount = reader.GetInt32(2);
+
+                    var model = Cache.Models.FirstOrDefault(m =>
+                        m.Title == postTitle && m.Date?.Year == year);
+
+                    if (model != null)
+                    {
+                        model.ViewCount = viewCount;
+                    }
+                }
+            }
+
+            // Get like counts
+            var likeCommand = connection.CreateCommand();
+            likeCommand.CommandText = @"
+                SELECT PostTitle, Year, COUNT(*) as LikeCount
+                FROM Likes
+                GROUP BY PostTitle, Year";
+
+            using (var reader = likeCommand.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var postTitle = reader.GetString(0);
+                    var year = reader.GetInt32(1);
+                    var likeCount = reader.GetInt32(2);
+
+                    var model = Cache.Models.FirstOrDefault(m =>
+                        m.Title == postTitle && m.Date?.Year == year);
+
+                    if (model != null)
+                    {
+                        model.LikeCount = likeCount;
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating cache view counts");
+            _logger.LogError(ex, "Error updating cache counts");
         }
     }
 

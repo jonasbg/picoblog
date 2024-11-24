@@ -3,10 +3,12 @@ namespace picoblog.Controllers;
 public class PostController : Controller
 {
   private readonly ILogger<PostController> _logger;
+  private readonly VisitTracker _visitTracker;
 
-  public PostController(ILogger<PostController> logger)
+  public PostController(ILogger<PostController> logger, VisitTracker visitTracker)
   {
     _logger = logger;
+    _visitTracker = visitTracker;
   }
 
   [HttpGet]
@@ -51,6 +53,20 @@ public class PostController : Controller
     }
   }
 
+  [HttpGet]
+  [Route("[Controller]/{year:int}/{title}/like")]
+  public async Task<IActionResult> Like(int year, string title)
+  {
+      var success = await _visitTracker.AddLikeAsync(title, year);
+
+      if (success)
+      {
+          var model = Cache.Models.FirstOrDefault(m => m.Date?.Year == year && m.Title == title);
+          return Json(new { success = true, likes = model?.LikeCount ?? 0 });
+      }
+
+      return Json(new { success = false });
+  }
 
   private async Task<IActionResult> Synology(string path) {
     if (Config.Synology)

@@ -4,6 +4,7 @@ public class MarkdownModel
 {
   private string? _markdown;
   public int ViewCount;
+  public int LikeCount;
 
   public string? Markdown { get => _markdown; set {
       _markdown = value;
