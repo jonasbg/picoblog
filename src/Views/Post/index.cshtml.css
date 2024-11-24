@@ -163,4 +163,53 @@ a{
   width: 16px;
   height: 16px;
 }
+
+#like-icon,#like-icon-fill, #favorite-icon-fill, #favorite-icon {
+  transform: translateY(-2px);
+}
 /* END STATS */
+
+.date {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.date h2 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.date p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.stats span, .stats button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.like-button, .favorite-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.like-button:hover, .favorite-button:hover {
+  transform: scale(1.1);
+  color: #ff4545;
+}
