@@ -115,6 +115,13 @@ public class MonitorLoop
 
 private void ProcessResults(IList<MarkdownModel> models)
 {
+    var stopwatch = new Stopwatch();
+    var totalStopwatch = new Stopwatch();
+    totalStopwatch.Start();
+
+    _logger.LogInformation($"STARTING TO PROCESS HIDDEN POSTS");
+    stopwatch.Restart();
+
     // Process hidden posts
     var hiddenPosts = models.Where(p => p.Visible == false).ToList();
     if (hiddenPosts.Any())
@@ -127,6 +134,10 @@ private void ProcessResults(IList<MarkdownModel> models)
             );
         }
     }
+
+    _logger.LogInformation($"Hidden posts processing completed in {stopwatch.ElapsedMilliseconds}ms");
+    _logger.LogInformation($"STARTING TO PROCESS POSTS WITHOUT TITLE");
+    stopwatch.Restart();
 
     // Remove posts without titles in a single pass
     var postsWithoutTitles = new List<MarkdownModel>();
@@ -149,18 +160,22 @@ private void ProcessResults(IList<MarkdownModel> models)
         }
     }
 
+    _logger.LogInformation($"Posts without title processing completed in {stopwatch.ElapsedMilliseconds}ms");
+    _logger.LogInformation($"STARTING TO PROCESS DUPLICATES");
+    stopwatch.Restart();
+
     // Handle duplicates more efficiently using Dictionary
     var uniquePosts = new Dictionary<string, MarkdownModel>();
     var duplicates = new List<MarkdownModel>();
 
     foreach (var model in models)
     {
-        if (!uniquePosts.TryAdd(model.Title, model))
+        if (!uniquePosts.TryAdd($"{model.Title}-{model.Date?.Year}", model))
         {
             // This is a duplicate
             duplicates.Add(model);
-            duplicates.Add(uniquePosts[model.Title]); // Add the original one too for logging
-            uniquePosts.Remove(model.Title); // Remove the duplicated entry altogether
+            duplicates.Add(uniquePosts[$"{model.Title}-{model.Date?.Year}"]); // Add the original one too for logging
+            uniquePosts.Remove($"{model.Title}-{model.Date?.Year}"); // Remove the duplicated entry altogether
         }
     }
 
@@ -177,11 +192,19 @@ private void ProcessResults(IList<MarkdownModel> models)
         }
     }
 
+    _logger.LogInformation($"Duplicates processing completed in {stopwatch.ElapsedMilliseconds}ms");
+    _logger.LogInformation($"STARTING TO PROCESS DELETED FILES");
+    stopwatch.Restart();
+
     // Set the final models list
     models = uniquePosts.Values.ToList();
 
-    // Check for deleted files
-    var deletedFiles = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path)).ToList();
+    // Create HashSet of current file paths for O(1) lookup
+    var currentPaths = new HashSet<string>(models.Select(m => m.Path));
+
+    // Check for deleted files using HashSet for efficient lookup
+    var deletedFiles = Cache.Models.Where(cachedModel => !currentPaths.Contains(cachedModel.Path)).ToList();
+
     if (deletedFiles.Any())
     {
         _logger.LogInformation("FOUND DELETED FILES");
@@ -194,5 +217,9 @@ private void ProcessResults(IList<MarkdownModel> models)
             );
         }
     }
+
+    _logger.LogInformation($"Deleted files processing completed in {stopwatch.ElapsedMilliseconds}ms");
+    totalStopwatch.Stop();
+    _logger.LogInformation($"Total processing time: {totalStopwatch.ElapsedMilliseconds}ms");
 }
 }
