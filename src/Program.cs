@@ -32,7 +32,7 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 
 if (Config.Password != null)
 {
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    _ = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
@@ -44,16 +44,16 @@ if (Config.Password != null)
             options.Cookie.Name = "Picoblog.AuthCookie";
             options.LoginPath = "/login";
         });
-    builder.Services.AddControllersWithViews(options =>
+    _ = builder.Services.AddControllersWithViews(options =>
     {
         options.Filters.Add(new AuthorizeFilter());
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
     });
-    builder.Services.AddDataProtection()
+    _ = builder.Services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
 }
 else
-    builder.Services.AddControllersWithViews(options =>
+    _ = builder.Services.AddControllersWithViews(options =>
     {
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
     });
@@ -75,9 +75,9 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 if (Config.Password != null)
 {
-    app.UseCookiePolicy();
-    app.UseAuthentication();
-    app.UseAuthorization();
+    _ = app.UseCookiePolicy();
+    _ = app.UseAuthentication();
+    _ = app.UseAuthorization();
 }
 
 //app.UseWebOptimizer();

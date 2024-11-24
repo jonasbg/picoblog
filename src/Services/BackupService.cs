@@ -46,7 +46,7 @@ public class BackupService : BackgroundService
         _logger.LogDebug($"Source directory: {sourceDirectory}");
 
         // Create the backup directory if it doesn't exist
-        Directory.CreateDirectory(backupDirectory);
+        _ = Directory.CreateDirectory(backupDirectory);
         _logger.LogDebug("Backup directory created or already exists.");
 
         // Create a tar archive

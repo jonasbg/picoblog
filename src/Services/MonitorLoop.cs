@@ -16,8 +16,8 @@ public class MonitorLoop
 
   public void StartMonitorLoop()
   {
-    // Run a console user input loop in a background thread
-    Task.Run(async () => await MonitorAsync());
+        // Run a console user input loop in a background thread
+        _ = Task.Run(async () => await MonitorAsync());
   }
 
   private async ValueTask MonitorAsync()
@@ -52,14 +52,14 @@ public class MonitorLoop
       var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
       var concurrentModels = new ConcurrentBag<MarkdownModel>();
 
-      Parallel.ForEach(files, file =>
-      {
-          string content = File.ReadAllText(file);
-          Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
+        _ = Parallel.ForEach(files, file =>
+        {
+            string content = File.ReadAllText(file);
+            Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
 
-          if (match.Success)
-              ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels);
-      });
+            if (match.Success)
+                ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels);
+        });
 
       var models = concurrentModels.ToList();
       ProcessResults(models);

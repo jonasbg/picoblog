@@ -111,7 +111,7 @@ public class PostController : Controller
         using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         {
           var result = new byte[SourceStream.Length];
-          await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+                    _ = await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
           return result;
         }
       }
@@ -131,12 +131,15 @@ public class PostController : Controller
 
             if (width + height != 0)
               image.Mutate(x => x.Resize(width, height));
-            JpegEncoder encoder = new JpegEncoder();
-            encoder.Quality = Config.ImageQuality;
-            await image.SaveAsJpegAsync(outputStream, encoder);
+              var encoder = new JpegEncoder
+              {
+                  Quality = Config.ImageQuality
+              };
+              await image.SaveAsJpegAsync(outputStream, encoder);
         }
         outputStream.Position = 0;
-        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+        if(fileName != null)
+          Directory.CreateDirectory(Path.GetDirectoryName(fileName));
         using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
         await outputStream.CopyToAsync(destination);
 

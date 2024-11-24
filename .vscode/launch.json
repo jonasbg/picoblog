@@ -5,29 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug .NET Core in Docker",
-      "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:pickRemoteProcess}",
-      "sourceFileMap": {
-          "/app": "${workspaceRoot}/"
-      },
-      "pipeTransport": {
-          "pipeCwd": "${workspaceRoot}",
-          "pipeProgram": "docker",
-          "pipeArgs": ["exec", "-i", "webapi"],
-          "quoteArgs": false,
-          "debuggerPath": "/vsdbg/vsdbg"
-      }
-    },
-    {
       "name": ".NET Core Launch (web)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/net7.0/picoblog.dll",
+      "program": "${workspaceFolder}/src/bin/Debug/net8.0/picoblog.dll",
       "args": [],
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/src",
       "stopAtEntry": false,
       // "serverReadyAction": {
       //   "action": "openExternally",
@@ -44,7 +28,23 @@
         "CUSTOM_HEADER": ""
       },
       "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Views"
+        "/Views": "${workspaceFolder}/src/Views"
+      }
+    },
+    {
+      "name": "Debug .NET Core in Docker",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickRemoteProcess}",
+      "sourceFileMap": {
+          "/app": "${workspaceRoot}/"
+      },
+      "pipeTransport": {
+          "pipeCwd": "${workspaceRoot}",
+          "pipeProgram": "docker",
+          "pipeArgs": ["exec", "-i", "webapi"],
+          "quoteArgs": false,
+          "debuggerPath": "/vsdbg/vsdbg"
       }
     },
     {
