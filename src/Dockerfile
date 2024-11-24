@@ -14,7 +14,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ] ; then DOTNET_TARGET=linux-musl-arm
 
 RUN cat /tmp/rid
 RUN dotnet restore "picoblog.csproj" -r $(cat /tmp/rid) /p:PublishReadyToRun=true
-RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tmp/rid) --self-contained true --no-restore /p:PublishTrimmed=true /p:PublishReadyToRun=true /p:PublishSingleFile=true
+RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tmp/rid) --self-contained true --no-restore /p:PublishReadyToRun=true /p:PublishSingleFile=true
+# /p:PublishTrimmed=true is not possible with .NET9.
 
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:9.0-alpine
 EXPOSE 8080
