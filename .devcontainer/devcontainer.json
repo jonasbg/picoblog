@@ -9,14 +9,19 @@
 		"dockerfile": "../src/Dockerfile.dev"
 	},
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"upgradePackages": false
+		}
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "dotnet restore src/ && dotnet tool install csharpier --global",
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 && dotnet restore src/ && dotnet tool install csharpier --global",
 	"customizations": {
 		"vscode": {
 			"extensions": [

@@ -66,8 +66,11 @@ else
 //    pipeline.MinifyCssFiles("css/**/*.css");
 // });
 
+builder.Services.AddVisitTracker(Config.ConfigDir);
+
 var app = builder.Build();
 app.UseCustomLogging();
+app.UseVisitTracker();
 // app.UseImageSharp();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions

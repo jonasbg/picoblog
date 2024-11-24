@@ -3,6 +3,7 @@ namespace picoblog.Models;
 public class MarkdownModel
 {
   private string? _markdown;
+  public int ViewCount;
 
   public string? Markdown { get => _markdown; set {
       _markdown = value;
