@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/src/bin/Debug/net8.0/picoblog.dll",
+      "program": "${workspaceFolder}/src/bin/Debug/net9.0/picoblog.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src",
       "stopAtEntry": false,

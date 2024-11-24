@@ -16,7 +16,15 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "dotnet restore",
+	"postCreateCommand": "dotnet restore src/",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit"
+			]
+		}
+	},
 
 	// Configure tool-specific properties.
 	// "customizations": {},
