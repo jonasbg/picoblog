@@ -83,7 +83,6 @@ if (Config.Password != null)
 }
 
 //app.UseWebOptimizer();
-app.UseRequestLocalization(new RequestLocalizationOptions { ApplyCurrentCultureToResponseHeaders = true });
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
 app.UseRouting();
@@ -98,7 +97,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture("nb-NO"),
     SupportedCultures = supportedCultures,
-    SupportedUICultures = supportedCultures
+    SupportedUICultures = supportedCultures,
+    ApplyCurrentCultureToResponseHeaders = true
 });
 
 app.MapControllerRoute(
