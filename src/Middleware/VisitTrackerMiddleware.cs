@@ -26,7 +26,7 @@ public class VisitTrackerMiddleware
             {
                 PostTitle = GetPostTitle(context.Request.Path),
                 Year = GetPostYear(context.Request.Path),
-                IpAddress = context.Connection.RemoteIpAddress?.ToString(),
+                IpAddress = GetClientIp(context),
                 UserAgent = context.Request.Headers.UserAgent.ToString(),
                 VisitTime = DateTime.UtcNow,
                 Referrer = context.Request.Headers.Referer.ToString()
@@ -59,6 +59,41 @@ public class VisitTrackerMiddleware
         {
             // Suppress any tracking errors after response
         }
+    }
+
+    private string GetClientIp(HttpContext context)
+    {
+        // Try Cloudflare header first
+        var cfConnectingIp = context.Request.Headers["CF-Connecting-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(cfConnectingIp))
+        {
+            return cfConnectingIp;
+        }
+
+        // Try X-Forwarded-For
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            var ips = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (ips.Length > 0)
+            {
+                return ips[0].Trim();
+            }
+        }
+
+        // Fallback to remote IP address
+        var remoteIp = context.Connection?.RemoteIpAddress?.ToString();
+        if (!string.IsNullOrEmpty(remoteIp))
+        {
+            // Clean up IPv4 mapped to IPv6
+            if (remoteIp.StartsWith("::ffff:"))
+            {
+                remoteIp = remoteIp.Substring(7);
+            }
+            return remoteIp;
+        }
+
+        return "unknown";
     }
 
     private bool IsPostView(HttpRequest request)
