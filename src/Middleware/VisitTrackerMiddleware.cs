@@ -63,12 +63,20 @@ public class VisitTrackerMiddleware
 
     private bool IsPostView(HttpRequest request)
     {
-        var path = request.Path.Value?.ToLower();
-        return path?.StartsWith("/post/") == true &&
-               !path.Contains(".jpg") &&
-               !path.Contains(".png") &&
-               !path.Contains(".gif") &&
-               request.Method == "GET";
+        // Ensure we have a path and it's a GET request
+        if (request.Method != "GET" || string.IsNullOrEmpty(request.Path.Value))
+        {
+            return false;
+        }
+
+        // Normalize the path - don't trim as spaces in title are valid
+        var path = request.Path.Value.ToLowerInvariant();
+
+        // Check if path matches the pattern /post/year/title
+        // Where year is 4 digits and title can contain spaces, letters, numbers, and common symbols
+        var postPathPattern = @"^/post/\d{4}/[^/]+$";
+
+        return Regex.IsMatch(path, postPathPattern, RegexOptions.IgnoreCase);
     }
 
     private string GetPostTitle(PathString path)
