@@ -16,75 +16,76 @@ public class StatsController : Controller
     [HttpGet]
     [Route("[Controller]")]
     public async Task<IActionResult> Index()
+{
+    try
     {
-        try
-        {
-            // Basic stats remain synchronous as they use in-memory Cache
-            var monthlyActivity = Cache.Models
-                .Where(x => x.Date.HasValue)
-                .GroupBy(x => new { x.Date.Value.Year, x.Date.Value.Month })
-                .Select(g => new MonthlyStats
-                {
-                    Date = new DateTime(g.Key.Year, g.Key.Month, 1),
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToList();
-
-            // Await all async operations in parallel
-            var uniqueVisitorsTask = _visitTracker.GetUniqueVisitorsPerMonthAsync();
-            var mostLikedPostsTask = _visitTracker.GetTopPostsAsync("likes", 5);
-            var mostViewedPostsTask = _visitTracker.GetTopPostsAsync("views", 5);
-            var userAgentStatsTask = _visitTracker.GetUserAgentStatsAsync();
-
-            await Task.WhenAll(
-                uniqueVisitorsTask,
-                mostLikedPostsTask,
-                mostViewedPostsTask,
-                userAgentStatsTask
-            );
-
-            var stats = new StatsViewModel
+        // Basic stats remain synchronous as they use in-memory Cache
+        var monthlyActivity = Cache.Models
+            .Where(x => x.Date.HasValue)
+            .GroupBy(x => new { x.Date.Value.Year, x.Date.Value.Month })
+            .Select(g => new MonthlyStats
             {
-                // Basic stats
-                TotalPosts = Cache.Models.Count,
-                PublicPosts = Cache.Models.Count(x => x.Public),
-                PrivatePosts = Cache.Models.Count(x => !x.Public),
-                PostsWithImages = Cache.Models.Count(x => !string.IsNullOrEmpty(x.CoverImage)),
+                Date = new DateTime(g.Key.Year, g.Key.Month, 1),
+                Count = g.Count()
+            })
+            .OrderBy(x => x.Date)
+            .ToList();
 
-                // Monthly activity and visitors
-                MonthlyActivity = monthlyActivity,
-                UniqueVisitors = await uniqueVisitorsTask,
+        // Await all async operations in parallel
+        var uniqueVisitorsTask = _visitTracker.GetUniqueVisitorsPerMonthAsync();
+        var mostLikedPostsTask = _visitTracker.GetTopPostsAsync("likes", 5);
+        var mostViewedPostsTask = _visitTracker.GetTopPostsAsync("views", 5);
+        var userAgentStatsTask = _visitTracker.GetUserAgentStatsAsync();
+        var totalViewsTask = _visitTracker.GetTotalViewsAsync(); // New
 
-                // Top posts
-                MostLikedPosts = await mostLikedPostsTask,
-                MostViewedPosts = await mostViewedPostsTask,
+        await Task.WhenAll(
+            uniqueVisitorsTask,
+            mostLikedPostsTask,
+            mostViewedPostsTask,
+            userAgentStatsTask,
+            totalViewsTask
+        );
 
-                // Browser stats
-                UserAgentStats = await userAgentStatsTask
-            };
-
-            return View(stats);
-        }
-        catch (Exception ex)
+        var stats = new StatsViewModel
         {
-            _logger.LogError(ex, "Error generating stats");
+            // Basic stats
+            TotalPosts = Cache.Models.Count,
+            TotalViews = await totalViewsTask, // New
 
-            // Return a basic version of stats if database operations fail
-            return View(new StatsViewModel
-            {
-                TotalPosts = Cache.Models.Count,
-                PublicPosts = Cache.Models.Count(x => x.Public),
-                PrivatePosts = Cache.Models.Count(x => !x.Public),
-                PostsWithImages = Cache.Models.Count(x => !string.IsNullOrEmpty(x.CoverImage)),
-                MonthlyActivity = new List<MonthlyStats>(),
-                UniqueVisitors = new List<MonthlyStats>(),
-                MostLikedPosts = new List<TopPost>(),
-                MostViewedPosts = new List<TopPost>(),
-                UserAgentStats = new Dictionary<string, int>()
-            });
-        }
+            // Monthly activity and visitors
+            MonthlyActivity = monthlyActivity,
+            UniqueVisitors = await uniqueVisitorsTask,
+
+            // Top posts
+            MostLikedPosts = await mostLikedPostsTask,
+            MostViewedPosts = await mostViewedPostsTask,
+
+            // Browser stats
+            UserAgentStats = await userAgentStatsTask
+        };
+
+        stats.TotalUniqueVisitors = stats.UniqueVisitors.Sum(p => p.Count);
+
+        return View(stats);
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error generating stats");
+
+        // Return a basic version of stats if database operations fail
+        return View(new StatsViewModel
+        {
+            TotalPosts = Cache.Models.Count,
+            TotalUniqueVisitors = 0,
+            TotalViews = 0,
+            MonthlyActivity = new List<MonthlyStats>(),
+            UniqueVisitors = new List<MonthlyStats>(),
+            MostLikedPosts = new List<TopPost>(),
+            MostViewedPosts = new List<TopPost>(),
+            UserAgentStats = new Dictionary<string, int>()
+        });
+    }
+}
 
     // Helper method to ensure consistent date ranges across charts
     private List<MonthlyStats> NormalizeDateRange(List<MonthlyStats> stats)

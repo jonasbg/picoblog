@@ -266,6 +266,26 @@ public class VisitTracker
         }
     }
 
+    public async Task<int> GetTotalViewsAsync()
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
+
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM Visits";
+
+            var totalViews = Convert.ToInt32(await command.ExecuteScalarAsync());
+            return totalViews;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting total views");
+            return 0;
+        }
+    }
+
     public async Task<Dictionary<string, int>> GetUserAgentStatsAsync()
     {
         try
