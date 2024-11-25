@@ -216,4 +216,127 @@ public class VisitTracker
 
         return viewCounts;
     }
+    public async Task<List<MonthlyStats>> GetUniqueVisitorsPerMonthAsync()
+{
+    try
+    {
+        using var connection = new SqliteConnection($"Data Source={_dbPath}");
+        await connection.OpenAsync();
+
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT
+                strftime('%Y-%m', VisitTime) as Month,
+                COUNT(DISTINCT IpAddress) as UniqueVisitors
+            FROM Visits
+            GROUP BY strftime('%Y-%m', VisitTime)
+            ORDER BY Month";
+
+        var stats = new List<MonthlyStats>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var monthStr = reader.GetString(0);
+            stats.Add(new MonthlyStats
+            {
+                Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
+                Count = reader.GetInt32(1)
+            });
+        }
+        return stats;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting unique visitors per month");
+        return new List<MonthlyStats>();
+    }
+}
+
+public async Task<Dictionary<string, int>> GetUserAgentStatsAsync()
+{
+    try
+    {
+        using var connection = new SqliteConnection($"Data Source={_dbPath}");
+        await connection.OpenAsync();
+
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT
+                CASE
+                    WHEN UserAgent LIKE '%Mobile%' THEN 'Mobile'
+                    WHEN UserAgent LIKE '%Chrome%' THEN 'Chrome'
+                    WHEN UserAgent LIKE '%Firefox%' THEN 'Firefox'
+                    WHEN UserAgent LIKE '%Safari%' THEN 'Safari'
+                    WHEN UserAgent LIKE '%Edge%' THEN 'Edge'
+                    ELSE 'Other'
+                END as Browser,
+                COUNT(*) as Count
+            FROM Visits
+            GROUP BY Browser
+            ORDER BY Count DESC";
+
+        var stats = new Dictionary<string, int>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            stats[reader.GetString(0)] = reader.GetInt32(1);
+        }
+        return stats;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting user agent stats");
+        return new Dictionary<string, int>();
+    }
+}
+
+public async Task<List<TopPost>> GetTopPostsAsync(string metric = "views", int limit = 5)
+{
+    try
+    {
+        using var connection = new SqliteConnection($"Data Source={_dbPath}");
+        await connection.OpenAsync();
+
+        var tableName = metric.ToLower() == "likes" ? "Likes" : "Visits";
+        var command = connection.CreateCommand();
+        command.CommandText = $@"
+            SELECT
+                PostTitle,
+                Year,
+                COUNT(*) as Count
+            FROM {tableName}
+            GROUP BY PostTitle, Year
+            ORDER BY Count DESC
+            LIMIT @limit";
+
+        command.Parameters.AddWithValue("@limit", limit);
+
+        var topPosts = new List<TopPost>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var title = reader.GetString(0);
+            var year = reader.GetInt32(1);
+            var model = Cache.Models.FirstOrDefault(m =>
+                m.Title == title && m.Date?.Year == year);
+
+            if (model != null)
+            {
+                topPosts.Add(new TopPost
+                {
+                    Title = title,
+                    Year = year,
+                    CoverImage = model.CoverImage,
+                    Count = reader.GetInt32(2)
+                });
+            }
+        }
+        return topPosts;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting top posts");
+        return new List<TopPost>();
+    }
+}
 }

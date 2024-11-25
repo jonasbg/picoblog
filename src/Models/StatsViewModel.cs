@@ -5,21 +5,22 @@ public class StatsViewModel
     public int PrivatePosts { get; set; }
     public int PostsWithImages { get; set; }
     public List<MonthlyStats> MonthlyActivity { get; set; }
-    public dynamic MostActiveMonth { get; set; }
-    public double AveragePostsPerMonth { get; set; }
-    public MarkdownModel LongestPost { get; set; }
-    public MarkdownModel ShortestPost { get; set; }
-    public List<PostLengthStats> PostLengthDistribution { get; set; }
+    public List<MonthlyStats> UniqueVisitors { get; set; }
+    public List<TopPost> MostLikedPosts { get; set; }
+    public List<TopPost> MostViewedPosts { get; set; }
+    public Dictionary<string, int> UserAgentStats { get; set; }
 }
 
 public class MonthlyStats
 {
     public DateTime Date { get; set; }
-    public int PostCount { get; set; }
+    public int Count { get; set; }
 }
 
-public class PostLengthStats
+public class TopPost
 {
-    public string Category { get; set; }
+    public string Title { get; set; }
+    public int Year { get; set; }
+    public string CoverImage { get; set; }
     public int Count { get; set; }
 }

@@ -1,87 +1,110 @@
-using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using picoblog.Models;
-
 namespace picoblog.Controllers;
 
 public class StatsController : Controller
 {
     private readonly ILogger<StatsController> _logger;
+    private readonly VisitTracker _visitTracker;
 
-    public StatsController(ILogger<StatsController> logger)
+    public StatsController(
+        ILogger<StatsController> logger,
+        VisitTracker visitTracker)
     {
         _logger = logger;
+        _visitTracker = visitTracker;
     }
 
     [HttpGet]
     [Route("[Controller]")]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        var stats = new StatsViewModel
+        try
         {
-            TotalPosts = Cache.Models.Count,
-            PublicPosts = Cache.Models.Count(x => x.Public),
-            PrivatePosts = Cache.Models.Count(x => !x.Public),
-            PostsWithImages = Cache.Models.Count(x => !string.IsNullOrEmpty(x.CoverImage)),
-
-            // Group posts by month and year
-            MonthlyActivity = Cache.Models
+            // Basic stats remain synchronous as they use in-memory Cache
+            var monthlyActivity = Cache.Models
                 .Where(x => x.Date.HasValue)
                 .GroupBy(x => new { x.Date.Value.Year, x.Date.Value.Month })
                 .Select(g => new MonthlyStats
                 {
                     Date = new DateTime(g.Key.Year, g.Key.Month, 1),
-                    PostCount = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToList(),
-
-            // Most active months
-            MostActiveMonth = Cache.Models
-                .Where(x => x.Date.HasValue)
-                .GroupBy(x => new { x.Date.Value.Year, x.Date.Value.Month })
-                .OrderByDescending(g => g.Count())
-                .Select(g => new { Date = new DateTime(g.Key.Year, g.Key.Month, 1), Count = g.Count() })
-                .FirstOrDefault(),
-
-            // Average posts per month
-            AveragePostsPerMonth = Cache.Models
-                .Where(x => x.Date.HasValue)
-                .GroupBy(x => new { x.Date.Value.Year, x.Date.Value.Month })
-                .Average(g => g.Count()),
-
-            // Longest and shortest posts
-            LongestPost = Cache.Models
-                .OrderByDescending(x => x.Markdown?.Length ?? 0)
-                .FirstOrDefault(),
-
-            ShortestPost = Cache.Models
-                .Where(x => !string.IsNullOrEmpty(x.Markdown))
-                .OrderBy(x => x.Markdown.Length)
-                .FirstOrDefault(),
-
-            // Post length distribution
-            PostLengthDistribution = Cache.Models
-                .Where(x => !string.IsNullOrEmpty(x.Markdown))
-                .GroupBy(x => GetLengthCategory(x.Markdown.Length))
-                .Select(g => new PostLengthStats
-                {
-                    Category = g.Key,
                     Count = g.Count()
                 })
-                .OrderBy(x => x.Category)
-                .ToList()
-        };
+                .OrderBy(x => x.Date)
+                .ToList();
 
-        return View(stats);
+            // Await all async operations in parallel
+            var uniqueVisitorsTask = _visitTracker.GetUniqueVisitorsPerMonthAsync();
+            var mostLikedPostsTask = _visitTracker.GetTopPostsAsync("likes", 5);
+            var mostViewedPostsTask = _visitTracker.GetTopPostsAsync("views", 5);
+            var userAgentStatsTask = _visitTracker.GetUserAgentStatsAsync();
+
+            await Task.WhenAll(
+                uniqueVisitorsTask,
+                mostLikedPostsTask,
+                mostViewedPostsTask,
+                userAgentStatsTask
+            );
+
+            var stats = new StatsViewModel
+            {
+                // Basic stats
+                TotalPosts = Cache.Models.Count,
+                PublicPosts = Cache.Models.Count(x => x.Public),
+                PrivatePosts = Cache.Models.Count(x => !x.Public),
+                PostsWithImages = Cache.Models.Count(x => !string.IsNullOrEmpty(x.CoverImage)),
+
+                // Monthly activity and visitors
+                MonthlyActivity = monthlyActivity,
+                UniqueVisitors = await uniqueVisitorsTask,
+
+                // Top posts
+                MostLikedPosts = await mostLikedPostsTask,
+                MostViewedPosts = await mostViewedPostsTask,
+
+                // Browser stats
+                UserAgentStats = await userAgentStatsTask
+            };
+
+            return View(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating stats");
+
+            // Return a basic version of stats if database operations fail
+            return View(new StatsViewModel
+            {
+                TotalPosts = Cache.Models.Count,
+                PublicPosts = Cache.Models.Count(x => x.Public),
+                PrivatePosts = Cache.Models.Count(x => !x.Public),
+                PostsWithImages = Cache.Models.Count(x => !string.IsNullOrEmpty(x.CoverImage)),
+                MonthlyActivity = new List<MonthlyStats>(),
+                UniqueVisitors = new List<MonthlyStats>(),
+                MostLikedPosts = new List<TopPost>(),
+                MostViewedPosts = new List<TopPost>(),
+                UserAgentStats = new Dictionary<string, int>()
+            });
+        }
     }
 
-    private string GetLengthCategory(int length)
+    // Helper method to ensure consistent date ranges across charts
+    private List<MonthlyStats> NormalizeDateRange(List<MonthlyStats> stats)
     {
-        if (length < 500) return "Very Short (<500 chars)";
-        if (length < 1500) return "Short (500-1500 chars)";
-        if (length < 5000) return "Medium (1500-5000 chars)";
-        if (length < 10000) return "Long (5000-10000 chars)";
-        return "Very Long (>10000 chars)";
+        if (!stats.Any()) return stats;
+
+        var minDate = stats.Min(s => s.Date);
+        var maxDate = stats.Max(s => s.Date);
+        var normalizedStats = new List<MonthlyStats>();
+
+        for (var date = minDate; date <= maxDate; date = date.AddMonths(1))
+        {
+            var stat = stats.FirstOrDefault(s => s.Date.Year == date.Year && s.Date.Month == date.Month);
+            normalizedStats.Add(new MonthlyStats
+            {
+                Date = date,
+                Count = stat?.Count ?? 0
+            });
+        }
+
+        return normalizedStats;
     }
 }

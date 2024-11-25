@@ -3,41 +3,78 @@
     ViewData["Title"] = "Blog Statistics";
 }
 
-<div class="stats-container">
-    <h1 class="text-center mb-4">Blog Statistics</h1>
+<div class="dashboard">
+    <h1 class="dashboard-title">Blog Statistics</h1>
 
-    <div class="stats-grid">
+    <div class="overview-cards">
         <div class="stat-card">
-            <h3>Post Counts</h3>
-            <ul>
-                <li>Total Posts: @Model.TotalPosts</li>
-                <li>Public Posts: @Model.PublicPosts</li>
-                <li>Private Posts: @Model.PrivatePosts</li>
-                <li>Posts with Images: @Model.PostsWithImages</li>
-            </ul>
+            <div class="stat-value">@Model.TotalPosts</div>
+            <div class="stat-label">Total Posts</div>
         </div>
-
         <div class="stat-card">
-            <h3>Monthly Activity</h3>
+            <div class="stat-value">@Model.PublicPosts</div>
+            <div class="stat-label">Public Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.PrivatePosts</div>
+            <div class="stat-label">Private Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.PostsWithImages</div>
+            <div class="stat-label">Posts with Images</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-item wide">
+            <h2>Monthly Activity & Unique Visitors</h2>
             <div class="chart-container">
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
 
-        <div class="stat-card">
-            <h3>Notable Statistics</h3>
-            <ul>
-                <li>Most Active Month: @Model.MostActiveMonth?.Date.ToString("MMMM yyyy") (@Model.MostActiveMonth?.Count posts)</li>
-                <li>Average Posts per Month: @Model.AveragePostsPerMonth.ToString("F1")</li>
-                <li>Longest Post: @Model.LongestPost?.Title (@(Model.LongestPost?.Markdown?.Length ?? 0) characters)</li>
-                <li>Shortest Post: @Model.ShortestPost?.Title (@(Model.ShortestPost?.Markdown?.Length ?? 0) characters)</li>
-            </ul>
+        <div class="dashboard-item">
+            <h2>Browser Distribution</h2>
+            <div class="chart-container">
+                <canvas id="browserChart"></canvas>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <h3>Post Length Distribution</h3>
-            <div class="chart-container">
-                <canvas id="lengthChart"></canvas>
+        <div class="dashboard-item">
+            <h2>Most Liked Posts</h2>
+            <div class="top-posts">
+                @foreach (var post in Model.MostLikedPosts)
+                {
+                    <a href="/post/@post.Year/@post.Title" class="top-post-item">
+                        @if (!string.IsNullOrEmpty(post.CoverImage))
+                        {
+                            <img src="/post/@post.Year/@post.Title/@post.CoverImage" alt="@post.Title" />
+                        }
+                        <div class="post-info">
+                            <span class="post-title">@post.Title</span>
+                            <span class="post-count">@post.Count likes</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="dashboard-item">
+            <h2>Most Viewed Posts</h2>
+            <div class="top-posts">
+                @foreach (var post in Model.MostViewedPosts)
+                {
+                    <a href="/post/@post.Year/@post.Title" class="top-post-item">
+                        @if (!string.IsNullOrEmpty(post.CoverImage))
+                        {
+                            <img src="/post/@post.Year/@post.Title/@post.CoverImage" alt="@post.Title" />
+                        }
+                        <div class="post-info">
+                            <span class="post-title">@post.Title</span>
+                            <span class="post-count">@post.Count views</span>
+                        </div>
+                    </a>
+                }
             </div>
         </div>
     </div>
@@ -46,102 +83,100 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Monthly Activity Chart
+    document.addEventListener('DOMContentLoaded', function () {
+        // Monthly Activity & Unique Visitors Chart
         const monthlyCtx = document.getElementById('monthlyChart');
         new Chart(monthlyCtx, {
             type: 'line',
             data: {
                 labels: @Html.Raw(Json.Serialize(Model.MonthlyActivity.Select(x => x.Date.ToString("MMM yyyy")))),
                 datasets: [{
-                    label: 'Posts per Month',
-                    data: @Html.Raw(Json.Serialize(Model.MonthlyActivity.Select(x => x.PostCount))),
+                    label: 'Posts',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyActivity.Select(x => x.Count))),
                     borderColor: '#3498db',
-                    tension: 0.1,
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: 'Unique Visitors',
+                    data: @Html.Raw(Json.Serialize(Model.UniqueVisitors.Select(x => x.Count))),
+                    borderColor: '#2ecc71',
+                    tension: 0.4,
                     fill: false
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            stepSize: 1
+                            stepSize: 1,
+                            precision: 0  // No decimal places
+                        },
+                        grid: {
+                            drawBorder: false
                         }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    },
+                    line: {
+                        borderWidth: 2
                     }
                 }
             }
         });
 
-        // Post Length Distribution Chart
-        const lengthCtx = document.getElementById('lengthChart');
-        new Chart(lengthCtx, {
-            type: 'bar',
+        // Browser Distribution Chart
+        const browserCtx = document.getElementById('browserChart');
+        new Chart(browserCtx, {
+            type: 'doughnut',
             data: {
-                labels: @Html.Raw(Json.Serialize(Model.PostLengthDistribution.Select(x => x.Category))),
+                labels: @Html.Raw(Json.Serialize(Model.UserAgentStats.Keys)),
                 datasets: [{
-                    label: 'Number of Posts',
-                    data: @Html.Raw(Json.Serialize(Model.PostLengthDistribution.Select(x => x.Count))),
-                    backgroundColor: '#2ecc71'
+                    data: @Html.Raw(Json.Serialize(Model.UserAgentStats.Values)),
+                    backgroundColor: [
+                        '#3498db',
+                        '#2ecc71',
+                        '#e74c3c',
+                        '#f1c40f',
+                        '#9b59b6',
+                        '#95a5a6'
+                    ]
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
+                plugins: {
+                    legend: {
+                        position: 'right'
                     }
                 }
             }
         });
     });
 </script>
-
-<style>
-    .stats-container {
-        padding: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stat-card h3 {
-        margin-bottom: 1rem;
-        color: #2c3e50;
-    }
-
-    .stat-card ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .stat-card li {
-        margin-bottom: 0.5rem;
-        color: #34495e;
-    }
-
-    .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-    }
-</style>
