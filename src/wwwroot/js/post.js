@@ -1,6 +1,20 @@
 likeButton.addEventListener('click', async () => {
   try {
-      const response = await fetch(window.location.pathname + '/like');
+      const path = window.location.pathname;
+      const isLiked = localStorage.getItem(`liked-${path}`) === 'true';
+
+      console.log(isLiked)
+
+      const response = await fetch(`${path}/like`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              action: isLiked ? 'decrement' : 'increment'
+          })
+      });
+
       const data = await response.json();
       if (data.success) {
           document.getElementById('likeCount').textContent = data.likes;
@@ -8,7 +22,7 @@ likeButton.addEventListener('click', async () => {
           updateLocalStorageLike();
       }
   } catch (err) {
-      console.error('Error liking post:', err);
+      console.error('Error updating like status:', err);
   }
 });
 

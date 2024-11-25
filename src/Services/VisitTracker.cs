@@ -53,7 +53,7 @@ public class VisitTracker
         command.ExecuteNonQuery();
     }
 
-    public async Task<bool> AddLikeAsync(string postTitle, int year)
+    private async Task<bool> UpdateLikeAsync(string postTitle, int year, bool isAdd)
     {
         try
         {
@@ -61,13 +61,17 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
-                INSERT INTO Likes (PostTitle, Year, LikedAt)
-                VALUES (@title, @year, @time)";
+            command.CommandText = isAdd
+                ? @"INSERT INTO Likes (PostTitle, Year, LikedAt) VALUES (@title, @year, @time)"
+                : @"DELETE FROM Likes WHERE PostTitle = @title AND Year = @year";
 
             command.Parameters.AddWithValue("@title", postTitle);
             command.Parameters.AddWithValue("@year", year);
-            command.Parameters.AddWithValue("@time", DateTime.UtcNow);
+
+            if (isAdd)
+            {
+                command.Parameters.AddWithValue("@time", DateTime.UtcNow);
+            }
 
             await command.ExecuteNonQueryAsync();
 
@@ -77,17 +81,27 @@ public class VisitTracker
 
             if (model != null)
             {
-                Interlocked.Increment(ref model.LikeCount);
+                if (isAdd)
+                    Interlocked.Increment(ref model.LikeCount);
+                else
+                    Interlocked.Decrement(ref model.LikeCount);
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding like for post {PostTitle}", postTitle);
+            _logger.LogError(ex, "Error {Action} like for post {PostTitle}",
+                isAdd ? "adding" : "removing", postTitle);
             return false;
         }
     }
+
+    public Task<bool> AddLikeAsync(string postTitle, int year) =>
+        UpdateLikeAsync(postTitle, year, true);
+
+    public Task<bool> RemoveLikeAsync(string postTitle, int year) =>
+        UpdateLikeAsync(postTitle, year, false);
 
     private void UpdateCacheViewCounts()
     {
@@ -217,14 +231,14 @@ public class VisitTracker
         return viewCounts;
     }
     public async Task<List<MonthlyStats>> GetUniqueVisitorsPerMonthAsync()
-{
-    try
     {
-        using var connection = new SqliteConnection($"Data Source={_dbPath}");
-        await connection.OpenAsync();
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
 
-        var command = connection.CreateCommand();
-        command.CommandText = @"
+            var command = connection.CreateCommand();
+            command.CommandText = @"
             SELECT
                 strftime('%Y-%m', VisitTime) as Month,
                 COUNT(DISTINCT IpAddress) as UniqueVisitors
@@ -232,35 +246,35 @@ public class VisitTracker
             GROUP BY strftime('%Y-%m', VisitTime)
             ORDER BY Month";
 
-        var stats = new List<MonthlyStats>();
-        using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            var monthStr = reader.GetString(0);
-            stats.Add(new MonthlyStats
+            var stats = new List<MonthlyStats>();
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
-                Count = reader.GetInt32(1)
-            });
+                var monthStr = reader.GetString(0);
+                stats.Add(new MonthlyStats
+                {
+                    Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
+                    Count = reader.GetInt32(1)
+                });
+            }
+            return stats;
         }
-        return stats;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting unique visitors per month");
+            return new List<MonthlyStats>();
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error getting unique visitors per month");
-        return new List<MonthlyStats>();
-    }
-}
 
-public async Task<Dictionary<string, int>> GetUserAgentStatsAsync()
-{
-    try
+    public async Task<Dictionary<string, int>> GetUserAgentStatsAsync()
     {
-        using var connection = new SqliteConnection($"Data Source={_dbPath}");
-        await connection.OpenAsync();
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
 
-        var command = connection.CreateCommand();
-        command.CommandText = @"
+            var command = connection.CreateCommand();
+            command.CommandText = @"
             SELECT
                 CASE
                     WHEN UserAgent LIKE '%Mobile%' THEN 'Mobile'
@@ -275,31 +289,31 @@ public async Task<Dictionary<string, int>> GetUserAgentStatsAsync()
             GROUP BY Browser
             ORDER BY Count DESC";
 
-        var stats = new Dictionary<string, int>();
-        using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            stats[reader.GetString(0)] = reader.GetInt32(1);
+            var stats = new Dictionary<string, int>();
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats[reader.GetString(0)] = reader.GetInt32(1);
+            }
+            return stats;
         }
-        return stats;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user agent stats");
+            return new Dictionary<string, int>();
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error getting user agent stats");
-        return new Dictionary<string, int>();
-    }
-}
 
-public async Task<List<TopPost>> GetTopPostsAsync(string metric = "views", int limit = 5)
-{
-    try
+    public async Task<List<TopPost>> GetTopPostsAsync(string metric = "views", int limit = 5)
     {
-        using var connection = new SqliteConnection($"Data Source={_dbPath}");
-        await connection.OpenAsync();
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
 
-        var tableName = metric.ToLower() == "likes" ? "Likes" : "Visits";
-        var command = connection.CreateCommand();
-        command.CommandText = $@"
+            var tableName = metric.ToLower() == "likes" ? "Likes" : "Visits";
+            var command = connection.CreateCommand();
+            command.CommandText = $@"
             SELECT
                 PostTitle,
                 Year,
@@ -309,34 +323,34 @@ public async Task<List<TopPost>> GetTopPostsAsync(string metric = "views", int l
             ORDER BY Count DESC
             LIMIT @limit";
 
-        command.Parameters.AddWithValue("@limit", limit);
+            command.Parameters.AddWithValue("@limit", limit);
 
-        var topPosts = new List<TopPost>();
-        using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            var title = reader.GetString(0);
-            var year = reader.GetInt32(1);
-            var model = Cache.Models.FirstOrDefault(m =>
-                m.Title == title && m.Date?.Year == year);
-
-            if (model != null)
+            var topPosts = new List<TopPost>();
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                topPosts.Add(new TopPost
+                var title = reader.GetString(0);
+                var year = reader.GetInt32(1);
+                var model = Cache.Models.FirstOrDefault(m =>
+                    m.Title == title && m.Date?.Year == year);
+
+                if (model != null)
                 {
-                    Title = title,
-                    Year = year,
-                    CoverImage = model.CoverImage,
-                    Count = reader.GetInt32(2)
-                });
+                    topPosts.Add(new TopPost
+                    {
+                        Title = title,
+                        Year = year,
+                        CoverImage = model.CoverImage,
+                        Count = reader.GetInt32(2)
+                    });
+                }
             }
+            return topPosts;
         }
-        return topPosts;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting top posts");
+            return new List<TopPost>();
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error getting top posts");
-        return new List<TopPost>();
-    }
-}
 }

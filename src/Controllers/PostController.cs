@@ -18,7 +18,7 @@ public class PostController : Controller
   public async Task<IActionResult> Index(Payload payload)
   {
     var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == payload.Year && f.Title == payload.Title);
-    if(model == null)
+    if (model == null)
     {
       _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
       return NotFound();
@@ -33,7 +33,7 @@ public class PostController : Controller
 
     if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true)
     {
-      if(!model.CoverImage.Contains(payload.Image))
+      if (!model.CoverImage.Contains(payload.Image))
       {
         if (Config.Password != null && !User.Identity.IsAuthenticated)
         {
@@ -53,22 +53,36 @@ public class PostController : Controller
     }
   }
 
-  [HttpGet]
+  [HttpPost]
+  [IgnoreAntiforgeryToken]
   [Route("[Controller]/{year:int}/{title}/like")]
-  public async Task<IActionResult> Like(int year, string title)
+  public async Task<IActionResult> Like(int year, string title, [FromBody] LikeAction action)
   {
-      var success = await _visitTracker.AddLikeAsync(title, year);
+    bool success = false;
+    if (action.Action == "increment")
+    {
+      success = await _visitTracker.AddLikeAsync(title, year);
 
-      if (success)
-      {
-          var model = Cache.Models.FirstOrDefault(m => m.Date?.Year == year && m.Title == title);
-          return Json(new { success = true, likes = model?.LikeCount ?? 0 });
-      }
-
-      return Json(new { success = false });
+    }
+    else if (action.Action == "decrement")
+    {
+      success = await _visitTracker.RemoveLikeAsync(title, year);
+    }
+    if (success)
+    {
+      var model = Cache.Models.FirstOrDefault(m => m.Date?.Year == year && m.Title == title);
+      return Json(new { success = true, likes = model?.LikeCount ?? 0 });
+    }
+    return Json(new { success = false });
   }
 
-  private async Task<IActionResult> Synology(string path) {
+  public class LikeAction
+  {
+    public string Action { get; set; }
+  }
+
+  private async Task<IActionResult> Synology(string path)
+  {
     if (Config.Synology)
     {
       var synologyFile = Path.GetFileName(path);
@@ -76,20 +90,26 @@ public class PostController : Controller
       var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
       synologyPath = $"{directory}/{synologyPath}";
 
-      if (System.IO.File.Exists(synologyPath)) {
+      if (System.IO.File.Exists(synologyPath))
+      {
         path = synologyPath;
         _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
       }
     }
 
-    if (!System.IO.File.Exists(path)){
-      if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
+    if (!System.IO.File.Exists(path))
+    {
+      if (path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase))
+      {
         path = ToggleCaseExtension(path);
-        if (!System.IO.File.Exists(path)){
+        if (!System.IO.File.Exists(path))
+        {
           _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
           return NotFound();
         }
-      } else {
+      }
+      else
+      {
         _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
         return NotFound();
       }
@@ -110,23 +130,26 @@ public class PostController : Controller
   }
 
   private string ComputeMD5(string s)
+  {
+    using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
     {
-        using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
-        {
-            return BitConverter.ToString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(s)))
-                        .Replace("-", "");
-        }
+      return BitConverter.ToString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(s)))
+                  .Replace("-", "");
     }
+  }
 
-  private async Task<byte[]> resize(string path) {
+  private async Task<byte[]> resize(string path)
+  {
     _logger.LogDebug("Resize method started for path: {0}", path);
-    try{
+    try
+    {
       var fileName = $"{Config.ConfigDir}/images{path}";
-      if (System.IO.File.Exists(fileName)) {
+      if (System.IO.File.Exists(fileName))
+      {
         using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         {
           var result = new byte[SourceStream.Length];
-                    await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+          await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
           return result;
         }
       }
@@ -135,32 +158,34 @@ public class PostController : Controller
       {
         using (var image = await Image.LoadAsync(path))
         {
-            int width = image.Width / 2;
-            int height = image.Height / 2;
-            width = 0;
-            height = 0;
-            if(image.Height > image.Width && height > Config.ImageMaxSize)
-              height = Config.ImageMaxSize;
-            if (image.Width > image.Height && width > Config.ImageMaxSize)
-              width = Config.ImageMaxSize;
+          int width = image.Width / 2;
+          int height = image.Height / 2;
+          width = 0;
+          height = 0;
+          if (image.Height > image.Width && height > Config.ImageMaxSize)
+            height = Config.ImageMaxSize;
+          if (image.Width > image.Height && width > Config.ImageMaxSize)
+            width = Config.ImageMaxSize;
 
-            if (width + height != 0)
-              image.Mutate(x => x.Resize(width, height));
-              var encoder = new JpegEncoder
-              {
-                  Quality = Config.ImageQuality
-              };
-              await image.SaveAsJpegAsync(outputStream, encoder);
+          if (width + height != 0)
+            image.Mutate(x => x.Resize(width, height));
+          var encoder = new JpegEncoder
+          {
+            Quality = Config.ImageQuality
+          };
+          await image.SaveAsJpegAsync(outputStream, encoder);
         }
         outputStream.Position = 0;
-        if(fileName != null)
+        if (fileName != null)
           Directory.CreateDirectory(Path.GetDirectoryName(fileName));
         using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
         await outputStream.CopyToAsync(destination);
 
         return outputStream.ToArray();
       }
-    } catch(Exception e){
+    }
+    catch (Exception e)
+    {
       _logger.LogError(e, "Error Reading File: {0}", path);
       throw;
     }
