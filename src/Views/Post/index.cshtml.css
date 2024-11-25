@@ -13,6 +13,14 @@ a{
   cursor: pointer;
 }
 
+.center > h1{
+  margin: 3vh;
+}
+
+.center {
+  margin-bottom:12vh
+}
+
 .no-scroll {
   overflow: hidden; /* disables scrolling */
   height: 100%; /* keeps the layout stable */

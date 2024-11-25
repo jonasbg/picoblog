@@ -26,6 +26,8 @@
     <div class="center date">
         <h2>@Model.Title</h2>
         <p>@Model.Date?.ToString("MMM dd, yyyy")</p>
+    @if ((Config.Password != null && User.Identity.IsAuthenticated) || Config.Password == null)
+    {
         <div class="stats">
             <span class="likes">
             <button id="likeButton" class="like-button">
@@ -54,6 +56,7 @@
                 </svg>
             </button>
         </div>
+    }
     </div>
     <button id="shareButton" class="circle">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share-fill" viewBox="0 0 16 16">
@@ -123,7 +126,7 @@
 
     @if (Config.Password != null && !User.Identity.IsAuthenticated)
     {
-    <div  class="center" style="margin-bottom:8vh">
+    <div class="center">
         <h1>Members only</h1>
         <p>You have to login to view the content of this page.</p>
         <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
