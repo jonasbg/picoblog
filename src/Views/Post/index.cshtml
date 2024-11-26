@@ -7,14 +7,11 @@
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
 }
 
-@if(!string.IsNullOrEmpty(Model.CoverImage)){
 <div class="hero">
-    <img class="full-screen-width" src=@(Uri.EscapeDataString(Model.Title)+"/"+Model.CoverImage) alt="Banner Image">
-    @* <div class="hero-text">
-        <h1>@Model.Title</h1>
-    </div> *@
- </div>
-}
+    @if(!string.IsNullOrEmpty(Model.CoverImage)) {
+        <img class="full-screen-width" src="@(Uri.EscapeDataString(Model.Title)+"/"+Model.CoverImage)" alt="Banner Image">
+    }
+</div>
 
 <button id="backButton" class="top-left">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16">

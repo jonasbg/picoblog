@@ -2,13 +2,6 @@ main {
   margin-top: 0 !important;
 }
 
-.rendered-markdown {
-  margin: 0 auto; /* centers the container */
-  padding: 1em; /* provides some space around the content */
-  max-width: 50em; /* limits the width of the container */
-  font-size: 16px; /* defines the base font size */
-}
-
 a{
   cursor: pointer;
 }
@@ -86,29 +79,6 @@ a{
     left: 0;
     padding: 5vw 5vw 18vw 5vw;
     top: 53vh;
-  }
-
-  .hero {
-    height: 120vw;
-    width: 100vw;
-    /* background: rgba(0, 0, 0, 0.27); */
-    overflow: hidden;
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: -1;
-  }
-
-  .hero img {
-    object-fit: cover;
-    /* opacity: 0.9; */
-    bottom: 0;
-    top: 0;
-    position: absolute;
-    height: 100%;
-    width: 100vw;
   }
 
   #shareButton {
@@ -221,4 +191,66 @@ a{
 .like-button:hover, .favorite-button:hover {
   transform: scale(1.1);
   color: #ff4545;
+}
+
+
+/* /////////////////////////////////////////////////// */
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+.hero {
+  position: relative;
+  width: 100vw;
+  height: 60vh;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  margin-top: -20px; /* Adjust based on your menu height */
+  overflow: hidden;
+}
+
+.full-screen-width {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.date {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.date h2 {
+  font-size: 2.5rem;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.date p {
+  color: #666;
+  margin: 0;
+}
+
+.rendered-markdown {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+@media (max-width: 768px) {
+  .hero {
+      height: 40vh;
+  }
+
+  .date h2 {
+      font-size: 2rem;
+  }
 }
