@@ -59,7 +59,7 @@ public class HomeController : Controller
   public IActionResult Index()
   {
     ViewBag.Home = "class = active";
-    return View(Cache.Models.Where(p => p.Visible).OrderByDescending(f => f.Date));
+    return View(Cache.Models.OrderByDescending(f => f.Date));
   }
 
   private bool IsValidReturnUrl(string url)

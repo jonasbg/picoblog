@@ -26,7 +26,6 @@ public class RssFeedController : Controller
                   new XElement("link", domain),
                   new XElement("description", description),
                   from model in Cache.Models
-                  where model.Public && model.Visible
                   select new XElement("item",
                       new XElement("title", model.Title),
                       new XElement("link", $"{domain}/post/{model.Date?.Year}/{model.Title}"),

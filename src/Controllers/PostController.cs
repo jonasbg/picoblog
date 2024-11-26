@@ -20,8 +20,12 @@ public class PostController : Controller
     var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == payload.Year && f.Title == payload.Title);
     if (model == null)
     {
-      _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
-      return NotFound();
+      model = Cache.PrivatePosts.SingleOrDefault(f => f.Date?.Year == payload.Year && f.Title == payload.Title);
+      if (model == null)
+      {
+        _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
+        return NotFound();
+      }
     }
 
     if (string.IsNullOrEmpty(payload.Image))
@@ -70,7 +74,16 @@ public class PostController : Controller
     }
     if (success)
     {
-      var model = Cache.Models.FirstOrDefault(m => m.Date?.Year == year && m.Title == title);
+      var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == year && f.Title == title);
+      if (model == null)
+      {
+        model = Cache.PrivatePosts.SingleOrDefault(f => f.Date?.Year == year && f.Title == title);
+        if (model == null)
+        {
+          _logger.LogWarning("No model found for payload title: {PayloadTitle}", title);
+          return NotFound();
+        }
+      }
       return Json(new { success = true, likes = model?.LikeCount ?? 0 });
     }
     return Json(new { success = false });

@@ -105,13 +105,17 @@ public class MonitorLoop
                 var model = ParseFrontMatter(frontMatter, file);
                 if (model != null)
                 {
-                    _logger.LogInformation(
-                        "FOUND: {Title} - Path: {Path} - URL: {Url}",
-                        model.Title,
-                        model.Path,
-                        $"{Config.Domain}/post/{model.Title}"
-                    );
-                    models.Add(model);
+                    if(model.Public && model.Draft == false) {
+                        _logger.LogInformation(
+                            "FOUND: {Title} - Path: {Path} - URL: {Url}",
+                            model.Title,
+                            model.Path,
+                            $"{Config.Domain}/post/{model.Date?.Year}/{model.Title}"
+                        );
+                        models.Add(model);
+                    }
+                    else
+                        Cache.PrivatePosts.Add(model);
                 }
             }
         }
@@ -145,14 +149,14 @@ public class MonitorLoop
                 case var k when k.Equals(MetadataHeader.Public.ToLowerInvariant()):
                     model.Public = bool.Parse(value);
                     break;
+                case var k when k.Equals(MetadataHeader.Draft.ToLowerInvariant()):
+                    model.Draft = bool.Parse(value);
+                    break;
                 case var k when k.Equals(MetadataHeader.Title.ToLowerInvariant()):
                     model.Title = value;
                     break;
                 case var k when k.Equals(MetadataHeader.Date.ToLowerInvariant()):
                     model.Date = DateTime.Parse(value);
-                    break;
-                case var k when k.Equals(MetadataHeader.Draft.ToLowerInvariant()):
-                    model.Visible = !bool.Parse(value);
                     break;
                 case var k when k.Equals(MetadataHeader.CoverImage.ToLowerInvariant()):
                     model.CoverImage = value;
@@ -189,7 +193,7 @@ public class ResultsProcessor
     private void ProcessHiddenPosts(IEnumerable<MarkdownModel> models)
     {
         _stopwatch.Restart();
-        var hiddenPosts = models.Where(p => !p.Visible).ToList();
+        var hiddenPosts = Cache.PrivatePosts.ToList();
 
         if (hiddenPosts.Any())
         {
