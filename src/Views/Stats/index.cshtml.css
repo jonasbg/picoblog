@@ -201,7 +201,7 @@ Copy
   font-size: 1.1rem;
 }
 .posts-table-wrapper {
-  max-height: 300px; /* Match the chart container height */
+  max-height: 500px; /* Match the chart container height */
   overflow-y: auto;
   scrollbar-width: thin;
 }
