@@ -73,6 +73,33 @@
                 }
             </div>
         </div>
+        <div class="dashboard-item">
+        <h2>Posts Without Cover Images</h2>
+        @if (!Cache.Models.Any(m => string.IsNullOrEmpty(m.CoverImage)))
+        {
+            <div class="empty-state">
+                <p>💪 All posts have cover images! Looking sharp! 🤩</p>
+            </div>
+        }
+        else
+        {
+            <div class="posts-table-wrapper">
+                <table class="posts-table">
+                    <tbody>
+                        @foreach (var post in Cache.Models.Where(m => string.IsNullOrEmpty(m.CoverImage))
+                                                        .OrderByDescending(m => m.Date))
+                        {
+                            <tr onclick="window.location='/post/@post.Date?.Year/@post.Title'">
+                                <td>@post.Title</td>
+                                <td class="date-cell">@(post.Date?.ToString("MMM d, yyyy"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        </div>
+
     </div>
 </div>
 
