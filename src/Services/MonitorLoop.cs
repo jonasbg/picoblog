@@ -114,7 +114,7 @@ public class MonitorLoop
                         );
                         models.Add(model);
                     }
-                    else
+                    else if (!model.Public && model.Draft == false)
                         Cache.PrivatePosts.Add(model);
                 }
             }
