@@ -266,6 +266,42 @@ public class VisitTracker
         }
     }
 
+    public async Task<List<MonthlyStats>> GetVisitsPerMonthAsync()
+    {
+        try
+        {
+            using var connection = new SqliteConnection($"Data Source={_dbPath}");
+            await connection.OpenAsync();
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+        SELECT
+            strftime('%Y-%m', VisitTime) as Month,
+            COUNT(*) as TotalVisits
+        FROM Visits
+        GROUP BY strftime('%Y-%m', VisitTime)
+        ORDER BY Month";
+
+            var stats = new List<MonthlyStats>();
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var monthStr = reader.GetString(0);
+                stats.Add(new MonthlyStats
+                {
+                    Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
+                    Count = reader.GetInt32(1)
+                });
+            }
+            return stats;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting visits per month");
+            return new List<MonthlyStats>();
+        }
+    }
+
     public async Task<int> GetTotalViewsAsync()
     {
         try

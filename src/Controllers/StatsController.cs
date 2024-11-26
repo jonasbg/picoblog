@@ -36,14 +36,16 @@ public class StatsController : Controller
         var mostLikedPostsTask = _visitTracker.GetTopPostsAsync("likes", 5);
         var mostViewedPostsTask = _visitTracker.GetTopPostsAsync("views", 5);
         var userAgentStatsTask = _visitTracker.GetUserAgentStatsAsync();
-        var totalViewsTask = _visitTracker.GetTotalViewsAsync(); // New
+        var totalViewsTask = _visitTracker.GetTotalViewsAsync();
+        var monthlyVisitsTask = _visitTracker.GetVisitsPerMonthAsync();
 
         await Task.WhenAll(
             uniqueVisitorsTask,
             mostLikedPostsTask,
             mostViewedPostsTask,
             userAgentStatsTask,
-            totalViewsTask
+            totalViewsTask,
+            monthlyVisitsTask
         );
 
         var stats = new StatsViewModel
@@ -61,7 +63,9 @@ public class StatsController : Controller
             MostViewedPosts = await mostViewedPostsTask,
 
             // Browser stats
-            UserAgentStats = await userAgentStatsTask
+            UserAgentStats = await userAgentStatsTask,
+
+            MonthlyVisits = await monthlyVisitsTask,
         };
 
         stats.TotalUniqueVisitors = stats.UniqueVisitors.Sum(p => p.Count);

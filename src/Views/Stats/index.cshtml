@@ -82,6 +82,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const monthlyActivity = @Html.Raw(Json.Serialize(Model.MonthlyActivity));
     const uniqueVisitors = @Html.Raw(Json.Serialize(Model.UniqueVisitors));
+    const monthlyVisits = @Html.Raw(Json.Serialize(Model.MonthlyVisits));
 
     const formatDate = (isoDate) => {
         // Extract year and month from ISO date string
@@ -124,6 +125,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 label: 'Unique Visitors',
                 data: visitorsData,
                 borderColor: '#2ecc71',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Total Views',
+                data: sortedDates.map(date => {
+                    const match = monthlyVisits.find(m => formatDate(m.date) === date);
+                    return match ? match.count : 0;
+                }),
+                borderColor: '#e74c3c',
                 tension: 0.4,
                 fill: false
             }]

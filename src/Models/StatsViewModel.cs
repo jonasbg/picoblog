@@ -8,6 +8,7 @@ public class StatsViewModel
     public List<TopPost> MostLikedPosts { get; set; }
     public List<TopPost> MostViewedPosts { get; set; }
     public Dictionary<string, int> UserAgentStats { get; set; }
+    public List<MonthlyStats> MonthlyVisits { get; set; }
 }
 
 public class MonthlyStats
