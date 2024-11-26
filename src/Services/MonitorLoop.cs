@@ -1,289 +1,140 @@
 public class MonitorLoop
 {
-    private readonly IBackgroundTaskQueue _taskQueue;
-    private readonly ILogger _logger;
-    private readonly CancellationToken _cancellationToken;
-    private readonly TimeSpan _syncInterval = TimeSpan.FromMinutes(5);
-    private DateTime _lastSync = DateTime.MinValue;
-    private static readonly string[] SupportedExtensions = { "*.md" };
+  private readonly IBackgroundTaskQueue _taskQueue;
+  private readonly ILogger _logger;
+  private readonly CancellationToken _cancellationToken;
+  private DateTime _lastSync = DateTime.MinValue;
 
-    public MonitorLoop(
-        IBackgroundTaskQueue taskQueue,
-        ILogger<MonitorLoop> logger,
-        IHostApplicationLifetime applicationLifetime
-    )
+  public MonitorLoop(IBackgroundTaskQueue taskQueue,
+      ILogger<MonitorLoop> logger,
+      IHostApplicationLifetime applicationLifetime)
+  {
+    _taskQueue = taskQueue;
+    _logger = logger;
+    _cancellationToken = applicationLifetime.ApplicationStopping;
+  }
+
+  public void StartMonitorLoop()
+  {
+    // Run a console user input loop in a background thread
+    Task.Run(async () => await MonitorAsync());
+  }
+
+  private async ValueTask MonitorAsync()
+  {
+    // Enqueue a background work item
+    await _taskQueue.QueueBackgroundWorkItemAsync(BuildWorkItem);
+  }
+
+  private async ValueTask BuildWorkItem(CancellationToken token)
+  {
+    var guid = Guid.NewGuid().ToString();
+
+
+    try
     {
-        _taskQueue = taskQueue;
-        _logger = logger;
-        _cancellationToken = applicationLifetime.ApplicationStopping;
+      if (_lastSync == DateTime.MinValue || _lastSync <= DateTime.Now.AddMinutes(-5))
+      {
+        _logger.LogInformation("Queued Background Task {Guid} is starting.", guid);
+        FindFiles();
+      }
+      _lastSync = DateTime.Now;
+    }
+    catch (OperationCanceledException)
+    {
+      // Prevent throwing if the Delay is cancelled
+    }
+  }
+
+  private void FindFiles()
+  {
+      _logger.LogInformation("Starting searching for markdown files (*.md)");
+      var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+      var concurrentModels = new ConcurrentBag<MarkdownModel>();
+      var concurrentPrivatePosts = new ConcurrentBag<MarkdownModel>();
+
+      Parallel.ForEach(files, file =>
+      {
+          string content = File.ReadAllText(file);
+          Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
+
+          if (match.Success)
+              ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels, concurrentPrivatePosts);
+      });
+
+      var models = concurrentModels.ToList();
+      var privatePosts = concurrentPrivatePosts.ToList();
+      ProcessResults(models, privatePosts);
+      Cache.Models = models;
+      Cache.PrivatePosts = privatePosts;
+  }
+
+  private void ProcessFrontMatter(string frontmatter, string file, ConcurrentBag<MarkdownModel> models, ConcurrentBag<MarkdownModel> privatePosts)
+  {
+      var model = new MarkdownModel();
+      foreach (var line in frontmatter.Split('\n'))
+      {
+          string[] parts = line.Split(':', 2);
+          if (parts.Length < 2) continue;
+
+          string key = parts[0].Trim();
+          string value = parts[1].Trim();
+
+          model.Path = file;
+          if (key.Equals(MetadataHeader.Public, StringComparison.InvariantCultureIgnoreCase)) model.Public = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+          else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
+          else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
+          else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Draft = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+          else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
+          else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
+      }
+      if(model.Public && model.Draft == false){
+        _logger.LogInformation("FOUND: {Title} - Path: {Path} - URL: {Url}", model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
+        models.Add(model);
+      } else if (model.Public == false && model.Draft == false)
+        privatePosts.Add(model);
+      else if (model.Draft)
+        _logger.LogInformation("FOUND DRAFT (IGNORING): {Path}", model.Path);
+  }
+
+  private void ProcessResults(IList<MarkdownModel> models, IList<MarkdownModel> privatePosts)
+  {
+    if (privatePosts.Any())
+    {
+        var hiddenPosts = privatePosts;
+        _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
+        foreach (var model in hiddenPosts)
+            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Date?.Year}/{model.Title}");
     }
 
-    public void StartMonitorLoop()
+    if (models.Any(p => string.IsNullOrEmpty(p.Title)))
     {
-        // Run a console user input loop in a background thread
-        Task.Run(async () => await MonitorAsync());
+        var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
+        _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
+
+      foreach (var model in postsWithoutTitles)
+            _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
+
+      models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
     }
 
-    private async ValueTask MonitorAsync()
-    {
-        await _taskQueue.QueueBackgroundWorkItemAsync(BuildWorkItem);
+    var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
+    if (duplicates.Any()){
+      _logger.LogInformation("FOUND DUPLICATES, REMOVED FROM SET");
+      foreach (var title in duplicates)
+      {
+          var dups = models.Where(p => p.Title == title);
+          foreach(var dup in dups)
+              _logger.LogInformation("Duplicate found: Title: {Title}, Path: {Path}", dup.Title, dup.Path);
+      }
+      models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
     }
-
-    private async ValueTask BuildWorkItem(CancellationToken token)
+    var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
+    if (deleted.Any())
     {
-        if (token.IsCancellationRequested) return;
-
-        var guid = Guid.NewGuid().ToString();
-
-        try
-        {
-            if (ShouldSync())
-            {
-                _logger.LogInformation("Queued Background Task {Guid} is starting.", guid);
-                await ProcessMarkdownFilesAsync(token);
-                _lastSync = DateTime.UtcNow;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Prevent throwing if cancelled
-        }
+        _logger.LogInformation("FOUND DELETED FILES");
+        foreach (var del in deleted)
+            _logger.LogInformation("DELETED FILE: Title: {Title}, Path: {Path}", del.Title, del.Path);
     }
-
-    private bool ShouldSync() =>
-        _lastSync == DateTime.MinValue || DateTime.UtcNow - _lastSync >= _syncInterval;
-
-    private async Task ProcessMarkdownFilesAsync(CancellationToken token)
-    {
-        _logger.LogInformation("Starting searching for markdown files");
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            var models = await FindAndProcessFilesAsync(token);
-            if (token.IsCancellationRequested) return;
-
-            var processor = new ResultsProcessor(_logger);
-            processor.ProcessResults(models, Cache.Models);
-            Cache.Models = models;
-
-            stopwatch.Stop();
-            _logger.LogInformation("Total processing time: {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing markdown files");
-            throw;
-        }
-    }
-
-    private async Task<List<MarkdownModel>> FindAndProcessFilesAsync(CancellationToken token)
-    {
-        var files = new List<string>();
-        foreach (var extension in SupportedExtensions)
-        {
-            files.AddRange(Directory.EnumerateFiles(Config.DataDir, extension, SearchOption.AllDirectories));
-        }
-
-        var models = new ConcurrentBag<MarkdownModel>();
-        var tasks = files.Select(file => ProcessFileAsync(file, models, token));
-        await Task.WhenAll(tasks);
-
-        return models.ToList();
-    }
-
-    private async Task ProcessFileAsync(string file, ConcurrentBag<MarkdownModel> models, CancellationToken token)
-    {
-        if (token.IsCancellationRequested) return;
-
-        try
-        {
-            string content = await File.ReadAllTextAsync(file, token);
-            var frontMatter = ExtractFrontMatter(content);
-            if (frontMatter != null)
-            {
-                var model = ParseFrontMatter(frontMatter, file);
-                if (model != null)
-                {
-                    if(model.Public && model.Draft == false) {
-                        _logger.LogInformation(
-                            "FOUND: {Title} - Path: {Path} - URL: {Url}",
-                            model.Title,
-                            model.Path,
-                            $"{Config.Domain}/post/{model.Date?.Year}/{model.Title}"
-                        );
-                        models.Add(model);
-                    }
-                    else if (!model.Public && model.Draft == false)
-                        Cache.PrivatePosts.Add(model);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing file: {File}", file);
-        }
-    }
-
-    private static string ExtractFrontMatter(string content)
-    {
-        var match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
-        return match.Success ? match.Groups[1].Value : null;
-    }
-
-    private static MarkdownModel ParseFrontMatter(string frontMatter, string file)
-    {
-        var model = new MarkdownModel { Path = file };
-        var frontMatterLines = frontMatter.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var line in frontMatterLines)
-        {
-            var parts = line.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2) continue;
-
-            var key = parts[0].Trim();
-            var value = parts[1].Trim();
-
-            switch (key.ToLowerInvariant())
-            {
-                case var k when k.Equals(MetadataHeader.Public.ToLowerInvariant()):
-                    model.Public = bool.Parse(value);
-                    break;
-                case var k when k.Equals(MetadataHeader.Draft.ToLowerInvariant()):
-                    model.Draft = bool.Parse(value);
-                    break;
-                case var k when k.Equals(MetadataHeader.Title.ToLowerInvariant()):
-                    model.Title = value;
-                    break;
-                case var k when k.Equals(MetadataHeader.Date.ToLowerInvariant()):
-                    model.Date = DateTime.Parse(value);
-                    break;
-                case var k when k.Equals(MetadataHeader.CoverImage.ToLowerInvariant()):
-                    model.CoverImage = value;
-                    break;
-                case var k when k.Equals(MetadataHeader.Description.ToLowerInvariant()):
-                    model.Description = value;
-                    break;
-            }
-        }
-
-        return model;
-    }
-}
-
-public class ResultsProcessor
-{
-    private readonly ILogger _logger;
-    private readonly Stopwatch _stopwatch;
-
-    public ResultsProcessor(ILogger logger)
-    {
-        _logger = logger;
-        _stopwatch = new Stopwatch();
-    }
-
-    public void ProcessResults(IList<MarkdownModel> currentModels, IList<MarkdownModel> cachedModels)
-    {
-        ProcessHiddenPosts(currentModels);
-        RemovePostsWithoutTitles(currentModels);
-        HandleDuplicates(currentModels);
-        ProcessDeletedFiles(currentModels, cachedModels);
-    }
-
-    private void ProcessHiddenPosts(IEnumerable<MarkdownModel> models)
-    {
-        _stopwatch.Restart();
-        var hiddenPosts = Cache.PrivatePosts.ToList();
-
-        if (hiddenPosts.Any())
-        {
-            _logger.LogInformation("Found {Count} hidden posts", hiddenPosts.Count);
-            foreach (var model in hiddenPosts)
-            {
-                _logger.LogInformation(
-                    "Hidden post: {Title} - {Url}",
-                    model.Title,
-                    $"{Config.Domain}/post/{model.Date?.Year}/{model.Title}"
-                );
-            }
-        }
-
-        LogProcessingTime("Hidden posts");
-    }
-
-    private void RemovePostsWithoutTitles(IList<MarkdownModel> models)
-    {
-        _stopwatch.Restart();
-        var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title)).ToList();
-
-        if (postsWithoutTitles.Any())
-        {
-            _logger.LogInformation("Found {Count} posts without titles", postsWithoutTitles.Count);
-            foreach (var model in postsWithoutTitles)
-            {
-                _logger.LogInformation("Post without title: {Path}", model.Path);
-            }
-            foreach (var model in postsWithoutTitles)
-            {
-                models.Remove(model);
-            }
-        }
-
-        LogProcessingTime("Posts without titles");
-    }
-
-    private void HandleDuplicates(IList<MarkdownModel> models)
-    {
-        _stopwatch.Restart();
-        var uniquePosts = new Dictionary<string, MarkdownModel>();
-        var duplicates = new List<MarkdownModel>();
-
-        foreach (var model in models.ToList())
-        {
-            var key = $"{model.Title}-{model.Date?.Year}";
-            if (!uniquePosts.TryAdd(key, model))
-            {
-                duplicates.Add(model);
-                duplicates.Add(uniquePosts[key]);
-                models.Remove(uniquePosts[key]);
-                models.Remove(model);
-            }
-        }
-
-        if (duplicates.Any())
-        {
-            _logger.LogInformation("Found {Count} duplicates", duplicates.Count / 2);
-            foreach (var dup in duplicates)
-            {
-                _logger.LogInformation("Duplicate: {Title} - {Path}", dup.Title, dup.Path);
-            }
-        }
-
-        LogProcessingTime("Duplicates");
-    }
-
-    private void ProcessDeletedFiles(IList<MarkdownModel> currentModels, IList<MarkdownModel> cachedModels)
-    {
-        _stopwatch.Restart();
-        var currentPaths = new HashSet<string>(currentModels.Select(m => m.Path));
-        var deletedFiles = cachedModels.Where(m => !currentPaths.Contains(m.Path)).ToList();
-
-        if (deletedFiles.Any())
-        {
-            _logger.LogInformation("Found {Count} deleted files", deletedFiles.Count);
-            foreach (var model in deletedFiles)
-            {
-                _logger.LogInformation("Deleted: {Title} - {Path}", model.Title, model.Path);
-            }
-        }
-
-        LogProcessingTime("Deleted files");
-    }
-
-    private void LogProcessingTime(string operation)
-    {
-        _stopwatch.Stop();
-        _logger.LogInformation("{Operation} processing completed in {ElapsedMilliseconds}ms",
-            operation, _stopwatch.ElapsedMilliseconds);
-    }
+  }
 }
