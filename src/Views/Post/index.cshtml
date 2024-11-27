@@ -165,7 +165,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     textToCopy = document.querySelector('.date h2').innerText;
                     break;
                 case 'd': // Date
-                    textToCopy = document.querySelector('.date p').innerText;
+                    let rawDate = document.querySelector('.date p').innerText.trim();
+                    let date = new Date(rawDate);
+                    if (!isNaN(date)) {
+                        let formatter = new Intl.DateTimeFormat('de-DE', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
+
+                        let formattedDate = formatter.format(date);
+
+                        let [day, month, year] = formattedDate.split('.');
+                        textToCopy = `${year}/${month}/${day}`;
+                    }
                     break;
                 case 'b': // Body
                     textToCopy = document.querySelector('.rendered-markdown').innerText;
