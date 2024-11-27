@@ -28,9 +28,6 @@ public class PostController : Controller
       }
     }
 
-    if (model.Draft)
-      RedirectBack();
-
     if (string.IsNullOrEmpty(payload.Image))
     {
       _logger.LogDebug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
@@ -38,18 +35,15 @@ public class PostController : Controller
       try
       {
         model.Markdown = System.IO.File.ReadAllText(model.Path);
-        return View(model);
+        if (model.Draft)
+          return RedirectBack(model);
+        else
+          return View(model);
       }
       catch (FileNotFoundException)
       {
         _logger.LogWarning("File not found at path: {ModelPath}. Removing from cache.", model.Path);
-
-        if (Cache.Models.Contains(model))
-          Cache.Models = Cache.Models.Where(m => m != model).ToList();
-        else if (Cache.PrivatePosts.Contains(model))
-          Cache.PrivatePosts = Cache.PrivatePosts.Where(m => m != model).ToList();
-
-        return RedirectBack();
+        return RedirectBack(model);
       }
     }
 
@@ -75,8 +69,13 @@ public class PostController : Controller
     }
   }
 
-  private IActionResult RedirectBack()
+  private IActionResult RedirectBack(MarkdownModel model)
   {
+    if (Cache.Models.Contains(model))
+      Cache.Models = Cache.Models.Where(m => m.Path != model.Path).ToList();
+    else if (Cache.PrivatePosts.Contains(model))
+      Cache.PrivatePosts = Cache.PrivatePosts.Where(m => m.Path != model.Path).ToList();
+
     // Redirect to previous page if available, otherwise to home
     var previousUrl = Request.Headers.Referer.ToString();
     if (!string.IsNullOrEmpty(previousUrl))
