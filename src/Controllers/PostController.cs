@@ -31,8 +31,28 @@ public class PostController : Controller
     if (string.IsNullOrEmpty(payload.Image))
     {
       _logger.LogDebug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
-      model.Markdown = System.IO.File.ReadAllText(model.Path);
-      return View(model);
+
+      try
+      {
+        model.Markdown = System.IO.File.ReadAllText(model.Path);
+        return View(model);
+      }
+      catch (FileNotFoundException)
+      {
+        _logger.LogWarning("File not found at path: {ModelPath}. Removing from cache.", model.Path);
+
+        if (Cache.Models.Contains(model))
+          Cache.Models = Cache.Models.Where(m => m != model).ToList();
+        else if (Cache.PrivatePosts.Contains(model))
+          Cache.PrivatePosts = Cache.PrivatePosts.Where(m => m != model).ToList();
+
+        // Redirect to previous page if available, otherwise to home
+        var previousUrl = Request.Headers.Referer.ToString();
+        if (!string.IsNullOrEmpty(previousUrl))
+          return Redirect(previousUrl);
+
+        return RedirectToAction("Index", "Home");  // Default fallback route
+      }
     }
 
     if (model.CoverImage.Contains(payload.Image) || model.Markdown?.Contains(payload.Image) == true)
