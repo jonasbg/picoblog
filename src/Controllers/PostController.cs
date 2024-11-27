@@ -28,6 +28,9 @@ public class PostController : Controller
       }
     }
 
+    if (model.Draft)
+      RedirectBack();
+
     if (string.IsNullOrEmpty(payload.Image))
     {
       _logger.LogDebug("Payload image is null or empty. Reading from model path: {ModelPath}", model.Path);
@@ -46,12 +49,7 @@ public class PostController : Controller
         else if (Cache.PrivatePosts.Contains(model))
           Cache.PrivatePosts = Cache.PrivatePosts.Where(m => m != model).ToList();
 
-        // Redirect to previous page if available, otherwise to home
-        var previousUrl = Request.Headers.Referer.ToString();
-        if (!string.IsNullOrEmpty(previousUrl))
-          return Redirect(previousUrl);
-
-        return RedirectToAction("Index", "Home");  // Default fallback route
+        return RedirectBack();
       }
     }
 
@@ -75,6 +73,16 @@ public class PostController : Controller
       _logger.LogWarning("Payload image not found in CoverImage and Markdown.");
       return NotFound();
     }
+  }
+
+  private IActionResult RedirectBack()
+  {
+    // Redirect to previous page if available, otherwise to home
+    var previousUrl = Request.Headers.Referer.ToString();
+    if (!string.IsNullOrEmpty(previousUrl))
+      return Redirect(previousUrl);
+
+    return RedirectToAction("Index", "Home");  // Default fallback route
   }
 
   [HttpPost]
