@@ -136,10 +136,10 @@ public class PostController : Controller
 
   private string ToggleCaseExtension(string path)
   {
-    string ext = System.IO.Path.GetExtension(path);
+    string ext = Path.GetExtension(path);
     string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
     _logger.LogDebug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
-    return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
+    return Path.ChangeExtension(path, oppositeCaseExt);
   }
 
   private string ComputeMD5(string s)

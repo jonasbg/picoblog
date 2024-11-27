@@ -12,7 +12,7 @@ public class MarkdownModel
 
       if (match.Success && match.Groups.Count > 1)
       {
-          var frontmatter = match.Groups[1].Value.Split(System.Environment.NewLine);
+          var frontmatter = match.Groups[1].Value.Split(Environment.NewLine);
           CoverImage = frontmatter.SingleOrDefault(p => p.StartsWith(MetadataHeader.CoverImage))?.Split(':')[1].Trim();
       }
     }
