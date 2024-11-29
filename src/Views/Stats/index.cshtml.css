@@ -158,16 +158,8 @@
   color: #3498db;
 }
 
-J
-great!
-now after the most viewed post card, add another card, "Posts without covers" (or something, you find a good naming). Add a table list of these posts, with the same hover effect and linking. List all posts, ordered by date descending (ie todays date at the top if that is one post) show title and date. Make the table rows smaller than the other existing tables rows
-
-Add this CSS:
-css
-
-Copy
 .posts-table {
-  width: 100%;
+  width: 100% !important;
   border-spacing: 0;
   margin-top: 0.5rem;
 }
