@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var modal = document.getElementById("imageModal");
     var modalContainer = document.getElementById("modal-container");
     var modalImg = document.getElementById("modalImage");
-    var captionText = document.getElementById("caption");
     var images = document.querySelectorAll(".rendered-markdown img");
     var currentIndex;
 
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
         img.onclick = function() {
             modal.style.display = "block";
             modalImg.src = this.src;
-            captionText.innerHTML = this.alt;
             currentIndex = index;
             document.body.classList.add('no-scroll');
             document.body.style.overflow = 'hidden';
@@ -38,14 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
         event.stopPropagation();
         currentIndex = (currentIndex - 1 + images.length) % images.length;
         modalImg.src = images[currentIndex].src;
-        captionText.innerHTML = images[currentIndex].alt;
     });
 
     document.getElementById("nextImage").addEventListener("click", function() {
         event.stopPropagation();
         currentIndex = (currentIndex + 1) % images.length;
         modalImg.src = images[currentIndex].src;
-        captionText.innerHTML = images[currentIndex].alt;
     });
 
     var span = document.getElementsByClassName("close")[0];
