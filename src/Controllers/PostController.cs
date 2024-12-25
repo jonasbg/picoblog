@@ -125,40 +125,38 @@ public class PostController : Controller
   {
     if (Config.Synology)
     {
-      var synologyFile = Path.GetFileName(path);
-      var directory = Path.GetDirectoryName(path);
-      var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
-      synologyPath = $"{directory}/{synologyPath}";
+        var synologyFile = Path.GetFileName(path);
+        var directory = Path.GetDirectoryName(path);
+        var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
+        synologyPath = $"{directory}/{synologyPath}";
 
-      if (System.IO.File.Exists(synologyPath))
-      {
-        path = synologyPath;
-        _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
-      }
+        if (System.IO.File.Exists(synologyPath))
+        {
+            path = synologyPath;
+            _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
+        }
     }
 
     if (!System.IO.File.Exists(path))
     {
-      if (path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase))
-      {
-        path = ToggleCaseExtension(path);
-        if (!System.IO.File.Exists(path))
+        if (path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase))
         {
-          _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
-          return NotFound();
+            path = ToggleCaseExtension(path);
+            if (!System.IO.File.Exists(path))
+            {
+                _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
+                return NotFound();
+            }
         }
-      }
-      else
-      {
-        _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
-        return NotFound();
-      }
+        else
+        {
+            _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
+            return NotFound();
+        }
     }
 
-    HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
-    HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
-    await HttpContext.Response.Body.WriteAsync(await resize(path));
-    return new EmptyResult();
+    var imageData = await resize(path);
+    return File(imageData, "image/jpeg", Path.GetFileName(path));
   }
 
   private string ToggleCaseExtension(string path)
