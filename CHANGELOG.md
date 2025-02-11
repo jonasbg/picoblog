@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2024-11-24
+### Added
+
+- Simple stats page
+- Added Likes button
+- Added ViewCount
+
+### Changed
+
+- Bumped to .NET9
+
+### Developers
+
+- Added devcontainers support
+
+## [0.0.8.1] - 2024-05-07
+### Cleanup
+
+- Spring cleanup of the project.
+
+### Fixed
+
+- Redirect after login did not work correctly.
+
 ## [0.0.8] - 2023-08-05
 ### Added
 
@@ -12,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented global usings through `GlobalUsings.cs` for cleaner code (if applicable to your .NET version).
 - Parallel processing of markdown files during search
 - Log failed login attempts
-  
+
 ### Changed
 - Updated the README to reflect new environment variables and features.
 
