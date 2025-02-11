@@ -36,8 +36,8 @@ public class PostController : Controller
       {
         if (Config.Password != null && !User.Identity.IsAuthenticated)
         {
-          _logger.LogWarning("Unauthenticated request with Config.Password set.");
-          return NotFound();
+          _logger.LogWarning("Unauthenticated request with Config.Password set for image not as Cover");
+          return Unauthorized();
         }
       }
 
@@ -52,46 +52,34 @@ public class PostController : Controller
     }
   }
 
-
   private async Task<IActionResult> Synology(string path) {
-    if (Config.Synology)
-    {
-      var synologyFile = Path.GetFileName(path);
-      var directory = Path.GetDirectoryName(path);
-      var synologyPath = $"@eaDir/{synologyFile}/{Config.SynologySize()}";
-      synologyPath = $"{directory}/{synologyPath}";
+      if (Config.Synology) {
+          var synologyFile = Path.GetFileName(path);
+          var directory = Path.GetDirectoryName(path);
+          var synologyPath = $"{directory}/@eaDir/{synologyFile}/{Config.SynologySize()}";
 
-      if (System.IO.File.Exists(synologyPath)) {
-        path = synologyPath;
-        _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
+          if (System.IO.File.Exists(synologyPath)) {
+              path = synologyPath;
+              _logger.LogDebug("Synology file exists. Updated path to: {0}", path);
+              return await ReturnFileResponse(path);
+          }
       }
-    }
 
-    if (!System.IO.File.Exists(path)){
-      if(path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".JPG", StringComparison.OrdinalIgnoreCase)){
-        path = ToggleCaseExtension(path);
-        if (!System.IO.File.Exists(path)){
-          _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
+      if (!System.IO.File.Exists(path)) {
+          _logger.LogWarning("File does not exist at path: {0}", path);
           return NotFound();
-        }
-      } else {
-        _logger.LogWarning("File does not exist after toggling case of extension: {0}", path);
-        return NotFound();
       }
-    }
 
-    HttpContext.Response.Headers.Add("ETag", ComputeMD5(path));
-    HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
-    await HttpContext.Response.Body.WriteAsync(await resize(path));
-    return new EmptyResult();
+      path = await ResizeIfNeeded(path);
+      return await ReturnFileResponse(path);
   }
 
-  private string ToggleCaseExtension(string path)
-  {
-    string ext = System.IO.Path.GetExtension(path);
-    string oppositeCaseExt = ext.Equals(ext.ToLower()) ? ext.ToUpper() : ext.ToLower();
-    _logger.LogDebug("Toggled case of extension. New path: {0}\nOld path: {1}", oppositeCaseExt, path);
-    return System.IO.Path.ChangeExtension(path, oppositeCaseExt);
+
+  private async Task<IActionResult> ReturnFileResponse(string filePath) {
+      HttpContext.Response.Headers.Add("ETag", ComputeMD5(filePath));
+      HttpContext.Response.Headers.Add("Cache-Control", "private, max-age=12000");
+      await HttpContext.Response.Body.WriteAsync(System.IO.File.ReadAllBytes(filePath));
+      return new EmptyResult();
   }
 
   private string ComputeMD5(string s)
@@ -103,48 +91,43 @@ public class PostController : Controller
         }
     }
 
-  private async Task<byte[]> resize(string path) {
-    _logger.LogDebug("Resize method started for path: {0}", path);
-    try{
-      var fileName = $"{Config.ConfigDir}/images{path}";
-      if (System.IO.File.Exists(fileName)) {
-        using (var SourceStream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-        {
-          var result = new byte[SourceStream.Length];
-          await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
-          return result;
-        }
+  private async Task<string> ResizeIfNeeded(string path) {
+      _logger.LogDebug("Checking if resize is needed for path: {0}", path);
+      var resizedPath = $"{Config.ConfigDir}/resized{path}";
+
+      if (System.IO.File.Exists(resizedPath))
+          return resizedPath;
+
+      try {
+          using (var image = await Image.LoadAsync(path)) {
+              int width, height;
+
+              if (image.Height > image.Width) {
+                  // Portrait or square
+                  height = Math.Min(image.Height, Config.ImageMaxSize);
+                  width = (image.Width * height) / image.Height;
+              } else {
+                  // Landscape
+                  width = Math.Min(image.Width, Config.ImageMaxSize);
+                  height = (image.Height * width) / image.Width;
+              }
+
+              if (image.Width != width || image.Height != height) {
+                  image.Mutate(x => x.Resize(width, height));
+                  await SaveResizedImage(image, resizedPath);
+              }
+          }
+      } catch (Exception e) {
+          _logger.LogError(e, "Error resizing file: {0}", path);
       }
 
-      using (var outputStream = new MemoryStream())
-      {
-        using (var image = await Image.LoadAsync(path))
-        {
-            int width = image.Width / 2;
-            int height = image.Height / 2;
-            width = 0;
-            height = 0;
-            if(image.Height > image.Width && height > Config.ImageMaxSize)
-              height = Config.ImageMaxSize;
-            if (image.Width > image.Height && width > Config.ImageMaxSize)
-              width = Config.ImageMaxSize;
-
-            if (width + height != 0)
-              image.Mutate(x => x.Resize(width, height));
-            JpegEncoder encoder = new JpegEncoder();
-            encoder.Quality = Config.ImageQuality;
-            await image.SaveAsJpegAsync(outputStream, encoder);
-        }
-        outputStream.Position = 0;
-        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-        using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
-        await outputStream.CopyToAsync(destination);
-
-        return outputStream.ToArray();
-      }
-    } catch(Exception e){
-      _logger.LogError(e, "Error Reading File: {0}", path);
-      throw;
-    }
+      return resizedPath;
   }
+
+  private async Task SaveResizedImage(Image image, string path) {
+      JpegEncoder encoder = new JpegEncoder { Quality = Config.ImageQuality };
+      Directory.CreateDirectory(Path.GetDirectoryName(path));
+      await image.SaveAsync(path, encoder);
+  }
+
 }
