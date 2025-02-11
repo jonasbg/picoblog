@@ -1,140 +1,339 @@
-public class MonitorLoop
+using System.Runtime.InteropServices;
+
+public class MonitorLoop : IDisposable
 {
-  private readonly IBackgroundTaskQueue _taskQueue;
-  private readonly ILogger _logger;
-  private readonly CancellationToken _cancellationToken;
-  private DateTime _lastSync = DateTime.MinValue;
+    private readonly ILogger _logger;
+    private readonly FileSystemWatcher _watcher;
+    private readonly ConcurrentDictionary<string, MarkdownModel> _modelCache;
+    private readonly ConcurrentDictionary<string, MarkdownModel> _privatePostsCache;
+    private readonly object _updateLock = new object();
+    private bool _disposed;
 
-  public MonitorLoop(IBackgroundTaskQueue taskQueue,
-      ILogger<MonitorLoop> logger,
-      IHostApplicationLifetime applicationLifetime)
-  {
-    _taskQueue = taskQueue;
-    _logger = logger;
-    _cancellationToken = applicationLifetime.ApplicationStopping;
-  }
-
-  public void StartMonitorLoop()
-  {
-    // Run a console user input loop in a background thread
-    Task.Run(async () => await MonitorAsync());
-  }
-
-  private async ValueTask MonitorAsync()
-  {
-    // Enqueue a background work item
-    await _taskQueue.QueueBackgroundWorkItemAsync(BuildWorkItem);
-  }
-
-  private async ValueTask BuildWorkItem(CancellationToken token)
-  {
-    var guid = Guid.NewGuid().ToString();
-
-
-    try
+    public MonitorLoop(ILogger<MonitorLoop> logger, IHostApplicationLifetime applicationLifetime)
     {
-      if (_lastSync == DateTime.MinValue || _lastSync <= DateTime.Now.AddMinutes(-5))
-      {
-        _logger.LogInformation("Queued Background Task {Guid} is starting.", guid);
-        FindFiles();
-      }
-      _lastSync = DateTime.Now;
+        _logger = logger;
+        _modelCache = new ConcurrentDictionary<string, MarkdownModel>();
+        _privatePostsCache = new ConcurrentDictionary<string, MarkdownModel>();
+
+        try
+        {
+            EnsureInotifyLimits();
+
+            _watcher = new FileSystemWatcher(Config.DataDir)
+            {
+                Filter = "*.md",
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = false,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite
+            };
+
+            // Register for cancellation
+            applicationLifetime.ApplicationStopping.Register(() =>
+            {
+                Dispose();
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize FileSystemWatcher. Falling back to polling.");
+            _watcher = null;
+        }
     }
-    catch (OperationCanceledException)
+
+    private void EnsureInotifyLimits()
     {
-      // Prevent throwing if the Delay is cancelled
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            try
+            {
+                // Check current limits
+                var maxWatches = File.ReadAllText("/proc/sys/fs/inotify/max_user_watches");
+                var maxInstances = File.ReadAllText("/proc/sys/fs/inotify/max_user_instances");
+
+                _logger.LogInformation("Current inotify limits - max_user_watches: {Watches}, max_user_instances: {Instances}",
+                    maxWatches.Trim(), maxInstances.Trim());
+
+                // Log instructions if limits are too low
+                if (int.TryParse(maxWatches.Trim(), out int watches) && watches < 524288)
+                {
+                    _logger.LogWarning(@"Low inotify watch limit detected. To increase, run:
+                        echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+                        sudo sysctl -p");
+                }
+
+                if (int.TryParse(maxInstances.Trim(), out int instances) && instances < 256)
+                {
+                    _logger.LogWarning(@"Low inotify instances limit detected. To increase, run:
+                        echo fs.inotify.max_user_instances=256 | sudo tee -a /etc/sysctl.conf
+                        sudo sysctl -p");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to check inotify limits");
+            }
+        }
     }
-  }
 
-  private void FindFiles()
-  {
-      _logger.LogInformation("Starting searching for markdown files (*.md)");
-      var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
-      var concurrentModels = new ConcurrentBag<MarkdownModel>();
-      var concurrentPrivatePosts = new ConcurrentBag<MarkdownModel>();
-
-      Parallel.ForEach(files, file =>
-      {
-          string content = File.ReadAllText(file);
-          Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
-
-          if (match.Success)
-              ProcessFrontMatter(match.Groups[1].Value, file, concurrentModels, concurrentPrivatePosts);
-      });
-
-      var models = concurrentModels.ToList();
-      var privatePosts = concurrentPrivatePosts.ToList();
-      ProcessResults(models, privatePosts);
-      Cache.Models = models;
-      Cache.PrivatePosts = privatePosts;
-  }
-
-  private void ProcessFrontMatter(string frontmatter, string file, ConcurrentBag<MarkdownModel> models, ConcurrentBag<MarkdownModel> privatePosts)
-  {
-      var model = new MarkdownModel();
-      foreach (var line in frontmatter.Split('\n'))
-      {
-          string[] parts = line.Split(':', 2);
-          if (parts.Length < 2) continue;
-
-          string key = parts[0].Trim();
-          string value = parts[1].Trim();
-
-          model.Path = file;
-          if (key.Equals(MetadataHeader.Public, StringComparison.InvariantCultureIgnoreCase)) model.Public = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
-          else if (key.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase)) model.Title = value;
-          else if (key.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase)) model.Date = DateTime.Parse(value);
-          else if (key.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase)) model.Draft = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
-          else if (key.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase)) model.CoverImage = value;
-          else if (key.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase)) model.Description = value;
-      }
-      if(model.Public && model.Draft == false){
-        _logger.LogInformation("FOUND: {Title} - Path: {Path} - URL: {Url}", model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
-        models.Add(model);
-      } else if (model.Public == false && model.Draft == false)
-        privatePosts.Add(model);
-      else if (model.Draft)
-        _logger.LogInformation("FOUND DRAFT (IGNORING): {Path}", model.Path);
-  }
-
-  private void ProcessResults(IList<MarkdownModel> models, IList<MarkdownModel> privatePosts)
-  {
-    if (privatePosts.Any())
+    public void StartMonitorLoop()
     {
-        var hiddenPosts = privatePosts;
-        _logger.LogInformation($"FOUND {hiddenPosts.Count()} HIDDEN POSTS");
-        foreach (var model in hiddenPosts)
-            _logger.LogInformation($"HIDDEN POST: Title: {model.Title} - {Config.Domain}/post/{model.Date?.Year}/{model.Title}");
+        // Initial load of all files
+        LoadAllFiles();
+
+        if (_watcher != null)
+        {
+            try
+            {
+                // Setup watchers
+                _watcher.Created += OnFileChanged;
+                _watcher.Changed += OnFileChanged;
+                _watcher.Deleted += OnFileDeleted;
+                _watcher.Renamed += OnFileRenamed;
+                _watcher.Error += OnWatcherError;
+
+                // Start watching
+                _watcher.EnableRaisingEvents = true;
+                _logger.LogInformation("Started watching for markdown files in {Directory}", Config.DataDir);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start FileSystemWatcher. Falling back to polling.");
+                StartPolling();
+            }
+        }
+        else
+        {
+            StartPolling();
+        }
     }
 
-    if (models.Any(p => string.IsNullOrEmpty(p.Title)))
+    private void StartPolling()
     {
-        var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title));
-        _logger.LogInformation($"FOUND {postsWithoutTitles.Count()} POSTS WITHOUT TITLES");
-
-      foreach (var model in postsWithoutTitles)
-            _logger.LogInformation($"POST WITHOUT TITLE: {model.Path}");
-
-      models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
+        _logger.LogInformation("Starting polling-based file monitoring");
+        var timer = new Timer(PollForChanges, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
     }
 
-    var duplicates = models.GroupBy(p => p.Title).Where(g => g.Count() >= 2).Select(p => p.Key);
-    if (duplicates.Any()){
-      _logger.LogInformation("FOUND DUPLICATES, REMOVED FROM SET");
-      foreach (var title in duplicates)
-      {
-          var dups = models.Where(p => p.Title == title);
-          foreach(var dup in dups)
-              _logger.LogInformation("Duplicate found: Title: {Title}, Path: {Path}", dup.Title, dup.Path);
-      }
-      models = models.Where(p => !duplicates.Contains(p.Title)).ToList();
-    }
-    var deleted = Cache.Models.Where(p => !models.Any(n => n.Path == p.Path));
-    if (deleted.Any())
+    private void PollForChanges(object state)
     {
-        _logger.LogInformation("FOUND DELETED FILES");
-        foreach (var del in deleted)
-            _logger.LogInformation("DELETED FILE: Title: {Title}, Path: {Path}", del.Title, del.Path);
+        try
+        {
+            LoadAllFiles();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during file polling");
+        }
     }
-  }
+
+    private void OnWatcherError(object sender, ErrorEventArgs e)
+    {
+        _logger.LogError(e.GetException(), "FileSystemWatcher error occurred");
+
+        try
+        {
+            // Try to restart the watcher
+            if (_watcher != null && !_disposed)
+            {
+                _watcher.EnableRaisingEvents = false;
+                _watcher.EnableRaisingEvents = true;
+                _logger.LogInformation("FileSystemWatcher restarted after error");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to restart FileSystemWatcher. Falling back to polling.");
+            StartPolling();
+        }
+    }
+
+    private void LoadAllFiles()
+    {
+        _logger.LogInformation("Loading all existing markdown files");
+        var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+
+        foreach (var file in files)
+        {
+            ProcessFile(file);
+        }
+
+        UpdateCaches();
+    }
+
+    private void OnFileChanged(object sender, FileSystemEventArgs e)
+    {
+        try
+        {
+            // Add small delay to ensure file is completely written
+            Thread.Sleep(100);
+            ProcessFile(e.FullPath);
+            UpdateCaches();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing file change for {Path}", e.FullPath);
+        }
+    }
+
+    private void OnFileDeleted(object sender, FileSystemEventArgs e)
+    {
+        try
+        {
+            _modelCache.TryRemove(e.FullPath, out _);
+            _privatePostsCache.TryRemove(e.FullPath, out _);
+            _logger.LogInformation("DELETED FILE: {Path}", e.FullPath);
+            UpdateCaches();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing file deletion for {Path}", e.FullPath);
+        }
+    }
+
+    private void OnFileRenamed(object sender, RenamedEventArgs e)
+    {
+        try
+        {
+            // Remove old path
+            _modelCache.TryRemove(e.OldFullPath, out _);
+            _privatePostsCache.TryRemove(e.OldFullPath, out _);
+
+            // Process with new path
+            ProcessFile(e.FullPath);
+            UpdateCaches();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing file rename from {OldPath} to {NewPath}",
+                e.OldFullPath, e.FullPath);
+        }
+    }
+
+    private void ProcessFile(string filePath)
+    {
+        string content = File.ReadAllText(filePath);
+        Match match = Regex.Match(content, @"^---\n(.*?)\n---", RegexOptions.Singleline);
+
+        if (match.Success)
+        {
+            var model = ProcessFrontMatter(match.Groups[1].Value, filePath);
+            if (model != null)
+            {
+                if (model.Public && !model.Draft)
+                {
+                    _modelCache[filePath] = model;
+                    _logger.LogInformation("UPDATED: {Title} - Path: {Path} - URL: {Url}",
+                        model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
+                }
+                else if (!model.Public && !model.Draft)
+                {
+                    _privatePostsCache[filePath] = model;
+                }
+                else if (model.Draft)
+                {
+                    _logger.LogInformation("FOUND DRAFT (IGNORING): {Path}", model.Path);
+                }
+            }
+        }
+    }
+
+    private MarkdownModel ProcessFrontMatter(string frontmatter, string file)
+    {
+        var model = new MarkdownModel { Path = file };
+
+        foreach (var line in frontmatter.Split('\n'))
+        {
+            string[] parts = line.Split(':', 2);
+            if (parts.Length < 2) continue;
+
+            string key = parts[0].Trim();
+            string value = parts[1].Trim();
+
+            switch (key.ToLowerInvariant())
+            {
+                case var k when k.Equals(MetadataHeader.Public, StringComparison.InvariantCultureIgnoreCase):
+                    model.Public = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case var k when k.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase):
+                    model.Title = value;
+                    break;
+                case var k when k.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase):
+                    model.Date = DateTime.Parse(value);
+                    break;
+                case var k when k.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase):
+                    model.Draft = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+                    break;
+                case var k when k.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase):
+                    model.CoverImage = value;
+                    break;
+                case var k when k.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase):
+                    model.Description = value;
+                    break;
+            }
+        }
+
+        return model;
+    }
+
+    private void UpdateCaches()
+    {
+        lock (_updateLock)
+        {
+            var models = _modelCache.Values.ToList();
+            var privatePosts = _privatePostsCache.Values.ToList();
+
+            // Check for posts without titles
+            var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title)).ToList();
+            if (postsWithoutTitles.Any())
+            {
+                _logger.LogInformation("FOUND {Count} POSTS WITHOUT TITLES", postsWithoutTitles.Count);
+                foreach (var model in postsWithoutTitles)
+                {
+                    _logger.LogInformation("POST WITHOUT TITLE: {Path}", model.Path);
+                    _modelCache.TryRemove(model.Path, out _);
+                }
+                models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
+            }
+
+            // Check for duplicates
+            var duplicates = models.GroupBy(p => p.Title)
+                                 .Where(g => g.Count() >= 2)
+                                 .SelectMany(g => g.Skip(1))
+                                 .ToList();
+
+            if (duplicates.Any())
+            {
+                _logger.LogInformation("FOUND DUPLICATES, REMOVING EXTRAS");
+                foreach (var dup in duplicates)
+                {
+                    _logger.LogInformation("REMOVING DUPLICATE: Title: {Title}, Path: {Path}",
+                        dup.Title, dup.Path);
+                    _modelCache.TryRemove(dup.Path, out _);
+                }
+                models = models.Except(duplicates).ToList();
+            }
+
+            // Update the global cache
+            Cache.Models = models;
+            Cache.PrivatePosts = privatePosts;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+
+        if (_watcher != null)
+        {
+            _watcher.EnableRaisingEvents = false;
+            _watcher.Created -= OnFileChanged;
+            _watcher.Changed -= OnFileChanged;
+            _watcher.Deleted -= OnFileDeleted;
+            _watcher.Renamed -= OnFileRenamed;
+            _watcher.Error -= OnWatcherError;
+            _watcher.Dispose();
+        }
+    }
 }

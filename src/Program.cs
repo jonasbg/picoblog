@@ -34,13 +34,13 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 
 if (Config.Password != null)
 {
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    builder
+        .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.Cookie.SameSite = SameSiteMode.Strict;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.ExpireTimeSpan = TimeSpan.FromDays(30);
             options.SlidingExpiration = true;
             options.Cookie.Name = "Picoblog.AuthCookie";
@@ -51,8 +51,9 @@ if (Config.Password != null)
         options.Filters.Add(new AuthorizeFilter());
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
     });
-    builder.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
+    builder
+        .Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
 }
 else
     builder.Services.AddControllersWithViews(options =>
@@ -71,12 +72,15 @@ builder.Services.AddVisitTracker(Config.ConfigDir);
 var app = builder.Build();
 app.UseCustomLogging();
 app.UseVisitTracker();
+
 // app.UseImageSharp();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+app.UseForwardedHeaders(
+    new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    }
+);
 
 if (Config.Password != null)
 {
@@ -90,23 +94,19 @@ app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
 app.UseRouting();
 
-var supportedCultures = new[]
-{
-    new CultureInfo("nb-NO"),
-    new CultureInfo("en-GB"),
-};
+var supportedCultures = new[] { new CultureInfo("nb-NO"), new CultureInfo("en-GB") };
 
-app.UseRequestLocalization(new RequestLocalizationOptions
-{
-    DefaultRequestCulture = new RequestCulture("nb-NO"),
-    SupportedCultures = supportedCultures,
-    SupportedUICultures = supportedCultures,
-    ApplyCurrentCultureToResponseHeaders = true
-});
+app.UseRequestLocalization(
+    new RequestLocalizationOptions
+    {
+        DefaultRequestCulture = new RequestCulture("nb-NO"),
+        SupportedCultures = supportedCultures,
+        SupportedUICultures = supportedCultures,
+        ApplyCurrentCultureToResponseHeaders = true,
+    }
+);
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // app.MapGet("/debug-headers", async context =>
 // {
