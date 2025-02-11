@@ -7,7 +7,8 @@ public class VisitTrackerMiddleware
     public VisitTrackerMiddleware(
         RequestDelegate next,
         VisitTracker visitTracker,
-        ILogger<VisitTrackerMiddleware> logger)
+        ILogger<VisitTrackerMiddleware> logger
+    )
     {
         _next = next;
         _visitTracker = visitTracker;
@@ -29,7 +30,7 @@ public class VisitTrackerMiddleware
                 IpAddress = GetClientIp(context),
                 UserAgent = context.Request.Headers.UserAgent.ToString(),
                 VisitTime = DateTime.UtcNow,
-                Referrer = context.Request.Headers.Referer.ToString()
+                Referrer = context.Request.Headers.Referer.ToString(),
             };
 
             // Fire and forget tracking

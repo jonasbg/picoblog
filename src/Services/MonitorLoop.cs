@@ -9,35 +9,102 @@ public class MonitorLoop : IDisposable
     private readonly object _updateLock = new object();
     private bool _disposed;
 
+    private static readonly string[] ExcludedDirectories = new[]
+    {
+        "@eaDir", // Synology thumbnail directory
+        "#recycle", // Synology recycle bin
+        ".DS_Store", // Mac metadata
+        "@Recycle", // Another variant of recycle
+        "$RECYCLE.BIN", // Windows recycle bin
+        "System Volume Information", // Windows system folder
+    };
+
+    // private void StartPolling()
+    // {
+    //     var pollInterval =
+    //         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production"
+    //             ? TimeSpan.FromMinutes(2) // More frequent in production
+    //             : TimeSpan.FromMinutes(5); // Default interval
+
+    //     _logger.LogInformation(
+    //         "Starting polling-based file monitoring with {0} minute interval",
+    //         pollInterval.TotalMinutes
+    //     );
+    //     var timer = new Timer(PollForChanges, null, TimeSpan.Zero, pollInterval);
+    // }
+
     public MonitorLoop(ILogger<MonitorLoop> logger, IHostApplicationLifetime applicationLifetime)
     {
         _logger = logger;
         _modelCache = new ConcurrentDictionary<string, MarkdownModel>();
         _privatePostsCache = new ConcurrentDictionary<string, MarkdownModel>();
 
-        try
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
         {
-            EnsureInotifyLimits();
-
-            _watcher = new FileSystemWatcher(Config.DataDir)
-            {
-                Filter = "*.md",
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = false,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite
-            };
-
-            // Register for cancellation
-            applicationLifetime.ApplicationStopping.Register(() =>
-            {
-                Dispose();
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to initialize FileSystemWatcher. Falling back to polling.");
+            _logger.LogInformation("Production environment detected - using polling mode");
             _watcher = null;
         }
+        else
+        {
+            try
+            {
+                EnsureInotifyLimits();
+
+                _watcher = new FileSystemWatcher(Config.DataDir)
+                {
+                    Filter = "*.md",
+                    IncludeSubdirectories = true,
+                    EnableRaisingEvents = false,
+                    NotifyFilter =
+                        NotifyFilters.FileName
+                        | NotifyFilters.DirectoryName
+                        | NotifyFilters.LastWrite,
+                };
+
+                _watcher.Created += FilterExcludedDirectories;
+                _watcher.Changed += FilterExcludedDirectories;
+                _watcher.Deleted += FilterExcludedDirectories;
+                _watcher.Renamed += FilterExcludedDirectoriesRenamed;
+
+                // Register for cancellation
+                applicationLifetime.ApplicationStopping.Register(() =>
+                {
+                    Dispose();
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to initialize FileSystemWatcher. Falling back to polling."
+                );
+                _watcher = null;
+            }
+        }
+    }
+
+    private void FilterExcludedDirectoriesRenamed(object sender, RenamedEventArgs e)
+    {
+        if (!IsExcludedPath(e.FullPath) && !IsExcludedPath(e.OldFullPath))
+        {
+            OnFileRenamed(sender, e);
+        }
+    }
+
+    private void FilterExcludedDirectories(object sender, FileSystemEventArgs e)
+    {
+        if (!IsExcludedPath(e.FullPath))
+        {
+            OnFileChanged(sender, e);
+        }
+    }
+
+    private bool IsExcludedPath(string path)
+    {
+        return ExcludedDirectories.Any(dir =>
+            path.Contains(Path.DirectorySeparatorChar + dir + Path.DirectorySeparatorChar)
+            || path.EndsWith(Path.DirectorySeparatorChar + dir)
+        );
     }
 
     private void EnsureInotifyLimits()
@@ -50,22 +117,29 @@ public class MonitorLoop : IDisposable
                 var maxWatches = File.ReadAllText("/proc/sys/fs/inotify/max_user_watches");
                 var maxInstances = File.ReadAllText("/proc/sys/fs/inotify/max_user_instances");
 
-                _logger.LogInformation("Current inotify limits - max_user_watches: {Watches}, max_user_instances: {Instances}",
-                    maxWatches.Trim(), maxInstances.Trim());
+                _logger.LogInformation(
+                    "Current inotify limits - max_user_watches: {Watches}, max_user_instances: {Instances}",
+                    maxWatches.Trim(),
+                    maxInstances.Trim()
+                );
 
                 // Log instructions if limits are too low
                 if (int.TryParse(maxWatches.Trim(), out int watches) && watches < 524288)
                 {
-                    _logger.LogWarning(@"Low inotify watch limit detected. To increase, run:
+                    _logger.LogWarning(
+                        @"Low inotify watch limit detected. To increase, run:
                         echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
-                        sudo sysctl -p");
+                        sudo sysctl -p"
+                    );
                 }
 
                 if (int.TryParse(maxInstances.Trim(), out int instances) && instances < 256)
                 {
-                    _logger.LogWarning(@"Low inotify instances limit detected. To increase, run:
+                    _logger.LogWarning(
+                        @"Low inotify instances limit detected. To increase, run:
                         echo fs.inotify.max_user_instances=256 | sudo tee -a /etc/sysctl.conf
-                        sudo sysctl -p");
+                        sudo sysctl -p"
+                    );
                 }
             }
             catch (Exception ex)
@@ -93,7 +167,10 @@ public class MonitorLoop : IDisposable
 
                 // Start watching
                 _watcher.EnableRaisingEvents = true;
-                _logger.LogInformation("Started watching for markdown files in {Directory}", Config.DataDir);
+                _logger.LogInformation(
+                    "Started watching for markdown files in {Directory}",
+                    Config.DataDir
+                );
             }
             catch (Exception ex)
             {
@@ -203,8 +280,12 @@ public class MonitorLoop : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing file rename from {OldPath} to {NewPath}",
-                e.OldFullPath, e.FullPath);
+            _logger.LogError(
+                ex,
+                "Error processing file rename from {OldPath} to {NewPath}",
+                e.OldFullPath,
+                e.FullPath
+            );
         }
     }
 
@@ -221,8 +302,12 @@ public class MonitorLoop : IDisposable
                 if (model.Public && !model.Draft)
                 {
                     _modelCache[filePath] = model;
-                    _logger.LogInformation("UPDATED: {Title} - Path: {Path} - URL: {Url}",
-                        model.Title, model.Path, $"{Config.Domain}/post/{model.Title}");
+                    _logger.LogInformation(
+                        "UPDATED: {Title} - Path: {Path} - URL: {Url}",
+                        model.Title,
+                        model.Path,
+                        $"{Config.Domain}/post/{model.Title}"
+                    );
                 }
                 else if (!model.Public && !model.Draft)
                 {
@@ -243,29 +328,54 @@ public class MonitorLoop : IDisposable
         foreach (var line in frontmatter.Split('\n'))
         {
             string[] parts = line.Split(':', 2);
-            if (parts.Length < 2) continue;
+            if (parts.Length < 2)
+                continue;
 
             string key = parts[0].Trim();
             string value = parts[1].Trim();
 
             switch (key.ToLowerInvariant())
             {
-                case var k when k.Equals(MetadataHeader.Public, StringComparison.InvariantCultureIgnoreCase):
-                    model.Public = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+                case var k
+                    when k.Equals(
+                        MetadataHeader.Public,
+                        StringComparison.InvariantCultureIgnoreCase
+                    ):
+                    model.Public = value.Equals(
+                        "true",
+                        StringComparison.InvariantCultureIgnoreCase
+                    );
                     break;
-                case var k when k.Equals(MetadataHeader.Title, StringComparison.InvariantCultureIgnoreCase):
+                case var k
+                    when k.Equals(
+                        MetadataHeader.Title,
+                        StringComparison.InvariantCultureIgnoreCase
+                    ):
                     model.Title = value;
                     break;
-                case var k when k.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase):
+                case var k
+                    when k.Equals(MetadataHeader.Date, StringComparison.InvariantCultureIgnoreCase):
                     model.Date = DateTime.Parse(value);
                     break;
-                case var k when k.Equals(MetadataHeader.Draft, StringComparison.InvariantCultureIgnoreCase):
+                case var k
+                    when k.Equals(
+                        MetadataHeader.Draft,
+                        StringComparison.InvariantCultureIgnoreCase
+                    ):
                     model.Draft = value.Equals("true", StringComparison.InvariantCultureIgnoreCase);
                     break;
-                case var k when k.Equals(MetadataHeader.CoverImage, StringComparison.InvariantCultureIgnoreCase):
+                case var k
+                    when k.Equals(
+                        MetadataHeader.CoverImage,
+                        StringComparison.InvariantCultureIgnoreCase
+                    ):
                     model.CoverImage = value;
                     break;
-                case var k when k.Equals(MetadataHeader.Description, StringComparison.InvariantCultureIgnoreCase):
+                case var k
+                    when k.Equals(
+                        MetadataHeader.Description,
+                        StringComparison.InvariantCultureIgnoreCase
+                    ):
                     model.Description = value;
                     break;
             }
@@ -285,7 +395,10 @@ public class MonitorLoop : IDisposable
             var postsWithoutTitles = models.Where(p => string.IsNullOrEmpty(p.Title)).ToList();
             if (postsWithoutTitles.Any())
             {
-                _logger.LogInformation("FOUND {Count} POSTS WITHOUT TITLES", postsWithoutTitles.Count);
+                _logger.LogInformation(
+                    "FOUND {Count} POSTS WITHOUT TITLES",
+                    postsWithoutTitles.Count
+                );
                 foreach (var model in postsWithoutTitles)
                 {
                     _logger.LogInformation("POST WITHOUT TITLE: {Path}", model.Path);
@@ -295,18 +408,22 @@ public class MonitorLoop : IDisposable
             }
 
             // Check for duplicates
-            var duplicates = models.GroupBy(p => p.Title)
-                                 .Where(g => g.Count() >= 2)
-                                 .SelectMany(g => g.Skip(1))
-                                 .ToList();
+            var duplicates = models
+                .GroupBy(p => p.Title)
+                .Where(g => g.Count() >= 2)
+                .SelectMany(g => g.Skip(1))
+                .ToList();
 
             if (duplicates.Any())
             {
                 _logger.LogInformation("FOUND DUPLICATES, REMOVING EXTRAS");
                 foreach (var dup in duplicates)
                 {
-                    _logger.LogInformation("REMOVING DUPLICATE: Title: {Title}, Path: {Path}",
-                        dup.Title, dup.Path);
+                    _logger.LogInformation(
+                        "REMOVING DUPLICATE: Title: {Title}, Path: {Path}",
+                        dup.Title,
+                        dup.Path
+                    );
                     _modelCache.TryRemove(dup.Path, out _);
                 }
                 models = models.Except(duplicates).ToList();

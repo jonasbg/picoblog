@@ -51,4 +51,7 @@ RUN mkdir $CONFIG_DIR $DATA_DIR && chown $APP_UID $CONFIG_DIR $DATA_DIR
 COPY --from=backend --chown=$APP_UID /publish .
 USER $APP_UID
 
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1
+
 ENTRYPOINT ["/app/picoblog"]

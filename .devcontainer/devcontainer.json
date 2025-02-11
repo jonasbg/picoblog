@@ -8,7 +8,9 @@
 		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
 		"dockerfile": "../src/Dockerfile.dev"
 	},
-
+	"containerEnv": {
+			"PATH": "${containerEnv:PATH}:/root/.dotnet/tools"
+	},
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"installZsh": true,

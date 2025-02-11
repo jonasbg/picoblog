@@ -29,7 +29,8 @@ public class VisitTracker
         connection.Open();
 
         var command = connection.CreateCommand();
-        command.CommandText = @"
+        command.CommandText =
+            @"
             CREATE TABLE IF NOT EXISTS Visits (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 PostTitle TEXT NOT NULL,
@@ -77,7 +78,8 @@ public class VisitTracker
 
             // Update Cache
             var model = Cache.Models.FirstOrDefault(m =>
-                m.Title == postTitle && m.Date?.Year == year);
+                m.Title == postTitle && m.Date?.Year == year
+            );
 
             if (model != null)
             {
@@ -91,8 +93,12 @@ public class VisitTracker
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error {Action} like for post {PostTitle}",
-                isAdd ? "adding" : "removing", postTitle);
+            _logger.LogError(
+                ex,
+                "Error {Action} like for post {PostTitle}",
+                isAdd ? "adding" : "removing",
+                postTitle
+            );
             return false;
         }
     }
@@ -112,7 +118,8 @@ public class VisitTracker
 
             // Get view counts
             var viewCommand = connection.CreateCommand();
-            viewCommand.CommandText = @"
+            viewCommand.CommandText =
+                @"
                 SELECT PostTitle, Year, COUNT(*) as ViewCount
                 FROM Visits
                 GROUP BY PostTitle, Year";
@@ -126,7 +133,8 @@ public class VisitTracker
                     var viewCount = reader.GetInt32(2);
 
                     var model = Cache.Models.FirstOrDefault(m =>
-                        m.Title == postTitle && m.Date?.Year == year);
+                        m.Title == postTitle && m.Date?.Year == year
+                    );
 
                     if (model != null)
                     {
@@ -137,7 +145,8 @@ public class VisitTracker
 
             // Get like counts
             var likeCommand = connection.CreateCommand();
-            likeCommand.CommandText = @"
+            likeCommand.CommandText =
+                @"
                 SELECT PostTitle, Year, COUNT(*) as LikeCount
                 FROM Likes
                 GROUP BY PostTitle, Year";
@@ -151,7 +160,8 @@ public class VisitTracker
                     var likeCount = reader.GetInt32(2);
 
                     var model = Cache.Models.FirstOrDefault(m =>
-                        m.Title == postTitle && m.Date?.Year == year);
+                        m.Title == postTitle && m.Date?.Year == year
+                    );
 
                     if (model != null)
                     {
@@ -174,7 +184,8 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
                 INSERT INTO Visits (PostTitle, Year, IpAddress, UserAgent, VisitTime, Referrer)
                 VALUES (@title, @year, @ip, @agent, @time, @referrer)";
 
@@ -189,7 +200,8 @@ public class VisitTracker
 
             // Update Cache
             var model = Cache.Models.FirstOrDefault(m =>
-                m.Title == visit.PostTitle && m.Date?.Year == visit.Year);
+                m.Title == visit.PostTitle && m.Date?.Year == visit.Year
+            );
 
             if (model != null)
             {
@@ -212,7 +224,8 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
                 SELECT PostTitle, COUNT(*) as ViewCount
                 FROM Visits
                 GROUP BY PostTitle";
@@ -230,6 +243,7 @@ public class VisitTracker
 
         return viewCounts;
     }
+
     public async Task<List<MonthlyStats>> GetUniqueVisitorsPerMonthAsync()
     {
         try
@@ -238,7 +252,8 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
             SELECT
                 strftime('%Y-%m', VisitTime) as Month,
                 COUNT(DISTINCT IpAddress) as UniqueVisitors
@@ -251,11 +266,13 @@ public class VisitTracker
             while (await reader.ReadAsync())
             {
                 var monthStr = reader.GetString(0);
-                stats.Add(new MonthlyStats
-                {
-                    Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
-                    Count = reader.GetInt32(1)
-                });
+                stats.Add(
+                    new MonthlyStats
+                    {
+                        Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
+                        Count = reader.GetInt32(1),
+                    }
+                );
             }
             return stats;
         }
@@ -274,7 +291,8 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
         SELECT
             strftime('%Y-%m', VisitTime) as Month,
             COUNT(*) as TotalVisits
@@ -287,11 +305,13 @@ public class VisitTracker
             while (await reader.ReadAsync())
             {
                 var monthStr = reader.GetString(0);
-                stats.Add(new MonthlyStats
-                {
-                    Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
-                    Count = reader.GetInt32(1)
-                });
+                stats.Add(
+                    new MonthlyStats
+                    {
+                        Date = DateTime.ParseExact(monthStr + "-01", "yyyy-MM-dd", null),
+                        Count = reader.GetInt32(1),
+                    }
+                );
             }
             return stats;
         }
@@ -330,7 +350,8 @@ public class VisitTracker
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandText = @"
+            command.CommandText =
+                @"
             SELECT
                 CASE
                     WHEN UserAgent LIKE '%Mobile%' THEN 'Mobile'
@@ -369,7 +390,8 @@ public class VisitTracker
 
             var tableName = metric.ToLower() == "likes" ? "Likes" : "Visits";
             var command = connection.CreateCommand();
-            command.CommandText = $@"
+            command.CommandText =
+                $@"
             SELECT
                 PostTitle,
                 Year,
@@ -388,17 +410,20 @@ public class VisitTracker
                 var title = reader.GetString(0);
                 var year = reader.GetInt32(1);
                 var model = Cache.Models.FirstOrDefault(m =>
-                    m.Title == title && m.Date?.Year == year);
+                    m.Title == title && m.Date?.Year == year
+                );
 
                 if (model != null)
                 {
-                    topPosts.Add(new TopPost
-                    {
-                        Title = title,
-                        Year = year,
-                        CoverImage = model.CoverImage,
-                        Count = reader.GetInt32(2)
-                    });
+                    topPosts.Add(
+                        new TopPost
+                        {
+                            Title = title,
+                            Year = year,
+                            CoverImage = model.CoverImage,
+                            Count = reader.GetInt32(2),
+                        }
+                    );
                 }
             }
             return topPosts;

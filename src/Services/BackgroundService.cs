@@ -2,8 +2,7 @@ public interface IBackgroundTaskQueue
 {
     ValueTask QueueBackgroundWorkItemAsync(Func<CancellationToken, ValueTask> workItem);
 
-    ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(
-        CancellationToken cancellationToken);
+    ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(CancellationToken cancellationToken);
 }
 
 public class BackgroundTaskQueue : IBackgroundTaskQueue
@@ -19,13 +18,12 @@ public class BackgroundTaskQueue : IBackgroundTaskQueue
         // in case too many publishers/calls start accumulating.
         var options = new BoundedChannelOptions(capacity)
         {
-            FullMode = BoundedChannelFullMode.DropOldest
+            FullMode = BoundedChannelFullMode.DropOldest,
         };
         _queue = Channel.CreateBounded<Func<CancellationToken, ValueTask>>(options);
     }
 
-    public async ValueTask QueueBackgroundWorkItemAsync(
-        Func<CancellationToken, ValueTask> workItem)
+    public async ValueTask QueueBackgroundWorkItemAsync(Func<CancellationToken, ValueTask> workItem)
     {
         if (workItem == null)
         {
@@ -36,7 +34,8 @@ public class BackgroundTaskQueue : IBackgroundTaskQueue
     }
 
     public async ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var workItem = await _queue.Reader.ReadAsync(cancellationToken);
 

@@ -2,8 +2,7 @@ public class QueuedHostedService : BackgroundService
 {
     private readonly ILogger<QueuedHostedService> _logger;
 
-    public QueuedHostedService(IBackgroundTaskQueue taskQueue,
-        ILogger<QueuedHostedService> logger)
+    public QueuedHostedService(IBackgroundTaskQueue taskQueue, ILogger<QueuedHostedService> logger)
     {
         TaskQueue = taskQueue;
         _logger = logger;
@@ -13,8 +12,7 @@ public class QueuedHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            $"Queued Hosted Service is running.{Environment.NewLine}");
+        _logger.LogInformation($"Queued Hosted Service is running.{Environment.NewLine}");
 
         await BackgroundProcessing(stoppingToken);
     }
@@ -23,8 +21,7 @@ public class QueuedHostedService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var workItem =
-                await TaskQueue.DequeueAsync(stoppingToken);
+            var workItem = await TaskQueue.DequeueAsync(stoppingToken);
 
             try
             {
@@ -32,8 +29,7 @@ public class QueuedHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error occurred executing {WorkItem}.", nameof(workItem));
+                _logger.LogError(ex, "Error occurred executing {WorkItem}.", nameof(workItem));
             }
         }
     }

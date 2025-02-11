@@ -18,7 +18,9 @@ public class BackupService : BackgroundService
                 _logger.LogDebug($"Current time is: {now:yyyy-MM-dd HH:mm}");
                 var nextRunTime = now.Date.AddDays(1); // Next midnight
                 var delay = nextRunTime - now;
-                _logger.LogInformation($"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm} which is in {(int)delay.TotalHours} hours and {delay.Minutes} minutes");
+                _logger.LogInformation(
+                    $"Next backup scheduled for: {nextRunTime:yyyy-MM-dd HH:mm} which is in {(int)delay.TotalHours} hours and {delay.Minutes} minutes"
+                );
 
                 await Task.Delay(delay, stoppingToken); // Wait until midnight
 
@@ -35,7 +37,7 @@ public class BackupService : BackgroundService
 
     private void PerformBackup()
     {
-        if(!Cache.Models.Any())
+        if (!Cache.Models.Any())
             return;
 
         string backupDirectory = Path.Combine(Config.ConfigDir, "backups");
@@ -58,7 +60,9 @@ public class BackupService : BackgroundService
             {
                 var filePath = model.Path;
                 _logger.LogDebug($"Adding {model.Title} to archive: {filePath}");
-                var entryName = filePath.Substring(sourceDirectory.Length).TrimStart(Path.DirectorySeparatorChar);
+                var entryName = filePath
+                    .Substring(sourceDirectory.Length)
+                    .TrimStart(Path.DirectorySeparatorChar);
                 archive.AddEntry(entryName, filePath);
             }
 

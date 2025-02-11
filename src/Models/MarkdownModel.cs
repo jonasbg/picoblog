@@ -7,20 +7,43 @@ public class MarkdownModel
     public string? Markdown
     {
         get => _markdown;
-        set {
+        set
+        {
             _markdown = value;
             var match = Regex.Match(_markdown, @"^---\r?\n(.*?)\r?\n---", RegexOptions.Singleline);
 
             if (match.Success && match.Groups.Count > 1)
             {
                 var frontmatter = match.Groups[1].Value.Split(Environment.NewLine);
-                Title = frontmatter.SingleOrDefault(p => p.StartsWith("title:"))?.Split(':', 2)[1].Trim();
-                Description = frontmatter.SingleOrDefault(p => p.StartsWith("description:"))?.Split(':', 2)[1].Trim();
-                CoverImage = frontmatter.SingleOrDefault(p => p.StartsWith(MetadataHeader.CoverImage))?.Split(':', 2)[1].Trim();
-                Public = bool.Parse(frontmatter.SingleOrDefault(p => p.StartsWith("public:"))?.Split(':', 2)[1].Trim() ?? "false");
-                Draft = bool.Parse(frontmatter.SingleOrDefault(p => p.StartsWith("draft:"))?.Split(':', 2)[1].Trim() ?? "false");
+                Title = frontmatter
+                    .SingleOrDefault(p => p.StartsWith("title:"))
+                    ?.Split(':', 2)[1]
+                    .Trim();
+                Description = frontmatter
+                    .SingleOrDefault(p => p.StartsWith("description:"))
+                    ?.Split(':', 2)[1]
+                    .Trim();
+                CoverImage = frontmatter
+                    .SingleOrDefault(p => p.StartsWith(MetadataHeader.CoverImage))
+                    ?.Split(':', 2)[1]
+                    .Trim();
+                Public = bool.Parse(
+                    frontmatter
+                        .SingleOrDefault(p => p.StartsWith("public:"))
+                        ?.Split(':', 2)[1]
+                        .Trim() ?? "false"
+                );
+                Draft = bool.Parse(
+                    frontmatter
+                        .SingleOrDefault(p => p.StartsWith("draft:"))
+                        ?.Split(':', 2)[1]
+                        .Trim() ?? "false"
+                );
 
-                var dateString = frontmatter.SingleOrDefault(p => p.StartsWith("date:"))?.Split(':', 2)[1].Trim();
+                var dateString = frontmatter
+                    .SingleOrDefault(p => p.StartsWith("date:"))
+                    ?.Split(':', 2)[1]
+                    .Trim();
                 if (DateTime.TryParse(dateString, out DateTime date))
                 {
                     Date = date;

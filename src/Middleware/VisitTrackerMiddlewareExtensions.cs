@@ -5,13 +5,15 @@ public static class VisitTrackerMiddlewareExtensions
         return builder.UseMiddleware<VisitTrackerMiddleware>();
     }
 
-    public static IServiceCollection AddVisitTracker(this IServiceCollection services, string configDir)
+    public static IServiceCollection AddVisitTracker(
+        this IServiceCollection services,
+        string configDir
+    )
     {
-        services.AddSingleton<VisitTracker>(sp =>
-            new VisitTracker(
-                configDir,
-                sp.GetRequiredService<ILogger<VisitTracker>>()
-            ));
+        services.AddSingleton<VisitTracker>(sp => new VisitTracker(
+            configDir,
+            sp.GetRequiredService<ILogger<VisitTracker>>()
+        ));
         return services;
     }
 }

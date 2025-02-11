@@ -9,7 +9,8 @@ public class CustomLoggingMiddleware
     public CustomLoggingMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));
-        _logger = loggerFactory?.CreateLogger<CustomLoggingMiddleware>()
+        _logger =
+            loggerFactory?.CreateLogger<CustomLoggingMiddleware>()
             ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
@@ -50,7 +51,8 @@ public class CustomLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context == null) throw new ArgumentNullException(nameof(context));
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
 
         var startTime = DateTime.UtcNow;
 

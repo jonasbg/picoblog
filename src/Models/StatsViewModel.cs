@@ -1,8 +1,8 @@
 public class StatsViewModel
 {
     public int TotalPosts { get; set; }
-    public int TotalUniqueVisitors { get; set; }  // New property
-    public int TotalViews { get; set; }           // New property
+    public int TotalUniqueVisitors { get; set; } // New property
+    public int TotalViews { get; set; } // New property
     public List<MonthlyStats> MonthlyActivity { get; set; }
     public List<MonthlyStats> UniqueVisitors { get; set; }
     public List<TopPost> MostLikedPosts { get; set; }

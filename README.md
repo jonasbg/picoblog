@@ -19,7 +19,7 @@ Example of a markdown file
 
 ```markdown
 ---
-title: New blog post #required uniq title
+title: New blog post #required unique title
 date: 2023-01-29 #published date
 public: true #keyword for picoblog to publish as post
 poster: cover-image.jpg
@@ -96,6 +96,27 @@ Update the docker image to latest version
 
 ```bash
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --run-once picoblog
+```
+
+### Install on Synology
+
+```bash
+sudo docker run \
+  --read-only \
+  --tmpfs /tmp \
+  --tmpfs /var/tmp \
+  --volume $(pwd):/data:rw \
+  --volume config-volume:/config:rw \
+  --security-opt no-new-privileges \
+  --user 0 \
+  -e PASSWORD=mySecretPassword \
+  -e TITLE="Picblog for the masses" \
+  -e DESCRIPTION="A secure zero fraction blogging platform" \
+  -e PICOBLOG_ENABLE_BACKUP=true \
+  -e SYNOLOGY_SUPPORT=true \
+  -p 8080:8080 \
+  --name picoblog \
+  ghcr.io/jonasbg/picoblog:dev
 ```
 
 </details>

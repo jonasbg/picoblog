@@ -1,50 +1,51 @@
-using System.Xml.Linq;
-using picoblog.Models;
-using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
-
+using System.Xml.Linq;
+using Microsoft.AspNetCore.Mvc;
+using picoblog.Models;
 
 namespace picoblog.Controllers;
 
 public class RssFeedController : Controller
 {
-  [HttpGet]
-  [AllowAnonymous]
-  [Route("/feed")]
-  [Route("/rss")]
-  public ContentResult Get()
-  {
-      XNamespace ns = "http://purl.org/rss/1.0/";
-      string title = $"{Config.Title} RSS Feed";
-      string domain = Config.Domain;
-      string description = Config.Description;
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("/feed")]
+    [Route("/rss")]
+    public ContentResult Get()
+    {
+        XNamespace ns = "http://purl.org/rss/1.0/";
+        string title = $"{Config.Title} RSS Feed";
+        string domain = Config.Domain;
+        string description = Config.Description;
 
-      var rss = new XDocument(
-          new XElement("rss", new XAttribute("version", "2.0"),
-              new XElement("channel",
-                  new XElement("title", title),
-                  new XElement("link", domain),
-                  new XElement("description", description),
-                  from model in Cache.Models
-                  select new XElement("item",
-                      new XElement("title", model.Title),
-                      new XElement("link", $"{domain}/post/{model.Date?.Year}/{model.Title}"),
-                      new XElement("description",
-                          new XCData(GenerateItemHtml(model, domain))
-                      ),
-                      new XElement("pubDate", model.Date?.ToString("R") ?? string.Empty) // RFC 822 format
-                      // model.CoverImage != null ? new XElement("enclosure", new XAttribute("url", $"{domain}/post/{model.Date?.Year}/{model.Title}/{model.CoverImage}")) : null
-                  )
-              )
-          )
-      );
+        var rss = new XDocument(
+            new XElement(
+                "rss",
+                new XAttribute("version", "2.0"),
+                new XElement(
+                    "channel",
+                    new XElement("title", title),
+                    new XElement("link", domain),
+                    new XElement("description", description),
+                    from model in Cache.Models
+                    select new XElement(
+                        "item",
+                        new XElement("title", model.Title),
+                        new XElement("link", $"{domain}/post/{model.Date?.Year}/{model.Title}"),
+                        new XElement("description", new XCData(GenerateItemHtml(model, domain))),
+                        new XElement("pubDate", model.Date?.ToString("R") ?? string.Empty) // RFC 822 format
+                    // model.CoverImage != null ? new XElement("enclosure", new XAttribute("url", $"{domain}/post/{model.Date?.Year}/{model.Title}/{model.CoverImage}")) : null
+                    )
+                )
+            )
+        );
 
-      return Content(rss.ToString(), "application/rss+xml");
-  }
+        return Content(rss.ToString(), "application/rss+xml");
+    }
 
-  private string GenerateItemHtml(MarkdownModel model, string domain = "localhost:8080")
-  {
-    return $@"
+    private string GenerateItemHtml(MarkdownModel model, string domain = "localhost:8080")
+    {
+        return $@"
       <style>
         @font-face {{
           font-family: 'TexGyreAdventor';
@@ -115,5 +116,5 @@ public class RssFeedController : Controller
           <a href='{domain}/post/{model.Date?.Year}/{model.Title}'> Click here to read more</a>
         </div>
       </div>";
-  }
+    }
 }

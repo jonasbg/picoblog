@@ -38,23 +38,38 @@ public class HomeController : Controller
         }
 
         var claims = new List<Claim> { new Claim(ClaimTypes.Name, "shared password user") };
-
         var claimsIdentity = new ClaimsIdentity(
             claims,
             CookieAuthenticationDefaults.AuthenticationScheme
         );
-        var authProperties = new AuthenticationProperties() { IsPersistent = true };
 
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(claimsIdentity),
-            authProperties
-        );
+        // Encode only the last segment of the return URL
+        var returnUrl = model.ReturnURL;
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            var segments = returnUrl.Split('/');
+            if (segments.Length > 0)
+            {
+                segments[segments.Length - 1] = Uri.EscapeDataString(segments[segments.Length - 1]);
+                returnUrl = string.Join("/", segments);
+            }
+            model.ReturnURL = returnUrl;
+        }
 
-        // model.ReturnURL = HttpContext.Request.Query["returnUrl"].ToString() ?? "/";
-        //model.ReturnURL is null why?
+        try
+        {
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                new AuthenticationProperties { IsPersistent = true }
+            );
+        }
+        catch (Exception)
+        {
+            return RedirectToLocal(returnUrl ?? "/");
+        }
 
-        return RedirectToLocal(model.ReturnURL ?? "/");
+        return RedirectToLocal(returnUrl ?? "/");
     }
 
     private IActionResult RedirectToLocal(string returnUrl)
