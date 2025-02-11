@@ -1,0 +1,199 @@
+@using Markdig;
+<link rel="stylesheet" href="~/css/post.css" />
+
+@{
+  ViewData["Title"] = Model.Title;
+  ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
+  ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
+}
+
+<div class="hero">
+    @if(!string.IsNullOrEmpty(Model.CoverImage)) {
+        <img class="full-screen-width" src="@(Uri.EscapeDataString(Model.Title)+"/"+Model.CoverImage)" alt="Banner Image">
+    }
+</div>
+
+<button id="backButton" class="top-left">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16">
+        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+    </svg>
+</button>
+
+<div class="content">
+    <div class="center date">
+        <h2>@Model.Title</h2>
+        <p>@Model.Date?.ToString("MMM dd, yyyy")</p>
+    @if ((Config.Password != null && User.Identity.IsAuthenticated) || Config.Password == null)
+    {
+        <div class="stats">
+            <span class="likes">
+            <button id="likeButton" class="like-button">
+                <svg id="like-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hand-thumbs-up" viewBox="0 0 16 16">
+                    <path d="M8.864.046C7.908-.193 7.02.53 6.956 1.466c-.072 1.051-.23 2.016-.428 2.59-.125.36-.479 1.013-1.04 1.639-.557.623-1.282 1.178-2.131 1.41C2.685 7.288 2 7.87 2 8.72v4.001c0 .845.682 1.464 1.448 1.545 1.07.114 1.564.415 2.068.723l.048.03c.272.165.578.348.97.484.397.136.861.217 1.466.217h3.5c.937 0 1.599-.477 1.934-1.064a1.86 1.86 0 0 0 .254-.912c0-.152-.023-.312-.077-.464.201-.263.38-.578.488-.901.11-.33.172-.762.004-1.149.069-.13.12-.269.159-.403.077-.27.113-.568.113-.857 0-.288-.036-.585-.113-.856a2.144 2.144 0 0 0-.138-.362 1.9 1.9 0 0 0 .234-1.734c-.206-.592-.682-1.1-1.2-1.272-.847-.282-1.803-.276-2.516-.211a9.84 9.84 0 0 0-.443.05 9.365 9.365 0 0 0-.062-4.509A1.38 1.38 0 0 0 9.125.111L8.864.046zM11.5 14.721H8c-.51 0-.863-.069-1.14-.164-.281-.097-.506-.228-.776-.393l-.04-.024c-.555-.339-1.198-.731-2.49-.868-.333-.036-.554-.29-.554-.55V8.72c0-.254.226-.543.62-.65 1.095-.3 1.977-.996 2.614-1.708.635-.71 1.064-1.475 1.238-1.978.243-.7.407-1.768.482-2.85.025-.362.36-.594.667-.518l.262.066c.16.04.258.143.288.255a8.34 8.34 0 0 1-.145 4.725.5.5 0 0 0 .595.644l.003-.001.014-.003.058-.014a8.908 8.908 0 0 1 1.036-.157c.663-.06 1.457-.054 2.11.164.175.058.45.3.57.65.107.308.087.67-.266 1.022l-.353.353.353.354c.043.043.105.141.154.315.048.167.075.37.075.581 0 .212-.027.414-.075.582-.05.174-.111.272-.154.315l-.353.353.353.354c.047.047.109.177.005.488a2.224 2.224 0 0 1-.505.805l-.353.353.353.354c.006.005.041.05.041.17a.866.866 0 0 1-.121.416c-.165.288-.503.56-1.066.56z"/>
+                </svg>
+                <svg id="like-icon-fill" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hand-thumbs-up-fill hidden" viewBox="0 0 16 16">
+                    <path d="M6.956 1.745C7.021.81 7.908.087 8.864.325l.261.066c.463.116.874.456 1.012.965.22.816.533 2.511.062 4.51a9.84 9.84 0 0 1 .443-.051c.713-.065 1.669-.072 2.516.21.518.173.994.681 1.2 1.273.184.532.16 1.162-.234 1.733.058.119.103.242.138.363.077.27.113.567.113.856 0 .289-.036.586-.113.856-.039.135-.09.273-.16.404.169.387.107.819-.003 1.148a3.163 3.163 0 0 1-.488.901c.054.152.076.312.076.465 0 .305-.089.625-.253.912C13.1 15.522 12.437 16 11.5 16H8c-.605 0-1.07-.081-1.466-.218a4.82 4.82 0 0 1-.97-.484l-.048-.03c-.504-.307-.999-.609-2.068-.722C2.682 14.464 2 13.846 2 13V9c0-.85.685-1.432 1.357-1.615.849-.232 1.574-.787 2.132-1.41.56-.627.914-1.28 1.039-1.639.199-.575.356-1.539.428-2.59z"/>
+                </svg>
+                <span id="likeCount" style="padding-left: 0px !important;">@Model.LikeCount</span>
+            </button>
+            </span>
+            <span class="views">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                </svg>
+                <span>@(Model.ViewCount +1)</span>
+            </span>
+            <button id="favoriteButton" class="like-button">
+                <svg id="favorite-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16">
+                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
+                </svg>
+                <svg id="favorite-icon-fill" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bookmark-fill hidden" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                </svg>
+            </button>
+        </div>
+    }
+    </div>
+    <button id="shareButton" class="circle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share-fill" viewBox="0 0 16 16">
+            <path d="M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/>
+        </svg>
+    </button>
+
+@section Scripts {
+    <script src="~/js/post.js"></script>
+}
+
+    <script>
+        shareButton.addEventListener("click", onShare);
+        async function onShare() {
+            const title = document.title;
+            const url = document.querySelector("link[rel=canonical]")
+                ? document.querySelector("link[rel=canonical]").href
+                : document.location.href;
+            try {
+                await navigator
+                .share({
+                    title,
+                    url
+                })
+                } catch (err) { }
+        }
+
+        backButton.addEventListener("click", () => {
+            window.location.href = document.referrer;
+        });
+
+        favoriteButton.addEventListener("click", () => {
+            switchFavorite();
+            const favorite = localStorage.getItem(window.location.pathname);
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+
+            var favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+            const index = favorites.indexOf(title);
+            if (index !== -1){
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(title)
+            }
+
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+
+        });
+
+        function switchFavorite() {
+            const fav = document.getElementById("favorite-icon");
+            const favFill = document.getElementById("favorite-icon-fill");
+            fav.classList.toggle('hidden');
+            favFill.classList.toggle('hidden');
+        }
+
+        function setFavorite() {
+            const title = decodeURI(window.location.pathname.replace("/post/",""));
+            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            const index = favorites.indexOf(title);
+            if (index >= 0 ){
+                switchFavorite();
+            }
+        }
+        setFavorite();
+    </script>
+
+    @if (Config.Password != null && !User.Identity.IsAuthenticated)
+    {
+    <div class="center">
+        <h1>Members only</h1>
+        <p>You have to login to view the content of this page.</p>
+        <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
+    </div>
+    return;
+    }
+
+    <div class="rendered-markdown">
+        @{
+        var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
+        var html = Markdown.ToHtml(Model.Markdown, pipeline);
+        html = html.Replace("<p><img src=\"", $"<p><img loading=\"lazy\" src=\"{Model.Title}/");
+        html = html.Replace($"{Model.Title}/https://", "https://");
+        html = html.Replace($"{Model.Title}/http://", "http://");
+        }
+        @Html.Raw(html)
+    </div>
+
+    <div class="center">
+        <a onclick="scrollToTop(event)">
+            <img style="height: 3vw; margin-bottom: 10vh;" src="/icon/arrow_up.svg">
+        </a>
+    </div>
+    @Html.Partial("_ImageViewer")
+</div>
+
+<script>
+    function scrollToTop(event) {
+        event.preventDefault();
+        window.scrollTo(0, 0);
+    }
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keydown', async function(event) {
+            let textToCopy = '';
+
+            switch(event.key) {
+                case 't': // Title
+                    textToCopy = document.querySelector('.date h2').innerText;
+                    break;
+                case 'd': // Date
+                    let rawDate = document.querySelector('.date p').innerText.trim();
+                    let date = new Date(rawDate);
+                    if (!isNaN(date)) {
+                        let formatter = new Intl.DateTimeFormat('de-DE', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
+
+                        let formattedDate = formatter.format(date);
+
+                        let [day, month, year] = formattedDate.split('.');
+                        textToCopy = `${year}/${month}/${day}`;
+                    }
+                    break;
+                case 'b': // Body
+                    textToCopy = document.querySelector('.rendered-markdown').innerText;
+                    break;
+            }
+
+            if (textToCopy) {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            }
+
+            event.preventDefault();
+    })
+});
+</script>

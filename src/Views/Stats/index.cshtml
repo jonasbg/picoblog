@@ -1,0 +1,254 @@
+@model StatsViewModel
+@{
+    ViewData["Title"] = "Blog Statistics";
+}
+
+<div class="dashboard">
+    <h1 class="dashboard-title">Blog Statistics</h1>
+
+    <div class="overview-cards">
+        <div class="stat-card">
+            <div class="stat-value">@Model.TotalPosts</div>
+            <div class="stat-label">Total Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.TotalUniqueVisitors</div>
+            <div class="stat-label">Total Unique Visitors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@Model.TotalViews</div>
+            <div class="stat-label">Total Views</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-item wide">
+            <h2>Monthly Activity & Unique Visitors</h2>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="dashboard-item">
+            <h2>Browser Distribution</h2>
+            <div class="chart-container">
+                <canvas id="browserChart"></canvas>
+            </div>
+        </div>
+
+        <div class="dashboard-item">
+            <h2>Most Liked Posts</h2>
+            <div class="top-posts">
+                @foreach (var post in Model.MostLikedPosts)
+                {
+                    <a href="/post/@post.Year/@post.Title" class="top-post-item">
+                        @if (!string.IsNullOrEmpty(post.CoverImage))
+                        {
+                            <img src="/post/@post.Year/@post.Title/@post.CoverImage" alt="@post.Title" />
+                        }
+                        <div class="post-info">
+                            <span class="post-title">@post.Title</span>
+                            <span class="post-count">@post.Count likes</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="dashboard-item">
+            <h2>Most Viewed Posts</h2>
+            <div class="top-posts">
+                @foreach (var post in Model.MostViewedPosts)
+                {
+                    <a href="/post/@post.Year/@post.Title" class="top-post-item">
+                        @if (!string.IsNullOrEmpty(post.CoverImage))
+                        {
+                            <img src="/post/@post.Year/@post.Title/@post.CoverImage" alt="@post.Title" />
+                        }
+                        <div class="post-info">
+                            <span class="post-title">@post.Title</span>
+                            <span class="post-count">@post.Count views</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="dashboard-item">
+        <h2>Posts Without Cover Images</h2>
+        @if (!Cache.Models.Any(m => string.IsNullOrEmpty(m.CoverImage)))
+        {
+            <div class="empty-state">
+                <p>💪 All posts have cover images! Looking sharp! 🤩</p>
+            </div>
+        }
+        else
+        {
+            <div class="posts-table-wrapper">
+                <table class="posts-table">
+                    <tbody>
+                        @foreach (var post in Cache.Models.Where(m => string.IsNullOrEmpty(m.CoverImage))
+                                                        .OrderByDescending(m => m.Date))
+                        {
+                            <tr onclick="window.location='/post/@post.Date?.Year/@post.Title'">
+                                <td>@post.Title</td>
+                                <td class="date-cell">@(post.Date?.ToString("MMM d, yyyy"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const monthlyActivity = @Html.Raw(Json.Serialize(Model.MonthlyActivity));
+    const uniqueVisitors = @Html.Raw(Json.Serialize(Model.UniqueVisitors));
+    const monthlyVisits = @Html.Raw(Json.Serialize(Model.MonthlyVisits));
+
+    const formatDate = (isoDate) => {
+        // Extract year and month from ISO date string
+        const year = isoDate.split('T')[0].substring(0, 4);
+        const month = parseInt(isoDate.split('T')[0].substring(5, 7)) - 1;
+        const date = new Date(year, month);
+        return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    };
+
+    // Create arrays of formatted dates
+    const allDates = new Set([
+        ...monthlyActivity.map(m => formatDate(m.date)),
+        ...uniqueVisitors.map(m => formatDate(m.date))
+    ]);
+
+    const sortedDates = Array.from(allDates).sort((a,b) => new Date(a) - new Date(b));
+
+    const postsData = sortedDates.map(date => {
+        const match = monthlyActivity.find(m => formatDate(m.date) === date);
+        return match ? match.count : 0;
+    });
+
+    const visitorsData = sortedDates.map(date => {
+        const match = uniqueVisitors.find(m => formatDate(m.date) === date);
+        return match ? match.count : 0;
+    });
+
+    const monthlyCtx = document.getElementById('monthlyChart');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Posts',
+                data: postsData,
+                borderColor: '#3498db',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Unique Visitors',
+                data: visitorsData,
+                borderColor: '#2ecc71',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Total Views',
+                data: sortedDates.map(date => {
+                    const match = monthlyVisits.find(m => formatDate(m.date) === date);
+                    return match ? match.count : 0;
+                }),
+                borderColor: '#e74c3c',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    },
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            },
+            elements: {
+                point: {
+                    radius: 0,
+                    hoverRadius: 6
+                },
+                line: {
+                    borderWidth: 2
+                }
+            }
+        }
+    });
+
+    // Browser Distribution Chart
+    const browserCtx = document.getElementById('browserChart');
+    new Chart(browserCtx, {
+        type: 'doughnut',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.UserAgentStats.Keys)),
+            datasets: [{
+                data: @Html.Raw(Json.Serialize(Model.UserAgentStats.Values)),
+                backgroundColor: [
+                    '#3498db',
+                    '#2ecc71',
+                    '#e74c3c',
+                    '#f1c40f',
+                    '#9b59b6',
+                    '#95a5a6'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+});
+</script>
+
+
+<style>
+body {
+  background-color: #f8f9fa !important;
+}
+
+footer {
+    background-color: white !important;
+}
+</style>
