@@ -19,20 +19,6 @@ public class MonitorLoop : IDisposable
         "System Volume Information", // Windows system folder
     };
 
-    // private void StartPolling()
-    // {
-    //     var pollInterval =
-    //         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production"
-    //             ? TimeSpan.FromMinutes(2) // More frequent in production
-    //             : TimeSpan.FromMinutes(5); // Default interval
-
-    //     _logger.LogInformation(
-    //         "Starting polling-based file monitoring with {0} minute interval",
-    //         pollInterval.TotalMinutes
-    //     );
-    //     var timer = new Timer(PollForChanges, null, TimeSpan.Zero, pollInterval);
-    // }
-
     public MonitorLoop(ILogger<MonitorLoop> logger, IHostApplicationLifetime applicationLifetime)
     {
         _logger = logger;
@@ -158,17 +144,20 @@ public class MonitorLoop : IDisposable
         {
             try
             {
-                // Setup watchers
-                _watcher.Created += OnFileChanged;
-                _watcher.Changed += OnFileChanged;
-                _watcher.Deleted += OnFileDeleted;
-                _watcher.Renamed += OnFileRenamed;
+                // Disable watching subdirectories to avoid hitting inotify limits
+                _watcher.IncludeSubdirectories = false;
+
+                // Setup watchers but filter out excluded directories
+                _watcher.Created += FilterExcludedDirectories;
+                _watcher.Changed += FilterExcludedDirectories;
+                _watcher.Deleted += FilterExcludedDirectories;
+                _watcher.Renamed += FilterExcludedDirectoriesRenamed;
                 _watcher.Error += OnWatcherError;
 
                 // Start watching
                 _watcher.EnableRaisingEvents = true;
                 _logger.LogInformation(
-                    "Started watching for markdown files in {Directory}",
+                    "Started watching (top-level only) for markdown files in {Directory}",
                     Config.DataDir
                 );
             }
