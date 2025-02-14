@@ -25,7 +25,7 @@ public class MonitorLoop : IDisposable
         _modelCache = new ConcurrentDictionary<string, MarkdownModel>();
         _privatePostsCache = new ConcurrentDictionary<string, MarkdownModel>();
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
         {
             _logger.LogInformation("Production environment detected - using polling mode");
             _watcher = null;
