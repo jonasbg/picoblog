@@ -152,7 +152,7 @@ using (var serviceScope = app.Services.CreateScope())
 {
     var services = serviceScope.ServiceProvider;
     var monitorLoop = services.GetRequiredService<MonitorLoop>();
-    // monitorLoop.StartMonitorLoop();
+    monitorLoop.Execute();
 }
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();

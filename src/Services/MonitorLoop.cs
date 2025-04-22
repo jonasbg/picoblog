@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 public class MonitorLoop : IDisposable
 {
     private readonly ILogger _logger;
-    private readonly FileSystemWatcher _watcher;
+    private FileSystemWatcher? _watcher;
     private readonly ConcurrentDictionary<string, MarkdownModel> _modelCache;
     private readonly ConcurrentDictionary<string, MarkdownModel> _privatePostsCache;
     private readonly object _updateLock = new object();
@@ -25,48 +25,44 @@ public class MonitorLoop : IDisposable
         _modelCache = new ConcurrentDictionary<string, MarkdownModel>();
         _privatePostsCache = new ConcurrentDictionary<string, MarkdownModel>();
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+        try
         {
-            _logger.LogInformation("Production environment detected - using polling mode");
+            EnsureInotifyLimits();
+
+            var watcher = new FileSystemWatcher(Config.DataDir, filter: "*.md")
+            {
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = true,
+                NotifyFilter =
+                    NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite,
+            };
+
+            watcher.Created += FilterExcludedDirectories;
+            watcher.Changed += FilterExcludedDirectories;
+            watcher.Deleted += FilterExcludedDirectories;
+            watcher.Renamed += FilterExcludedDirectoriesRenamed;
+            watcher.EnableRaisingEvents = true;
+
+            _watcher = watcher;
+            applicationLifetime.ApplicationStopping.Register(() => Dispose());
+
+            LoadAllFiles();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to initialize FileSystemWatcher. Falling back to polling."
+            );
             _watcher = null;
         }
-        else
-        {
-            try
-            {
-                EnsureInotifyLimits();
+    }
 
-                _watcher = new FileSystemWatcher(Config.DataDir)
-                {
-                    Filter = "*.md",
-                    IncludeSubdirectories = true,
-                    EnableRaisingEvents = false,
-                    NotifyFilter =
-                        NotifyFilters.FileName
-                        | NotifyFilters.DirectoryName
-                        | NotifyFilters.LastWrite,
-                };
-
-                _watcher.Created += FilterExcludedDirectories;
-                _watcher.Changed += FilterExcludedDirectories;
-                _watcher.Deleted += FilterExcludedDirectories;
-                _watcher.Renamed += FilterExcludedDirectoriesRenamed;
-
-                // Register for cancellation
-                applicationLifetime.ApplicationStopping.Register(() =>
-                {
-                    Dispose();
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Failed to initialize FileSystemWatcher. Falling back to polling."
-                );
-                _watcher = null;
-            }
-        }
+    public void Execute()
+    {
+        if (_watcher == null)
+            if (Cache.LastUpdate == null || Cache.LastUpdate < DateTime.Now.AddMinutes(-5))
+                LoadAllFiles();
     }
 
     private void FilterExcludedDirectoriesRenamed(object sender, RenamedEventArgs e)
@@ -79,9 +75,19 @@ public class MonitorLoop : IDisposable
 
     private void FilterExcludedDirectories(object sender, FileSystemEventArgs e)
     {
+        _logger.LogInformation("File changed {FullPath}", e.FullPath);
         if (!IsExcludedPath(e.FullPath))
         {
-            OnFileChanged(sender, e);
+            switch (e.ChangeType)
+            {
+                case WatcherChangeTypes.Created:
+                case WatcherChangeTypes.Changed:
+                    OnFileChanged(sender, e);
+                    break;
+                case WatcherChangeTypes.Deleted:
+                    OnFileDeleted(sender, e);
+                    break;
+            }
         }
     }
 
@@ -135,62 +141,6 @@ public class MonitorLoop : IDisposable
         }
     }
 
-    public void StartMonitorLoop()
-    {
-        // Initial load of all files
-        LoadAllFiles();
-
-        if (_watcher != null)
-        {
-            try
-            {
-                // Disable watching subdirectories to avoid hitting inotify limits
-                _watcher.IncludeSubdirectories = false;
-
-                // Setup watchers but filter out excluded directories
-                _watcher.Created += FilterExcludedDirectories;
-                _watcher.Changed += FilterExcludedDirectories;
-                _watcher.Deleted += FilterExcludedDirectories;
-                _watcher.Renamed += FilterExcludedDirectoriesRenamed;
-                _watcher.Error += OnWatcherError;
-
-                // Start watching
-                _watcher.EnableRaisingEvents = true;
-                _logger.LogInformation(
-                    "Started watching (top-level only) for markdown files in {Directory}",
-                    Config.DataDir
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to start FileSystemWatcher. Falling back to polling.");
-                StartPolling();
-            }
-        }
-        else
-        {
-            StartPolling();
-        }
-    }
-
-    private void StartPolling()
-    {
-        _logger.LogInformation("Starting polling-based file monitoring");
-        var timer = new Timer(PollForChanges, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
-    }
-
-    private void PollForChanges(object state)
-    {
-        try
-        {
-            LoadAllFiles();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during file polling");
-        }
-    }
-
     private void OnWatcherError(object sender, ErrorEventArgs e)
     {
         _logger.LogError(e.GetException(), "FileSystemWatcher error occurred");
@@ -208,18 +158,29 @@ public class MonitorLoop : IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to restart FileSystemWatcher. Falling back to polling.");
-            StartPolling();
+            _watcher?.Dispose();
+            _watcher = null;
         }
     }
 
     private void LoadAllFiles()
     {
         _logger.LogInformation("Loading all existing markdown files");
-        var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
+        DirectoryInfo diTop = new DirectoryInfo(Config.DataDir);
 
-        foreach (var file in files)
+        foreach (var di in diTop.EnumerateDirectories("*"))
         {
-            ProcessFile(file);
+            if (!IsExcludedPath(di.FullName))
+            {
+                var files = di.EnumerateFiles("*.md", SearchOption.AllDirectories)
+                    .Where(file => !IsExcludedPath(file.FullName));
+
+                foreach (var file in files)
+                {
+                    ProcessFile(file.FullName);
+                }
+            }
+            _logger.LogInformation("Directory: {0}", di.Name);
         }
 
         UpdateCaches();
@@ -398,8 +359,8 @@ public class MonitorLoop : IDisposable
 
             // Check for duplicates
             var duplicates = models
-                .GroupBy(p => p.Title)
-                .Where(g => g.Count() >= 2)
+                .GroupBy(static p => new { p.Title, p.Date?.Year })
+                .Where(g => g.Count() > 1)
                 .SelectMany(g => g.Skip(1))
                 .ToList();
 
@@ -421,6 +382,7 @@ public class MonitorLoop : IDisposable
             // Update the global cache
             Cache.Models = models;
             Cache.PrivatePosts = privatePosts;
+            Cache.LastUpdate = DateTime.UtcNow;
         }
     }
 
