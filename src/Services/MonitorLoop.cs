@@ -294,11 +294,11 @@ public class MonitorLoop : IDisposable
                 models = models.Where(p => !string.IsNullOrEmpty(p.Title)).ToList();
             }
 
-            // Check for duplicates
-            var duplicates = models.GroupBy(p => p.Title)
-                                 .Where(g => g.Count() >= 2)
-                                 .SelectMany(g => g.Skip(1))
-                                 .ToList();
+            var duplicates = models
+                .GroupBy(p => new { p.Title, p.Date?.Year })
+                .Where(g => g.Count() > 1)
+                .SelectMany(g => g.Skip(1))
+                .ToList();
 
             if (duplicates.Any())
             {
