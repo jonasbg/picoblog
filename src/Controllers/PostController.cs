@@ -5,7 +5,10 @@ public class PostController : Controller
     private readonly ILogger<PostController> _logger;
     private readonly VisitTracker _visitTracker;
 
-    public PostController(ILogger<PostController> logger, VisitTracker visitTracker)
+    public PostController(
+        ILogger<PostController> logger,
+        VisitTracker visitTracker
+    )
     {
         _logger = logger;
         _visitTracker = visitTracker;
@@ -205,51 +208,71 @@ public class PostController : Controller
             var fileName = $"{Config.ConfigDir}/images{path}";
             if (System.IO.File.Exists(fileName))
             {
-                using (
-                    var SourceStream = System.IO.File.Open(
+                try
+                {
+                    using var sourceStream = new FileStream(
                         fileName,
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.ReadWrite
-                    )
-                )
-                {
-                    var result = new byte[SourceStream.Length];
-                    await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
+                    );
+                    var result = new byte[sourceStream.Length];
+                    await sourceStream.ReadAsync(result, 0, (int)sourceStream.Length);
                     return result;
                 }
-            }
-
-            using (var outputStream = new MemoryStream())
-            {
-                using (var image = await Image.LoadAsync(path))
+                catch (IOException ex)
                 {
-                    int width = image.Width / 2;
-                    int height = image.Height / 2;
-                    width = 0;
-                    height = 0;
-                    if (image.Height > image.Width && height > Config.ImageMaxSize)
-                        height = Config.ImageMaxSize;
-                    if (image.Width > image.Height && width > Config.ImageMaxSize)
-                        width = Config.ImageMaxSize;
-
-                    if (width + height != 0)
-                        image.Mutate(x => x.Resize(width, height));
-                    var encoder = new JpegEncoder { Quality = Config.ImageQuality };
-                    await image.SaveAsJpegAsync(outputStream, encoder);
+                    _logger.LogWarning("Could not access cached file: {Error}", ex.Message);
+                    // Continue to generate a new resized image
                 }
-                outputStream.Position = 0;
-                if (fileName != null)
-                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-                using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
-                await outputStream.CopyToAsync(destination);
-
-                return outputStream.ToArray();
             }
+
+            using var outputStream = new MemoryStream();
+            using (var image = await Image.LoadAsync(path))
+            {
+                int width = image.Width / 2;
+                int height = image.Height / 2;
+                width = 0;
+                height = 0;
+                if (image.Height > image.Width && height > Config.ImageMaxSize)
+                    height = Config.ImageMaxSize;
+                if (image.Width > image.Height && width > Config.ImageMaxSize)
+                    width = Config.ImageMaxSize;
+
+                if (width + height != 0)
+                    image.Mutate(x => x.Resize(width, height));
+                var encoder = new JpegEncoder { Quality = Config.ImageQuality };
+                await image.SaveAsJpegAsync(outputStream, encoder);
+            }
+
+            outputStream.Position = 0;
+            if (fileName != null)
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                    using var destination = new FileStream(
+                        fileName,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        4096,
+                        FileOptions.Asynchronous
+                    );
+                    await outputStream.CopyToAsync(destination);
+                }
+                catch (IOException ex)
+                {
+                    _logger.LogWarning("Could not cache resized image: {Error}", ex.Message);
+                    // Continue without caching
+                }
+            }
+
+            return outputStream.ToArray();
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error reading file: {FilePath}", path);
+            _logger.LogError(e, "Error processing image: {FilePath}", path);
             throw;
         }
     }

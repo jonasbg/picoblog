@@ -3,3 +3,5 @@
 *.DS_Store
 docker-compose.yml
 cmd/dist/*
+src/core
+tests/*

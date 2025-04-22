@@ -4,10 +4,12 @@ namespace picoblog.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly MonitorLoop _monitorLoop;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, MonitorLoop monitorLoop)
     {
         _logger = logger;
+        _monitorLoop = monitorLoop;
     }
 
     [AllowAnonymous]
@@ -84,6 +86,8 @@ public class HomeController : Controller
     [Route("")]
     public IActionResult Index()
     {
+        _monitorLoop.Execute();
+
         ViewBag.Home = "class = active";
         return View(Cache.Models.OrderByDescending(f => f.Date));
     }
