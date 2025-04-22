@@ -6,6 +6,14 @@ img:not(.hero > img) {
   cursor: pointer;
 }
 
+hr {
+  border: none;
+  opacity: 0.7 !important;
+  height: 1;
+  width: 50%;
+  margin: 25px auto;
+}
+
 h1, h2, h3 {
   text-align: center!important;
   font-variant: small-caps;
