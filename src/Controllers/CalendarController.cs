@@ -27,7 +27,7 @@ public class CalendarController : Controller
         var dictionary = new Dictionary<int, List<MarkdownModel>>();
         var months = models
             .Where(p => p.Date != null)
-            .Select(p => p.Date?.Month)
+            .Select(p => p.Date!.Value.Month)
             .Distinct()
             .ToArray();
         foreach (int month in months)
@@ -41,7 +41,12 @@ public class CalendarController : Controller
     {
         ViewBag.Calendar = "class = active";
         var models = Cache.Models;
-        var years = models.Select(p => p.Date?.Year).Distinct().OrderByDescending(p => p).ToList();
+        var years = models
+            .Where(p => p.Date != null)
+            .Select(p => p.Date!.Value.Year)
+            .Distinct()
+            .OrderByDescending(p => p)
+            .ToList();
         return View(years);
     }
 }
