@@ -58,21 +58,17 @@ public class PostController : Controller
             }
         }
 
-        if (
-            model.CoverImage.Contains(payload.Image)
-            || model.Markdown?.Contains(payload.Image) == true
-        )
+        if (ContentSecurity.TryResolvePostImagePath(model, payload.Image, out var path, out var isCoverImage))
         {
-            if (!model.CoverImage.Contains(payload.Image))
+            if (!isCoverImage)
             {
-                if (Config.Password != null && !User.Identity.IsAuthenticated)
+                if (Config.Password != null && User.Identity?.IsAuthenticated != true)
                 {
                     _logger.LogWarning("Unauthenticated request with Config.Password set.");
                     return Unauthorized();
                 }
             }
 
-            var path = $"{Path.GetDirectoryName(model.Path)}/{payload.Image}";
             _logger.LogDebug("Calling Synology method with path: {FilePath}", path);
             return await Synology(path);
         }
@@ -162,22 +158,10 @@ public class PostController : Controller
         _logger.LogDebug("Resize method started for path: {FilePath}", path);
         try
         {
-            var fileName = $"{Config.ConfigDir}/images{path}";
+            var fileName = ContentSecurity.CachePathForImage(path);
             if (System.IO.File.Exists(fileName))
             {
-                using (
-                    var SourceStream = System.IO.File.Open(
-                        fileName,
-                        FileMode.Open,
-                        FileAccess.Read,
-                        FileShare.ReadWrite
-                    )
-                )
-                {
-                    var result = new byte[SourceStream.Length];
-                    await SourceStream.ReadAsync(result, 0, (int)SourceStream.Length);
-                    return result;
-                }
+                return await System.IO.File.ReadAllBytesAsync(fileName);
             }
 
             using (var outputStream = new MemoryStream())
@@ -199,8 +183,9 @@ public class PostController : Controller
                     await image.SaveAsJpegAsync(outputStream, encoder);
                 }
                 outputStream.Position = 0;
-                if (fileName != null)
-                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                var cacheDirectory = Path.GetDirectoryName(fileName);
+                if (!string.IsNullOrEmpty(cacheDirectory))
+                    Directory.CreateDirectory(cacheDirectory);
                 using var destination = System.IO.File.Create(fileName, bufferSize: 4096);
                 await outputStream.CopyToAsync(destination);
 

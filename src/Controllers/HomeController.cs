@@ -28,11 +28,12 @@ public class HomeController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        if (!model.Password.Equals(Config.Password))
+        if (!ContentSecurity.PasswordEquals(model.Password, Config.Password))
         {
             string clientIp =
                 HttpContext.Request.Headers["Cf-Connecting-Ip"].FirstOrDefault()
-                ?? HttpContext.Connection.RemoteIpAddress.ToString();
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown";
             _logger.LogWarning("Failed login attempt by user with IP {IP}.", clientIp);
             return View(model);
         }

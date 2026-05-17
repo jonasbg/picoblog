@@ -8,6 +8,9 @@ public class MarkdownModel
         set
         {
             _markdown = value;
+            if (string.IsNullOrEmpty(_markdown))
+                return;
+
             var match = Regex.Match(_markdown, @"^---\r?\n(.*?)\r?\n---", RegexOptions.Singleline);
 
             if (match.Success && match.Groups.Count > 1)
@@ -16,7 +19,7 @@ public class MarkdownModel
                 Title = frontmatter
                     .SingleOrDefault(p => p.StartsWith("title:"))
                     ?.Split(':', 2)[1]
-                    .Trim();
+                    .Trim() ?? "";
                 Description = frontmatter
                     .SingleOrDefault(p => p.StartsWith("description:"))
                     ?.Split(':', 2)[1]
@@ -49,9 +52,9 @@ public class MarkdownModel
             }
         }
     }
-    public string Title { get; internal set; }
+    public string Title { get; internal set; } = "";
     public bool Public { get; internal set; } = false;
-    public string Path { get; internal set; }
+    public string Path { get; internal set; } = "";
     public DateTime? Date { get; internal set; }
     public string? CoverImage { get; internal set; }
     public string? Description { get; internal set; }

@@ -31,7 +31,10 @@ public class RssFeedController : Controller
                     select new XElement(
                         "item",
                         new XElement("title", model.Title),
-                        new XElement("link", $"{domain}/post/{model.Date?.Year}/{model.Title}"),
+                        new XElement(
+                            "link",
+                            $"{domain}/post/{model.Date?.Year}/{ContentSecurity.UrlEncodePathSegment(model.Title)}"
+                        ),
                         new XElement("description", new XCData(GenerateItemHtml(model, domain))),
                         new XElement("pubDate", model.Date?.ToString("R") ?? string.Empty) // RFC 822 format
                     // model.CoverImage != null ? new XElement("enclosure", new XAttribute("url", $"{domain}/post/{model.Date?.Year}/{model.Title}/{model.CoverImage}")) : null
@@ -45,6 +48,13 @@ public class RssFeedController : Controller
 
     private string GenerateItemHtml(MarkdownModel model, string domain = "localhost:8080")
     {
+        var title = ContentSecurity.HtmlEncode(model.Title);
+        var description = ContentSecurity.HtmlEncode(model.Description);
+        var coverImage = ContentSecurity.UrlEncodePathSegment(model.CoverImage);
+        var postTitle = ContentSecurity.UrlEncodePathSegment(model.Title);
+        var postUrl = $"{domain}/post/{model.Date?.Year}/{postTitle}";
+        var imageUrl = $"{postUrl}/{coverImage}";
+
         return $@"
       <style>
         @font-face {{
@@ -105,15 +115,15 @@ public class RssFeedController : Controller
       </style>
       <div class='my-content'>
         <div class='hero'>
-          <img src='{domain}/post/{model.Date?.Year}/{model.Title}/{model.CoverImage}' alt='Cover Image'/>
+          <img src='{imageUrl}' alt='Cover Image'/>
         </div>
         <div class='center'>
-          <h2>{model.Title}</h2>
+          <h2>{title}</h2>
           <p class='date'>{model.Date?.ToString("dd. MMM yyyy")}</p>
           <div class='description'>
-            <p>{model.Description}</p>
+            <p>{description}</p>
           </div>
-          <a href='{domain}/post/{model.Date?.Year}/{model.Title}'> Click here to read more</a>
+          <a href='{postUrl}'> Click here to read more</a>
         </div>
       </div>";
     }

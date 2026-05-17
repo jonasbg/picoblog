@@ -1,4 +1,3 @@
-@using Markdig;
 <link rel="stylesheet" href="~/css/post.css" />
 
 @{
@@ -52,7 +51,7 @@
 
     </script>
 
-    @if (Config.Password != null && !User.Identity.IsAuthenticated)
+    @if (Config.Password != null && User.Identity?.IsAuthenticated != true)
     {
     <div class="center">
         <h1>Members only</h1>
@@ -64,11 +63,7 @@
 
     <div class="rendered-markdown">
         @{
-        var pipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().UseAdvancedExtensions().Build();
-        var html = Markdown.ToHtml(Model.Markdown, pipeline);
-        html = html.Replace("<p><img src=\"", $"<p><img loading=\"lazy\" src=\"{Model.Title}/");
-        html = html.Replace($"{Model.Title}/https://", "https://");
-        html = html.Replace($"{Model.Title}/http://", "http://");
+        var html = ContentSecurity.SanitizeMarkdown(Model.Markdown, Model.Title);
         }
         @Html.Raw(html)
     </div>

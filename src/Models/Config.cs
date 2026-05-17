@@ -43,8 +43,12 @@ public static class Config
         var sizeEnv = Environment.GetEnvironmentVariable("SYNOLOGY_SIZE");
         var defaultSize = "XL";
         var allowedSizes = new string[] { "SM", "M", "XL" };
-        if (allowedSizes.Any(p => p.Equals(sizeEnv.ToUpper())))
-            return $"SYNOPHOTO_THUMB_{sizeEnv.ToUpper()}.jpg";
+        if (!string.IsNullOrWhiteSpace(sizeEnv))
+        {
+            var normalizedSize = sizeEnv.ToUpperInvariant();
+            if (allowedSizes.Contains(normalizedSize))
+                return $"SYNOPHOTO_THUMB_{normalizedSize}.jpg";
+        }
 
         Console.WriteLine($"WRONG SYNOLOGY_SIZE SELECTED {sizeEnv}. DEFAULTING TO {defaultSize}");
         return $"SYNOPHOTO_THUMB_{defaultSize}.jpg";
