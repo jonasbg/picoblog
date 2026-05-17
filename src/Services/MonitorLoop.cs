@@ -66,13 +66,9 @@ public class MonitorLoop : IDisposable
 
         var models = new List<MarkdownModel>();
         var privatePosts = new List<MarkdownModel>();
-        var files = Directory.EnumerateFiles(Config.DataDir, "*.md", SearchOption.AllDirectories);
 
-        foreach (var file in files)
+        foreach (var file in EnumerateMarkdownFiles(Config.DataDir))
         {
-            if (IsExcludedPath(file))
-                continue;
-
             try
             {
                 var model = ProcessFile(file);
@@ -95,12 +91,64 @@ public class MonitorLoop : IDisposable
         UpdateCaches(models, privatePosts);
     }
 
-    private static bool IsExcludedPath(string path)
+    private IEnumerable<string> EnumerateMarkdownFiles(string root)
     {
-        return ExcludedDirectories.Any(dir =>
-            path.Contains(Path.DirectorySeparatorChar + dir + Path.DirectorySeparatorChar)
-            || path.EndsWith(Path.DirectorySeparatorChar + dir)
-        );
+        if (!Directory.Exists(root))
+        {
+            _logger.LogWarning("Data directory does not exist: {Directory}", root);
+            yield break;
+        }
+
+        var options = new EnumerationOptions
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = false,
+            AttributesToSkip = FileAttributes.ReparsePoint,
+        };
+        var pending = new Stack<string>();
+        pending.Push(root);
+
+        while (pending.TryPop(out var directory))
+        {
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(directory, "*.md", options);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                _logger.LogWarning(ex, "Skipping unreadable directory {Directory}", directory);
+                continue;
+            }
+
+            foreach (var file in files)
+                yield return file;
+
+            IEnumerable<string> directories;
+            try
+            {
+                directories = Directory.EnumerateDirectories(directory, "*", options);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                _logger.LogWarning(ex, "Skipping unreadable subdirectories in {Directory}", directory);
+                continue;
+            }
+
+            foreach (var child in directories)
+            {
+                if (IsExcludedDirectory(child))
+                    continue;
+
+                pending.Push(child);
+            }
+        }
+    }
+
+    private static bool IsExcludedDirectory(string path)
+    {
+        var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return ExcludedDirectories.Contains(name, StringComparer.OrdinalIgnoreCase);
     }
 
     private static MarkdownModel? ProcessFile(string filePath)
