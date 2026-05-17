@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	Version = "dev"
 	BaseDir = os.Getenv("PICOBLOG_BASE_DIR")
 	rootCmd = &cobra.Command{
 		Use:   "picoblog",

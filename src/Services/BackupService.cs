@@ -52,7 +52,7 @@ public class BackupService : BackgroundService
         _logger.LogDebug("Backup directory created or already exists.");
 
         // Create a tar archive
-        using (var archive = TarArchive.Create())
+        using (var archive = TarArchive.CreateArchive())
         {
             _logger.LogDebug("Creating tar archive...");
             // Add all Markdown files from the Cache.Models to the tar archive

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS backend
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS backend
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -15,9 +15,9 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ] ; then DOTNET_TARGET=linux-musl-arm
 RUN cat /tmp/rid
 RUN dotnet restore "picoblog.csproj" -r $(cat /tmp/rid) /p:PublishReadyToRun=true
 RUN dotnet publish "picoblog.csproj"  -c Release -o /publish --runtime $(cat /tmp/rid) --self-contained true --no-restore /p:PublishReadyToRun=true /p:PublishSingleFile=true
-# /p:PublishTrimmed=true is not possible with .NET9 (MVC doesn't support trimming)
+# /p:PublishTrimmed=true is not possible because MVC doesn't support trimming.
 
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:9.0-alpine
+FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine
 EXPOSE 8080
 
 USER root

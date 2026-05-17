@@ -1,0 +1,144 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "*" ]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'public/**'
+      - '.charts/**'
+      - '.gitea/workflows/docker.yaml'
+      - 'src/Dockerfile'
+      - 'src/picoblog.csproj'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Derive registry host
+        run: |
+          set -e
+          host="${GITHUB_SERVER_URL#https://}"
+          host="${host#http://}"
+          echo "REGISTRY_HOST=$host" >> "$GITHUB_ENV"
+
+      - name: Docker Metadata action
+        uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.REGISTRY_HOST }}/${{ github.repository }}
+          tags: |
+              type=ref,event=branch
+              type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+              type=raw,value=dev,enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_HOST }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image (amd64)
+        run: |
+          IMAGE="${{ env.REGISTRY_HOST }}/${{ github.repository }}"
+          docker build --platform linux/amd64 -t "${IMAGE}:latest" -t "${IMAGE}:${{ github.sha }}" -f src/Dockerfile src
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:${{ github.sha }}"
+        id: build-docker-image
+
+      - name: Get image digest
+        run: |
+          IMAGE="${{ env.REGISTRY_HOST }}/${{ github.repository }}"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}:latest" 2>/dev/null | sed 's/.*@//')
+          if [ -z "$DIGEST" ]; then
+            echo "WARN: Could not get digest from local inspect, falling back to sha256:${{ github.sha }}"
+            DIGEST="sha256:${{ github.sha }}"
+          fi
+          echo "DIGEST=$DIGEST" >> "$GITHUB_ENV"
+
+      - name: Install Helm
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: azure/setup-helm@v3
+
+      - name: Login to OCI Registry for Helm
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "${{ secrets.REGISTRY_ACCESS_TOKEN }}" | helm registry login ${{ env.REGISTRY_HOST }} -u "${{ github.actor }}" --password-stdin
+
+      - name: Push Helm chart
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          set -euo pipefail
+          repo_path=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          chart_dir=".charts/picoblog"
+          chart_name=$(awk -F': ' '/^name:/ {print $2; exit}' "$chart_dir/Chart.yaml")
+          chart_repo="oci://${{ env.REGISTRY_HOST }}/$repo_path"
+          chart_ref="${chart_repo}/${chart_name}"
+
+          CHART_YAML_VERSION=$(awk -F': ' '/^version:/ {print $2; exit}' "$chart_dir/Chart.yaml" | tr -d ' ')
+
+          tmp_chart_metadata=$(mktemp)
+          if helm show chart "$chart_ref" > "$tmp_chart_metadata" 2>/dev/null; then
+            PUBLISHED_VERSION=$(awk -F': ' '/^version:/ {print $2; exit}' "$tmp_chart_metadata" | tr -d ' ')
+          else
+            echo "No existing chart found for $chart_ref, starting at 0.0.0"
+            PUBLISHED_VERSION="0.0.0"
+          fi
+          rm -f "$tmp_chart_metadata"
+
+          version_gt() {
+            test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+          }
+
+          if version_gt "$CHART_YAML_VERSION" "$PUBLISHED_VERSION"; then
+            NEW_VERSION="$CHART_YAML_VERSION"
+            echo "Using Chart.yaml version $NEW_VERSION (higher than published $PUBLISHED_VERSION)"
+          else
+            IFS='.' read -r major minor patch <<< "$PUBLISHED_VERSION"
+            NEW_VERSION="$major.$minor.$((patch+1))"
+            echo "Bumping chart version: $PUBLISHED_VERSION -> $NEW_VERSION"
+            sed -i -E "s/^version: .*/version: $NEW_VERSION/" "$chart_dir/Chart.yaml"
+          fi
+
+          echo "Final version: $NEW_VERSION"
+
+          IMAGE_REPOSITORY="${{ env.REGISTRY_HOST }}/${{ github.repository }}"
+          IMAGE_TAG="latest@${{ env.DIGEST }}"
+          echo "Injecting image repository: $IMAGE_REPOSITORY"
+          echo "Injecting image tag with digest: $IMAGE_TAG"
+          python3 - <<EOF
+          import pathlib
+
+          image_repository = "${IMAGE_REPOSITORY}"
+          image_tag = "${IMAGE_TAG}"
+          path = pathlib.Path("${chart_dir}/values.yaml")
+          lines = path.read_text().splitlines()
+          in_image = False
+          for idx, line in enumerate(lines):
+              stripped = line.lstrip()
+              if stripped == "image:":
+                  in_image = True
+                  continue
+              if in_image and line and not line.startswith((" ", "\t")):
+                  in_image = False
+              if in_image and stripped.startswith("repository:"):
+                  indent = line[:len(line) - len(stripped)]
+                  lines[idx] = f"{indent}repository: {image_repository}"
+              if in_image and stripped.startswith("tag:"):
+                  indent = line[:len(line) - len(stripped)]
+                  lines[idx] = f'{indent}tag: "{image_tag}"'
+          path.write_text("\n".join(lines) + ("\n" if lines else ""))
+          EOF
+
+          (cd .charts && helm package picoblog)
+          helm push ".charts/${chart_name}-${NEW_VERSION}.tgz" "$chart_repo"
