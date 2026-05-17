@@ -124,7 +124,7 @@ jobs:
           cat "${ARCHIVE_FILE}.sha256"
 
       - name: Upload artifact with checksum
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: picoblog-${{ matrix.artifact_suffix }}.zip
           path: |
@@ -241,7 +241,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
 
