@@ -11,7 +11,16 @@ public static class ContentSecurity
         .Build();
 
     private static readonly HashSet<string> AllowedImageExtensions =
-        new(StringComparer.OrdinalIgnoreCase) { ".gif", ".jpeg", ".jpg", ".png", ".webp" };
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".gif",
+            ".heic",
+            ".heif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".webp",
+        };
 
     public static bool PasswordEquals(string? suppliedPassword, string? configuredPassword)
     {
