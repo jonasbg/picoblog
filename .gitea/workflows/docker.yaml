@@ -80,10 +80,9 @@ jobs:
         run: |
           set -euo pipefail
           repo_path=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          repo_owner="${repo_path%%/*}"
           chart_dir=".charts/picoblog"
           chart_name=$(awk -F': ' '/^name:/ {print $2; exit}' "$chart_dir/Chart.yaml")
-          chart_repo="oci://${{ env.REGISTRY_HOST }}/$repo_owner/helm"
+          chart_repo="oci://${{ env.REGISTRY_HOST }}/$repo_path/helm"
           chart_ref="${chart_repo}/${chart_name}"
 
           CHART_YAML_VERSION=$(awk -F': ' '/^version:/ {print $2; exit}' "$chart_dir/Chart.yaml" | tr -d ' ')
