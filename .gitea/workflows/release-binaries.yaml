@@ -134,14 +134,105 @@ jobs:
 
       - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          files: |
-            dist/picoblog-${{ matrix.artifact_suffix }}.${{ matrix.archive_extension }}
-            dist/picoblog-${{ matrix.artifact_suffix }}.${{ matrix.archive_extension }}.sha256
         env:
-          GITHUB_TOKEN: ${{ secrets.USER_TOKEN }}
+          RELEASE_TOKEN: ${{ secrets.USER_TOKEN }}
+          PRERELEASE: ${{ contains(github.ref_name, '-') }}
+        run: |
+          set -euo pipefail
+
+          files="
+          dist/picoblog-${{ matrix.artifact_suffix }}.${{ matrix.archive_extension }}
+          dist/picoblog-${{ matrix.artifact_suffix }}.${{ matrix.archive_extension }}.sha256
+          "
+
+          api="${GITHUB_SERVER_URL}/api/v1"
+          repo="${GITHUB_REPOSITORY}"
+          tag="${GITHUB_REF_NAME}"
+          auth_header="Authorization: token ${RELEASE_TOKEN}"
+
+          release_json="$(mktemp)"
+          status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+            -H "$auth_header" \
+            "${api}/repos/${repo}/releases/tags/${tag}" || true)
+
+          if [ "$status" = "404" ]; then
+            payload="$(mktemp)"
+            TAG="$tag" PRERELEASE="$PRERELEASE" python3 - <<'PY' > "$payload"
+          import json
+          import os
+
+          tag = os.environ["TAG"]
+          prerelease = os.environ["PRERELEASE"].lower() == "true"
+          print(json.dumps({
+              "tag_name": tag,
+              "name": tag,
+              "body": "",
+              "draft": False,
+              "prerelease": prerelease,
+          }))
+          PY
+            status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+              -X POST \
+              -H "$auth_header" \
+              -H "Content-Type: application/json" \
+              --data @"$payload" \
+              "${api}/repos/${repo}/releases" || true)
+            rm -f "$payload"
+
+            if [ "$status" != "201" ]; then
+              status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+                -H "$auth_header" \
+                "${api}/repos/${repo}/releases/tags/${tag}" || true)
+            fi
+          fi
+
+          if [ "$status" != "200" ] && [ "$status" != "201" ]; then
+            echo "Failed to create or fetch release for ${tag}; HTTP ${status}"
+            cat "$release_json"
+            exit 1
+          fi
+
+          release_id=$(python3 - "$release_json" <<'PY'
+          import json
+          import sys
+
+          print(json.load(open(sys.argv[1]))["id"])
+          PY
+          )
+
+          assets_json="$(mktemp)"
+          curl -sS -f -o "$assets_json" \
+            -H "$auth_header" \
+            "${api}/repos/${repo}/releases/${release_id}/assets"
+
+          for file in $files; do
+            name="$(basename "$file")"
+            existing_id=$(ASSET_NAME="$name" python3 - "$assets_json" <<'PY'
+          import json
+          import os
+          import sys
+
+          target = os.environ["ASSET_NAME"]
+          for asset in json.load(open(sys.argv[1])):
+              if asset.get("name") == target:
+                  print(asset["id"])
+                  break
+          PY
+            )
+
+            if [ -n "$existing_id" ]; then
+              curl -sS -f -X DELETE \
+                -H "$auth_header" \
+                "${api}/repos/${repo}/releases/${release_id}/assets/${existing_id}"
+            fi
+
+            curl -sS -f -X POST \
+              -H "$auth_header" \
+              -F "attachment=@${file}" \
+              "${api}/repos/${repo}/releases/${release_id}/assets?name=${name}"
+          done
+
+          rm -f "$release_json" "$assets_json"
 
   checksums:
     name: Generate SHA256SUMS
@@ -163,9 +254,92 @@ jobs:
           cat ../SHA256SUMS
 
       - name: Upload SHA256SUMS to release
-        uses: softprops/action-gh-release@v2
-        with:
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          files: SHA256SUMS
         env:
-          GITHUB_TOKEN: ${{ secrets.USER_TOKEN }}
+          RELEASE_TOKEN: ${{ secrets.USER_TOKEN }}
+          PRERELEASE: ${{ contains(github.ref_name, '-') }}
+        run: |
+          set -euo pipefail
+
+          api="${GITHUB_SERVER_URL}/api/v1"
+          repo="${GITHUB_REPOSITORY}"
+          tag="${GITHUB_REF_NAME}"
+          auth_header="Authorization: token ${RELEASE_TOKEN}"
+
+          release_json="$(mktemp)"
+          status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+            -H "$auth_header" \
+            "${api}/repos/${repo}/releases/tags/${tag}" || true)
+
+          if [ "$status" = "404" ]; then
+            payload="$(mktemp)"
+            TAG="$tag" PRERELEASE="$PRERELEASE" python3 - <<'PY' > "$payload"
+          import json
+          import os
+
+          tag = os.environ["TAG"]
+          prerelease = os.environ["PRERELEASE"].lower() == "true"
+          print(json.dumps({
+              "tag_name": tag,
+              "name": tag,
+              "body": "",
+              "draft": False,
+              "prerelease": prerelease,
+          }))
+          PY
+            status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+              -X POST \
+              -H "$auth_header" \
+              -H "Content-Type: application/json" \
+              --data @"$payload" \
+              "${api}/repos/${repo}/releases" || true)
+            rm -f "$payload"
+
+            if [ "$status" != "201" ]; then
+              status=$(curl -sS -w "%{http_code}" -o "$release_json" \
+                -H "$auth_header" \
+                "${api}/repos/${repo}/releases/tags/${tag}" || true)
+            fi
+          fi
+
+          if [ "$status" != "200" ] && [ "$status" != "201" ]; then
+            echo "Failed to create or fetch release for ${tag}; HTTP ${status}"
+            cat "$release_json"
+            exit 1
+          fi
+
+          release_id=$(python3 - "$release_json" <<'PY'
+          import json
+          import sys
+
+          print(json.load(open(sys.argv[1]))["id"])
+          PY
+          )
+
+          assets_json="$(mktemp)"
+          curl -sS -f -o "$assets_json" \
+            -H "$auth_header" \
+            "${api}/repos/${repo}/releases/${release_id}/assets"
+
+          existing_id=$(python3 - "$assets_json" <<'PY'
+          import json
+          import sys
+
+          for asset in json.load(open(sys.argv[1])):
+              if asset.get("name") == "SHA256SUMS":
+                  print(asset["id"])
+                  break
+          PY
+          )
+
+          if [ -n "$existing_id" ]; then
+            curl -sS -f -X DELETE \
+              -H "$auth_header" \
+              "${api}/repos/${repo}/releases/${release_id}/assets/${existing_id}"
+          fi
+
+          curl -sS -f -X POST \
+            -H "$auth_header" \
+            -F "attachment=@SHA256SUMS" \
+            "${api}/repos/${repo}/releases/${release_id}/assets?name=SHA256SUMS"
+
+          rm -f "$release_json" "$assets_json"
