@@ -16,7 +16,10 @@ public class MonitorLoop : IDisposable
     private readonly IHostApplicationLifetime _applicationLifetime;
     private readonly SemaphoreSlim _scanLock = new(1, 1);
     private DateTimeOffset _lastScan = DateTimeOffset.MinValue;
+    private volatile bool _hasCompletedScan;
     private bool _disposed;
+
+    public bool HasCompletedScan => _hasCompletedScan;
 
     public MonitorLoop(ILogger<MonitorLoop> logger, IHostApplicationLifetime applicationLifetime)
     {
@@ -32,6 +35,7 @@ public class MonitorLoop : IDisposable
             Config.DataDir,
             RefreshInterval.TotalMinutes
         );
+        _ = Task.Run(RefreshIfStale);
     }
 
     public void RefreshIfStale()
@@ -52,6 +56,7 @@ public class MonitorLoop : IDisposable
 
             LoadAllFiles();
             _lastScan = DateTimeOffset.UtcNow;
+            _hasCompletedScan = true;
         }
         catch (Exception ex)
         {

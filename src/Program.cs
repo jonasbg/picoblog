@@ -14,7 +14,7 @@ builder.Services.AddLogging(logging =>
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddCheck<MarkdownScanHealthCheck>("markdown_scan");
 
 builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<MonitorLoop>();
