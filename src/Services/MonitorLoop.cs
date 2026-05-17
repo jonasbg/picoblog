@@ -35,7 +35,29 @@ public class MonitorLoop : IDisposable
             Config.DataDir,
             RefreshInterval.TotalMinutes
         );
-        _ = Task.Run(RefreshIfStale);
+        _ = Task.Run(RunInitialScanUntilComplete);
+    }
+
+    private async Task RunInitialScanUntilComplete()
+    {
+        var stopping = _applicationLifetime.ApplicationStopping;
+
+        while (!stopping.IsCancellationRequested && !_hasCompletedScan)
+        {
+            RefreshIfStale();
+
+            if (_hasCompletedScan)
+                return;
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10), stopping);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
     }
 
     public void RefreshIfStale()

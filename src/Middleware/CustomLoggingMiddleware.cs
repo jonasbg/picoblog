@@ -66,7 +66,10 @@ public class CustomLoggingMiddleware
             var durationMs = duration.TotalMilliseconds;
 
             // Skip health check endpoints
-            if (!context.Request.Path.StartsWithSegments("/healthz"))
+            if (
+                !context.Request.Path.StartsWithSegments("/healthz")
+                && !context.Request.Path.StartsWithSegments("/readyz")
+            )
             {
                 var clientIp = GetClientIp(context);
                 var country = context.Request.Headers["CF-IPCountry"].FirstOrDefault() ?? "";

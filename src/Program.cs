@@ -14,7 +14,9 @@ builder.Services.AddLogging(logging =>
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
-builder.Services.AddHealthChecks().AddCheck<MarkdownScanHealthCheck>("markdown_scan");
+builder
+    .Services.AddHealthChecks()
+    .AddCheck<MarkdownScanHealthCheck>("markdown_scan", tags: new[] { "ready" });
 
 builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<MonitorLoop>();
@@ -88,10 +90,26 @@ if (Config.Password != null)
 
 //app.UseWebOptimizer();
 app.UseStaticFiles();
-app.MapHealthChecks("/healthz");
+app.MapHealthChecks(
+    "/healthz",
+    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = _ => false,
+    }
+);
+app.MapHealthChecks(
+    "/readyz",
+    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+    }
+);
 app.Use(async (context, next) =>
 {
-    if (!context.Request.Path.StartsWithSegments("/healthz"))
+    if (
+        !context.Request.Path.StartsWithSegments("/healthz")
+        && !context.Request.Path.StartsWithSegments("/readyz")
+    )
     {
         context.RequestServices.GetRequiredService<MonitorLoop>().RefreshIfStale();
     }
