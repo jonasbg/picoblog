@@ -89,6 +89,15 @@ if (Config.Password != null)
 //app.UseWebOptimizer();
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Path.StartsWithSegments("/healthz"))
+    {
+        context.RequestServices.GetRequiredService<MonitorLoop>().RefreshIfStale();
+    }
+
+    await next();
+});
 app.UseRouting();
 
 var supportedCultures = new[] { new CultureInfo("nb-NO"), new CultureInfo("en-GB") };
@@ -145,12 +154,7 @@ app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Inde
 //     });
 // });
 
-using (var serviceScope = app.Services.CreateScope())
-{
-    var services = serviceScope.ServiceProvider;
-    var monitorLoop = services.GetRequiredService<MonitorLoop>();
-    monitorLoop.StartMonitorLoop();
-}
+app.Services.GetRequiredService<MonitorLoop>().StartMonitorLoop();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Application started");

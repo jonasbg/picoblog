@@ -1,6 +1,6 @@
 public class MonitorLoop : IDisposable
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan RefreshInterval = TimeSpan.FromHours(1);
 
     private static readonly string[] ExcludedDirectories =
     {
@@ -14,8 +14,8 @@ public class MonitorLoop : IDisposable
 
     private readonly ILogger<MonitorLoop> _logger;
     private readonly IHostApplicationLifetime _applicationLifetime;
-    private readonly SemaphoreSlim _pollLock = new(1, 1);
-    private Timer? _timer;
+    private readonly SemaphoreSlim _scanLock = new(1, 1);
+    private DateTimeOffset _lastScan = DateTimeOffset.MinValue;
     private bool _disposed;
 
     public MonitorLoop(ILogger<MonitorLoop> logger, IHostApplicationLifetime applicationLifetime)
@@ -26,37 +26,40 @@ public class MonitorLoop : IDisposable
 
     public void StartMonitorLoop()
     {
-        if (_timer != null)
-            return;
-
         _applicationLifetime.ApplicationStopping.Register(Dispose);
         _logger.LogInformation(
-            "Starting polling-based markdown scan for {Directory} every {IntervalMinutes} minutes",
+            "Markdown scans for {Directory} will run on demand at most every {IntervalMinutes} minutes",
             Config.DataDir,
-            PollInterval.TotalMinutes
+            RefreshInterval.TotalMinutes
         );
-        _timer = new Timer(PollForChanges, null, TimeSpan.Zero, PollInterval);
     }
 
-    private void PollForChanges(object? state)
+    public void RefreshIfStale()
     {
-        if (!_pollLock.Wait(0))
+        if (DateTimeOffset.UtcNow - _lastScan < RefreshInterval)
+            return;
+
+        if (!_scanLock.Wait(0))
         {
-            _logger.LogInformation("Previous markdown scan still running; skipping this poll");
+            _logger.LogInformation("Previous markdown scan still running; skipping refresh");
             return;
         }
 
         try
         {
+            if (DateTimeOffset.UtcNow - _lastScan < RefreshInterval)
+                return;
+
             LoadAllFiles();
+            _lastScan = DateTimeOffset.UtcNow;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during markdown polling");
+            _logger.LogError(ex, "Error during markdown scan");
         }
         finally
         {
-            _pollLock.Release();
+            _scanLock.Release();
         }
     }
 
@@ -263,7 +266,6 @@ public class MonitorLoop : IDisposable
             return;
 
         _disposed = true;
-        _timer?.Dispose();
-        _pollLock.Dispose();
+        _scanLock.Dispose();
     }
 }
