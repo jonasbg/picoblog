@@ -1,8 +1,11 @@
 <link rel="stylesheet" href="~/css/home.css" />
 
 @{
-  string GetModel(int? year){
+  string? GetModel(int? year){
     var models = Cache.Models.Where(f => f.Date?.Year == year && string.IsNullOrEmpty(f.CoverImage) == false).ToList();
+    if (!models.Any())
+      return null;
+
     Random rnd = new Random();
     int index = rnd.Next(0, models.Count());
     var model = models[index];
@@ -13,8 +16,12 @@
 <div class="banner-grid">
 @foreach (var year in Model)
 {
+    var image = GetModel(year);
     <a class="hero" href="/calendar/@year">
-      <img src="@GetModel(year)" loading="lazy">
+      @if (image != null)
+      {
+        <img src="@image" loading="lazy">
+      }
       <div class="hero-text">
         <h1>@year</h1>
       </div>

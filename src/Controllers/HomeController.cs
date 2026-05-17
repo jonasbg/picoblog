@@ -12,11 +12,11 @@ public class HomeController : Controller
 
     [AllowAnonymous]
     [Route("/login")]
-    public IActionResult Login(string returnUrl = null)
+    public IActionResult Login(string? returnUrl = null)
     {
         if (User.Claims.Any())
-            return Redirect("/");
-        return View(new LoginViewModel { ReturnURL = returnUrl });
+            return RedirectToLocal(returnUrl);
+        return View(new LoginViewModel { ReturnURL = NormalizeReturnUrl(returnUrl) });
     }
 
     [AllowAnonymous]
@@ -43,18 +43,7 @@ public class HomeController : Controller
             CookieAuthenticationDefaults.AuthenticationScheme
         );
 
-        // Encode only the last segment of the return URL
-        var returnUrl = model.ReturnURL;
-        if (!string.IsNullOrEmpty(returnUrl))
-        {
-            var segments = returnUrl.Split('/');
-            if (segments.Length > 0)
-            {
-                segments[segments.Length - 1] = Uri.EscapeDataString(segments[segments.Length - 1]);
-                returnUrl = string.Join("/", segments);
-            }
-            model.ReturnURL = returnUrl;
-        }
+        var returnUrl = NormalizeReturnUrl(model.ReturnURL);
 
         try
         {
@@ -66,19 +55,28 @@ public class HomeController : Controller
         }
         catch (Exception)
         {
-            return RedirectToLocal(returnUrl ?? "/");
+            return RedirectToLocal(returnUrl);
         }
 
-        return RedirectToLocal(returnUrl ?? "/");
+        return RedirectToLocal(returnUrl);
     }
 
-    private IActionResult RedirectToLocal(string returnUrl)
+    private IActionResult RedirectToLocal(string? returnUrl)
     {
-        if (Url.IsLocalUrl(returnUrl) && !string.IsNullOrEmpty(returnUrl))
+        returnUrl = NormalizeReturnUrl(returnUrl);
+        if (returnUrl != null)
         {
             return Redirect(returnUrl);
         }
         return Redirect("/");
+    }
+
+    private string? NormalizeReturnUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            return null;
+
+        return Url.IsLocalUrl(returnUrl) ? returnUrl : null;
     }
 
     [Route("")]
@@ -88,9 +86,4 @@ public class HomeController : Controller
         return View(Cache.Models.OrderByDescending(f => f.Date));
     }
 
-    private bool IsValidReturnUrl(string url)
-    {
-        var safeUrls = new List<string> { "/post", "/calendar", "/memories" };
-        return safeUrls.Any(safeUrl => url.StartsWith(safeUrl, StringComparison.OrdinalIgnoreCase));
-    }
 }
