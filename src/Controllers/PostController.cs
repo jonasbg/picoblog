@@ -3,12 +3,10 @@ namespace picoblog.Controllers;
 public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
-    private readonly VisitTracker _visitTracker;
 
-    public PostController(ILogger<PostController> logger, VisitTracker visitTracker)
+    public PostController(ILogger<PostController> logger)
     {
         _logger = logger;
-        _visitTracker = visitTracker;
     }
 
     [HttpGet]
@@ -98,44 +96,6 @@ public class PostController : Controller
             return Redirect(previousUrl);
 
         return RedirectToAction("Index", "Home"); // Default fallback route
-    }
-
-    [HttpPost]
-    [IgnoreAntiforgeryToken]
-    [Route("[Controller]/{year:int}/{title}/like")]
-    public async Task<IActionResult> Like(int year, string title, [FromBody] LikeAction action)
-    {
-        bool success = false;
-        if (action.Action == "increment")
-        {
-            success = await _visitTracker.AddLikeAsync(title, year);
-        }
-        else if (action.Action == "decrement")
-        {
-            success = await _visitTracker.RemoveLikeAsync(title, year);
-        }
-        if (success)
-        {
-            var model = Cache.Models.SingleOrDefault(f => f.Date?.Year == year && f.Title == title);
-            if (model == null)
-            {
-                model = Cache.PrivatePosts.SingleOrDefault(f =>
-                    f.Date?.Year == year && f.Title == title
-                );
-                if (model == null)
-                {
-                    _logger.LogWarning("No model found for title: {Title}", title);
-                    return NotFound();
-                }
-            }
-            return Json(new { success = true, likes = model?.LikeCount ?? 0 });
-        }
-        return Json(new { success = false });
-    }
-
-    public class LikeAction
-    {
-        public string Action { get; set; }
     }
 
     private async Task<IActionResult> Synology(string path)

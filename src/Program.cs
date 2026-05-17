@@ -67,11 +67,8 @@ else
 //    pipeline.MinifyCssFiles("css/**/*.css");
 // });
 
-builder.Services.AddVisitTracker(Config.ConfigDir);
-
 var app = builder.Build();
 app.UseCustomLogging();
-app.UseVisitTracker();
 
 // app.UseImageSharp();
 
@@ -152,7 +149,7 @@ using (var serviceScope = app.Services.CreateScope())
 {
     var services = serviceScope.ServiceProvider;
     var monitorLoop = services.GetRequiredService<MonitorLoop>();
-    // monitorLoop.StartMonitorLoop();
+    monitorLoop.StartMonitorLoop();
 }
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
