@@ -15,7 +15,8 @@ public class MarkdownModel
 
             if (match.Success && match.Groups.Count > 1)
             {
-                var frontmatter = match.Groups[1].Value.Split(Environment.NewLine);
+                var frontmatterText = match.Groups[1].Value;
+                var frontmatter = Regex.Split(frontmatterText, "\r?\n");
                 Title = frontmatter
                     .SingleOrDefault(p => p.StartsWith("title:"))
                     ?.Split(':', 2)[1]
@@ -49,6 +50,8 @@ public class MarkdownModel
                 {
                     Date = date;
                 }
+
+                Location = LocationParser.ParseLocation(frontmatterText);
             }
         }
     }
@@ -59,4 +62,5 @@ public class MarkdownModel
     public string? CoverImage { get; internal set; }
     public string? Description { get; internal set; }
     public bool Draft { get; internal set; } = false;
+    public LocationMetadata? Location { get; internal set; }
 }

@@ -3,10 +3,12 @@ namespace picoblog.Controllers;
 public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
+    private readonly GeocodingService _geocodingService;
 
-    public PostController(ILogger<PostController> logger)
+    public PostController(ILogger<PostController> logger, GeocodingService geocodingService)
     {
         _logger = logger;
+        _geocodingService = geocodingService;
     }
 
     [HttpGet]
@@ -46,7 +48,12 @@ public class PostController : Controller
                 if (model.Draft)
                     return RedirectBack(model);
                 else
+                {
+                    if (Config.Password == null || User.Identity?.IsAuthenticated == true)
+                        await _geocodingService.ResolveAsync(model.Location);
+
                     return View(model);
+                }
             }
             catch (FileNotFoundException)
             {

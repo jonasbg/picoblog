@@ -8,4 +8,5 @@ public static class MetadataHeader
     public static string Draft => "draft";
     public static string CoverImage => "cover";
     public static string Description => "description";
+    public static string Location => "location";
 }

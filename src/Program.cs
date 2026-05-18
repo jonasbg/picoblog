@@ -21,6 +21,7 @@ builder
 builder.Services.AddHostedService<BackupService>();
 builder.Services.AddSingleton<MonitorLoop>();
 builder.Services.AddHostedService<QueuedHostedService>();
+builder.Services.AddHttpClient<GeocodingService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 {
     return new BackgroundTaskQueue(1);

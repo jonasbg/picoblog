@@ -1,0 +1,26 @@
+@model MapIndexViewModel
+@using System.Text.Json
+
+<link rel="stylesheet" href="~/lib/leaflet/leaflet.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/map.css" asp-append-version="true" />
+
+@{
+    ViewData["Title"] = "Kart";
+    ViewData["BodyClass"] = "map-body";
+    var mapData = JsonSerializer.Serialize(new
+    {
+        tileUrl = Model.TileUrl,
+        defaultZoom = Model.DefaultZoom,
+        dynamicUrl = "/map/posts"
+    });
+}
+
+<div class="map-page">
+    <div id="all-posts-map" class="posts-map" data-post-map="all-posts-map-data"></div>
+    <script type="application/json" id="all-posts-map-data">@Html.Raw(mapData)</script>
+</div>
+
+@section Scripts {
+    <script src="~/lib/leaflet/leaflet.js" asp-append-version="true"></script>
+    <script src="~/js/post-map.js" asp-append-version="true"></script>
+}

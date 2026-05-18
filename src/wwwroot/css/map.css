@@ -1,0 +1,123 @@
+.map-body {
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.map-body header,
+.map-body nav {
+  margin-bottom: 0 !important;
+}
+
+.map-body footer {
+  display: none;
+}
+
+.map-page {
+  width: 80vw;
+  margin: 0 auto;
+  padding-top: 2vh;
+}
+
+.map-page h1 {
+  text-align: center;
+  font-variant: small-caps;
+  margin: 2rem 0;
+}
+
+.posts-map {
+  width: 100%;
+  height: 75vh;
+  min-height: 320px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.post-location-map {
+  width: min(90vw, 900px);
+  height: 320px;
+  margin: 2rem auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.post-location-unresolved {
+  width: min(90vw, 900px);
+  margin: 2rem auto;
+  text-align: center;
+  color: #666;
+}
+
+.map-popup-date,
+.map-popup-location,
+.map-empty {
+  color: #666;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  width: 240px !important;
+}
+
+.map-popup-stack {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.map-popup-stack .map-popup-card + .map-popup-card {
+  border-top: 1px solid #e5e5e5;
+}
+
+.map-popup-card {
+  background: #fff;
+  color: #222;
+  font-family: Comfortaa, Georgia, Times New Roman, Times, serif;
+}
+
+.map-popup-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.map-popup-body {
+  padding: 0.85rem;
+}
+
+.map-popup-title {
+  display: block;
+  color: #111;
+  font-family: texgyreadventor, Georgia, Times New Roman, Times, serif;
+  font-size: 1rem;
+  font-variant: small-caps;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.map-popup-title:hover {
+  text-decoration: underline;
+}
+
+.map-popup-date,
+.map-popup-location {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.map-popup-date {
+  margin-top: 0.25rem;
+  text-transform: capitalize;
+}
+
+.map-popup-description {
+  margin: 0.6rem 0;
+  color: #333;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}

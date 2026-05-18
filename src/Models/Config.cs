@@ -37,6 +37,17 @@ public static class Config
         Environment
             .GetEnvironmentVariable("PICOBLOG_ENABLE_BACKUP")
             ?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
+    public static string MapTileUrl =>
+        Environment.GetEnvironmentVariable("MAP_TILE_URL")
+        ?? "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    public static string MapGeocodingUrl =>
+        Environment.GetEnvironmentVariable("MAP_GEOCODING_URL")
+        ?? "https://nominatim.openstreetmap.org/search";
+    public static string MapUserAgent =>
+        Environment.GetEnvironmentVariable("MAP_USER_AGENT")
+        ?? $"Picoblog ({Domain})";
+    public static int MapDefaultZoom =>
+        int.TryParse(Environment.GetEnvironmentVariable("MAP_DEFAULT_ZOOM"), out var zoom) ? zoom : 13;
 
     public static string SynologySize()
     {

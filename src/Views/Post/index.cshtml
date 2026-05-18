@@ -1,9 +1,40 @@
 <link rel="stylesheet" href="~/css/post.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/leaflet/leaflet.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/map.css" asp-append-version="true" />
+@using System.Text.Json
 
 @{
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
+  var hasLocation = Model.Location?.HasCoordinates == true;
+  var postMapData = "";
+  if (hasLocation)
+  {
+      var postTitle = ContentSecurity.UrlEncodePathSegment(Model.Title);
+      var coverImageUrl = string.IsNullOrWhiteSpace(Model.CoverImage)
+          ? null
+          : $"/post/{Model.Date?.Year}/{postTitle}/{ContentSecurity.UrlEncodePathSegment(Model.CoverImage)}";
+      postMapData = JsonSerializer.Serialize(new
+      {
+          tileUrl = Config.MapTileUrl,
+          defaultZoom = Config.MapDefaultZoom,
+          posts = new[]
+          {
+              new
+              {
+                  title = Model.Title,
+                  url = $"/post/{Model.Date?.Year}/{postTitle}",
+                  locationTitle = Model.Location!.DisplayTitle,
+                  latitude = Model.Location.Latitude,
+                  longitude = Model.Location.Longitude,
+                  date = Model.Date?.ToString("dd. MMM yyyy"),
+                  description = Model.Description,
+                  coverImageUrl
+              }
+          }
+      });
+  }
 }
 
 <div class="hero">
@@ -59,6 +90,16 @@
         <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
     </div>
     return;
+    }
+
+    @if (hasLocation)
+    {
+        <div id="post-location-map" class="post-location-map" data-post-map="post-location-map-data"></div>
+        <script type="application/json" id="post-location-map-data">@Html.Raw(postMapData)</script>
+    }
+    else if (Model.Location != null)
+    {
+        <p class="post-location-unresolved">@Model.Location.DisplayTitle</p>
     }
 
     <div class="rendered-markdown">
@@ -123,3 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
     })
 });
 </script>
+
+@section Scripts {
+    @if (hasLocation)
+    {
+        <script src="~/lib/leaflet/leaflet.js" asp-append-version="true"></script>
+        <script src="~/js/post-map.js" asp-append-version="true"></script>
+    }
+}

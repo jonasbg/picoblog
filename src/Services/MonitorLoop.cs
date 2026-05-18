@@ -194,7 +194,7 @@ public class MonitorLoop : IDisposable
 
     private static MarkdownModel ProcessFrontMatter(string frontmatter, string file)
     {
-        var model = new MarkdownModel { Path = file };
+        var model = new MarkdownModel { Path = file, Location = LocationParser.ParseLocation(frontmatter) };
 
         foreach (var line in frontmatter.Split('\n'))
         {

@@ -35,6 +35,36 @@ This is some awesome content
 :::
 ```
 
+## Maps
+
+Posts can include a map location in the markdown header. A plain string is looked up as a place name:
+
+```markdown
+---
+location: Hamar, Norway
+---
+```
+
+Use an object when you want a custom title or exact coordinates:
+
+```markdown
+---
+location:
+  title: Hamar, Norway
+  gps: 60.7945, 11.0679
+---
+```
+
+If `gps` is invalid, Picoblog skips that coordinate value. Add `lookup` if it should geocode a place name instead:
+
+```markdown
+---
+location:
+  title: This is my title
+  lookup: Hamar, Norway
+---
+```
+
 ## Authentication
 
 Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. To persist login sessions between server restarts mount `/config` folder to the container at initialization.
@@ -48,6 +78,10 @@ These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](h
 | CONFIG_DIR           | `/config`     | When using `PASSWORD` env variable, mount a `CONFIG_DIR` so that logins are persisted between container restarts.        |
 | DATA_DIR             | `/data`       | This is the data path inside the container that Picoblog will traverse for markdown files.                               |
 | DOMAIN               | `localhost`   | This is primarily to support the Open Graph Protocol and link previews of your site.                                      |
+| MAP_DEFAULT_ZOOM     | `13`          | Default zoom level for single-location maps.                                                                            |
+| MAP_GEOCODING_URL    | `https://nominatim.openstreetmap.org/search` | Nominatim-compatible geocoding endpoint for string lookups.                                  |
+| MAP_TILE_URL         | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | OpenStreetMap-compatible tile URL template.                                                   |
+| MAP_USER_AGENT       | `Picoblog (<domain>)` | User-Agent used for server-side geocoding requests.                                                               |
 | PASSWORD             | `empty`       | Password protected site is off by default. Turn it on by inserting any value for this environment.                       |
 | PICOBLOG_ENABLE_BACKUP | `false`      | Enables automatic daily backups of posts. Set to `true` to enable, `false` to disable.                                    |
 | SYNOLOGY_SIZE        | `XL`          | Synology creates default optimized images of your photos. Available sizes are `SM`,`M` and `XL`.                           |
