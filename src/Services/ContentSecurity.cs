@@ -8,6 +8,7 @@ public static class ContentSecurity
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseYamlFrontMatter()
         .UseAdvancedExtensions()
+        .Use<GalleryContainerExtension>()
         .Build();
 
     private static readonly HashSet<string> AllowedImageExtensions =
@@ -143,6 +144,7 @@ public static class ContentSecurity
         sanitizer.AllowedSchemes.Add("http");
         sanitizer.AllowedSchemes.Add("https");
         sanitizer.AllowedSchemes.Add("mailto");
+        sanitizer.AllowedAttributes.Add("data-gallery");
         sanitizer.AllowDataAttributes = false;
         return sanitizer;
     }

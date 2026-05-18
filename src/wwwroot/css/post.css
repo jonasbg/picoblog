@@ -62,7 +62,8 @@ h1, h2, h3 {
 
  /* GALLERY */
 
-.gallery {
+.gallery,
+[data-gallery] {
   display: flex;
   flex-wrap: wrap;
   gap: 1em;
@@ -70,14 +71,16 @@ h1, h2, h3 {
   margin-bottom: 1rem;
 }
 
-.gallery p {
+.gallery p,
+[data-gallery] p {
   flex: 1 1 auto;
   height: 40vh;
   flex-grow: 1;
   margin-bottom: 0;
 }
 
-.gallery img {
+.gallery img,
+[data-gallery] img {
   max-height: 40vh;
   min-width: 100%;
   height: 100%;
@@ -86,7 +89,8 @@ h1, h2, h3 {
 }
 
 @media only screen and (min-width: 600px) {
-  .gallery img {
+  .gallery img,
+  [data-gallery] img {
     max-width: 25vw;
   }
 }
