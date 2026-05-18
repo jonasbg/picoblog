@@ -20,7 +20,7 @@ h1, h2, h3 {
 
 .hero {
   height: 50vw;
-  width: 100vw;
+  width: 100%;
   /* background: black; */
   overflow: hidden;
   position: absolute;
@@ -35,7 +35,7 @@ h1, h2, h3 {
   bottom: 0;
   top:0;
   position: absolute;
-  width: 100vw;
+  width: 100%;
  }
 
 .hero .hero-text {

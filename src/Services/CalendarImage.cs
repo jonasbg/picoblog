@@ -7,7 +7,6 @@ public static class CalendarImage
             .OrderByDescending(p => p.Date)
             .FirstOrDefault();
 
-        post ??= posts.Where(HasCoverImage).OrderByDescending(p => p.Date).FirstOrDefault();
         return UrlFor(post);
     }
 

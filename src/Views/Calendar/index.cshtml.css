@@ -1,7 +1,40 @@
+.banner-grid .hero {
+  display: block;
+  min-height: 35vh;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #1f2933;
+}
+
 .hero img{
+  height: 35vh;
   width: 100% !important;
 }
 
 .banner-grid img {
   max-height: 35vh !important;
+}
+
+.calendar-cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35vh;
+  width: 100%;
+  color: white;
+  background:
+    linear-gradient(135deg, rgba(19, 31, 45, 0.96), rgba(67, 86, 105, 0.92)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.calendar-cover-placeholder span {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.16);
 }
