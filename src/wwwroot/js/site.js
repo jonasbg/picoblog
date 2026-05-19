@@ -16,15 +16,6 @@ function enhancePostGalleries() {
       return;
     }
 
-    let classifiedCount = 0;
-    let landscapeCount = 0;
-
-    const updateGalleryPattern = () => {
-      if (landscapeCount > 1 && landscapeCount >= classifiedCount / 2) {
-        gallery.classList.add("gallery-landscape-heavy");
-      }
-    };
-
     const classifyImage = (image) => {
       if (image.dataset.galleryOrientation) {
         return;
@@ -38,21 +29,21 @@ function enhancePostGalleries() {
 
       const width = image.naturalWidth;
       const height = image.naturalHeight;
+      const aspectRatio = width / height;
       let orientation = "square";
 
       item.classList.add("gallery-item");
+      item.style.setProperty("--gallery-item-aspect", aspectRatio.toString());
+      item.style.setProperty("--gallery-item-basis", `${Math.round(aspectRatio * 320)}px`);
 
       if (width > height * 1.08) {
         orientation = "landscape";
-        landscapeCount += 1;
       } else if (height > width * 1.08) {
         orientation = "portrait";
       }
 
-      classifiedCount += 1;
       image.dataset.galleryOrientation = orientation;
       item.classList.add(`gallery-item-${orientation}`);
-      updateGalleryPattern();
     };
 
     gallery.classList.add("gallery-mosaic");

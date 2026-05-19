@@ -207,16 +207,19 @@ func startCacheProgress(show bool, count *atomic.Int64) func() {
 	finished := make(chan struct{})
 	go func() {
 		defer close(finished)
-		ticker := time.NewTicker(200 * time.Millisecond)
+		frames := []string{"◐", "◓", "◑", "◒"}
+		frame := 0
+		ticker := time.NewTicker(120 * time.Millisecond)
 		defer ticker.Stop()
 
-		fmt.Fprint(os.Stderr, "Building post cache...")
+		fmt.Fprintf(os.Stderr, "%s Building post cache...", frames[frame])
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Fprintf(os.Stderr, "\rBuilding post cache... %d posts found", count.Load())
+				frame = (frame + 1) % len(frames)
+				fmt.Fprintf(os.Stderr, "\r%s Building post cache... %d posts found", frames[frame], count.Load())
 			case <-done:
-				fmt.Fprintf(os.Stderr, "\rBuilding post cache... %d posts found\n", count.Load())
+				fmt.Fprintf(os.Stderr, "\r✓ Building post cache... %d posts found\n", count.Load())
 				return
 			}
 		}
