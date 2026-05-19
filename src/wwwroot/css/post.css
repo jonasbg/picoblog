@@ -98,6 +98,79 @@ h1, h2, h3 {
   [data-gallery] img {
     max-width: 25vw;
   }
+
+  .gallery.gallery-mosaic,
+  [data-gallery].gallery-mosaic {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    grid-auto-rows: clamp(8rem, 18vw, 15rem);
+  }
+
+  .gallery.gallery-mosaic p,
+  [data-gallery].gallery-mosaic p {
+    height: auto;
+    min-width: 0;
+    overflow: hidden;
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .gallery.gallery-mosaic img,
+  [data-gallery].gallery-mosaic img {
+    display: block;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    min-width: 0;
+  }
+
+  .gallery.gallery-mosaic .gallery-item-landscape,
+  [data-gallery].gallery-mosaic .gallery-item-landscape {
+    grid-column: span 3;
+  }
+
+  .gallery.gallery-mosaic .gallery-item-portrait,
+  [data-gallery].gallery-mosaic .gallery-item-portrait {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .gallery.gallery-mosaic .gallery-item-square,
+  [data-gallery].gallery-mosaic .gallery-item-square {
+    grid-column: span 2;
+  }
+
+  .gallery.gallery-mosaic .gallery-item-landscape:nth-of-type(5n + 1),
+  [data-gallery].gallery-mosaic .gallery-item-landscape:nth-of-type(5n + 1) {
+    grid-column: span 4;
+    grid-row: span 2;
+  }
+
+  .gallery.gallery-mosaic .gallery-item-landscape:nth-of-type(5n + 2),
+  [data-gallery].gallery-mosaic .gallery-item-landscape:nth-of-type(5n + 2) {
+    grid-column: span 2;
+  }
+
+  .gallery.gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 1),
+  [data-gallery].gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 1) {
+    grid-column: span 4;
+    grid-row: span 2;
+  }
+
+  .gallery.gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 2),
+  .gallery.gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 3),
+  [data-gallery].gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 2),
+  [data-gallery].gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 3) {
+    grid-column: span 2;
+  }
+
+  .gallery.gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 4),
+  .gallery.gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 5),
+  [data-gallery].gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 4),
+  [data-gallery].gallery-mosaic.gallery-landscape-heavy .gallery-item-landscape:nth-of-type(6n + 5) {
+    grid-column: span 3;
+  }
 }
 
 blockquote{
