@@ -1,6 +1,8 @@
 public class MonitorLoop : IDisposable
 {
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromHours(1);
+    private const int MaxSearchBodyLength = 5000;
+    private const int MaxSearchExcerptLength = 180;
 
     private static readonly string[] ExcludedDirectories =
     {
@@ -189,7 +191,9 @@ public class MonitorLoop : IDisposable
         if (!match.Success)
             return null;
 
-        return ProcessFrontMatter(match.Groups[1].Value, filePath);
+        var model = ProcessFrontMatter(match.Groups[1].Value, filePath);
+        WarmSearchFields(model, content);
+        return model;
     }
 
     private static MarkdownModel ProcessFrontMatter(string frontmatter, string file)
@@ -265,6 +269,47 @@ public class MonitorLoop : IDisposable
         }
 
         return model;
+    }
+
+    private static void WarmSearchFields(MarkdownModel model, string markdown)
+    {
+        var bodyText = CleanMarkdownBody(markdown);
+        model.SearchText =
+            bodyText.Length <= MaxSearchBodyLength ? bodyText : bodyText[..MaxSearchBodyLength];
+        model.SearchExcerpt = BuildSearchExcerpt(model, bodyText);
+    }
+
+    private static string BuildSearchExcerpt(MarkdownModel model, string bodyText)
+    {
+        var text = string.IsNullOrWhiteSpace(model.Description) ? bodyText : model.Description;
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        text = Regex.Replace(text, @"\s+", " ").Trim();
+        if (text.Length <= MaxSearchExcerptLength)
+            return text;
+
+        var truncated = text[..MaxSearchExcerptLength].TrimEnd();
+        var lastSpace = truncated.LastIndexOf(' ');
+        if (lastSpace > 80)
+            truncated = truncated[..lastSpace];
+
+        return $"{truncated}...";
+    }
+
+    private static string CleanMarkdownBody(string markdown)
+    {
+        if (string.IsNullOrWhiteSpace(markdown))
+            return string.Empty;
+
+        markdown = Regex.Replace(markdown, @"^---\r?\n.*?\r?\n---", string.Empty, RegexOptions.Singleline);
+        markdown = Regex.Replace(markdown, @"!\[[^\]]*\]\([^)]+\)", " ");
+        markdown = Regex.Replace(markdown, @"\[[^\]]+\]\([^)]+\)", match =>
+            match.Value.Split(']')[0].TrimStart('[')
+        );
+        markdown = Regex.Replace(markdown, @"[`*_>#~\-]+", " ");
+        markdown = Regex.Replace(markdown, @"<[^>]+>", " ");
+        return Regex.Replace(markdown, @"\s+", " ").Trim();
     }
 
     private void UpdateCaches(List<MarkdownModel> models, List<MarkdownModel> privatePosts)

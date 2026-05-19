@@ -68,6 +68,8 @@ public class MarkdownModel
     public DateTime? Date { get; internal set; }
     public string? CoverImage { get; internal set; }
     public string? Description { get; internal set; }
+    public string SearchText { get; internal set; } = "";
+    public string SearchExcerpt { get; internal set; } = "";
     public string? PostPassword { get; internal set; }
     public bool HasPostPassword => !string.IsNullOrEmpty(PostPassword);
     public bool Draft { get; internal set; } = false;

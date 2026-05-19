@@ -98,6 +98,10 @@ nav{
   box-shadow: 0 0 0 0.2rem rgba(111, 154, 255, 0.18);
 }
 
+.navbar-search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
 .navbar-search-results {
   position: absolute;
   top: calc(100% + 0.5rem);

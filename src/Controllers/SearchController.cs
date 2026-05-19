@@ -6,8 +6,6 @@ public class SearchController : Controller
 {
     private const int MaxResults = 8;
     private const int MinimumQueryLength = 2;
-    private const int MaxSearchBodyLength = 5000;
-    private const int MaxExcerptLength = 180;
     private static readonly CultureInfo NorwegianCulture = CultureInfo.GetCultureInfo("nb-NO");
 
     [HttpGet("suggest")]
@@ -39,11 +37,10 @@ public class SearchController : Controller
 
     private static SearchResult? ToSearchResult(MarkdownModel post, string query)
     {
-        var bodyText = GetPostBodyText(post);
         var score =
             ScoreField(post.Title, query) * 3.0
             + ScoreField(post.Description, query) * 2.0
-            + ScoreField(bodyText, query);
+            + ScoreField(post.SearchText, query);
 
         if (post.Date is { } date)
         {
@@ -60,9 +57,8 @@ public class SearchController : Controller
         var coverImageUrl = string.IsNullOrWhiteSpace(post.CoverImage)
             ? null
             : $"/post/{post.Date?.Year}/{titlePath}/{ContentSecurity.UrlEncodePathSegment(post.CoverImage)}";
-        var excerpt = ExcerptFor(post, bodyText);
 
-        return new SearchResult(title, url, coverImageUrl, excerpt, FormatDate(post.Date), score);
+        return new SearchResult(title, url, coverImageUrl, post.SearchExcerpt, FormatDate(post.Date), score);
     }
 
     private static double ScoreField(string? value, string query)
@@ -166,45 +162,6 @@ public class SearchController : Controller
         }
 
         return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
-    }
-
-    private static string ExcerptFor(MarkdownModel post, string bodyText)
-    {
-        var text = string.IsNullOrWhiteSpace(post.Description) ? bodyText : post.Description;
-        if (string.IsNullOrWhiteSpace(text))
-            return string.Empty;
-
-        text = Regex.Replace(text, @"\s+", " ").Trim();
-        if (text.Length <= MaxExcerptLength)
-            return text;
-
-        var truncated = text[..MaxExcerptLength].TrimEnd();
-        var lastSpace = truncated.LastIndexOf(' ');
-        if (lastSpace > 80)
-            truncated = truncated[..lastSpace];
-
-        return $"{truncated}...";
-    }
-
-    private static string GetPostBodyText(MarkdownModel post)
-    {
-        var markdown = post.Markdown;
-        if (string.IsNullOrEmpty(markdown) && System.IO.File.Exists(post.Path))
-            markdown = System.IO.File.ReadAllText(post.Path);
-
-        if (string.IsNullOrWhiteSpace(markdown))
-            return string.Empty;
-
-        markdown = Regex.Replace(markdown, @"^---\r?\n.*?\r?\n---", string.Empty, RegexOptions.Singleline);
-        markdown = Regex.Replace(markdown, @"!\[[^\]]*\]\([^)]+\)", " ");
-        markdown = Regex.Replace(markdown, @"\[[^\]]+\]\([^)]+\)", match =>
-            match.Value.Split(']')[0].TrimStart('[')
-        );
-        markdown = Regex.Replace(markdown, @"[`*_>#~\-]+", " ");
-        markdown = Regex.Replace(markdown, @"<[^>]+>", " ");
-        markdown = Regex.Replace(markdown, @"\s+", " ").Trim();
-
-        return markdown.Length <= MaxSearchBodyLength ? markdown : markdown[..MaxSearchBodyLength];
     }
 
     private static string? FormatDate(DateTime? date)
