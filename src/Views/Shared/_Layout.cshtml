@@ -24,6 +24,21 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">picoblog</a>
+                <div class="navbar-search" role="search">
+                    <label class="visually-hidden" for="navbar-search-input">Search posts</label>
+                    <input
+                        id="navbar-search-input"
+                        class="navbar-search-input"
+                        type="search"
+                        name="q"
+                        placeholder="Search"
+                        autocomplete="off"
+                        spellcheck="false"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="navbar-search-results">
+                    <div id="navbar-search-results" class="navbar-search-results" role="listbox" hidden></div>
+                </div>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
