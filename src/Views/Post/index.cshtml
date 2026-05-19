@@ -2,10 +2,7 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  if (Model.HasPostPassword)
-  {
-      ViewData["BodyClass"] = "post-password-body";
-  }
+  ViewData["BodyClass"] = Model.HasPostPassword ? "post-body post-password-body" : "post-body";
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
   var canViewPost = ViewData["CanViewPost"] as bool? ?? (Config.Password == null && !Model.HasPostPassword);

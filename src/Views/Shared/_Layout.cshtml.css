@@ -66,6 +66,10 @@ nav{
   z-index: 1;
 }
 
+.post-body .navbar {
+  margin-bottom: 0 !important;
+}
+
 .post-password-body header {
   display: none;
 }
