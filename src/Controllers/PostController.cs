@@ -4,11 +4,17 @@ public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
     private readonly GeocodingService _geocodingService;
+    private readonly IDataProtector _postAccessProtector;
 
-    public PostController(ILogger<PostController> logger, GeocodingService geocodingService)
+    public PostController(
+        ILogger<PostController> logger,
+        GeocodingService geocodingService,
+        IDataProtectionProvider dataProtectionProvider
+    )
     {
         _logger = logger;
         _geocodingService = geocodingService;
+        _postAccessProtector = dataProtectionProvider.CreateProtector("picoblog.post-access");
     }
 
     [HttpGet]
@@ -17,22 +23,11 @@ public class PostController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Index(Payload payload)
     {
-        var model = Cache.Models.SingleOrDefault(f =>
-            f.Date?.Year == payload.Year && f.Title == payload.Title
-        );
+        var model = FindPost(payload);
         if (model == null)
         {
-            model = Cache.PrivatePosts.SingleOrDefault(f =>
-                f.Date?.Year == payload.Year && f.Title == payload.Title
-            );
-            if (model == null)
-            {
-                _logger.LogWarning(
-                    "No model found for payload title: {PayloadTitle}",
-                    payload.Title
-                );
-                return NotFound();
-            }
+            _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
+            return NotFound();
         }
 
         if (string.IsNullOrEmpty(payload.Image))
@@ -49,7 +44,10 @@ public class PostController : Controller
                     return RedirectBack(model);
                 else
                 {
-                    if (Config.Password == null || User.Identity?.IsAuthenticated == true)
+                    var canViewPost = CanViewPost(model);
+                    ViewData["CanViewPost"] = canViewPost;
+
+                    if (canViewPost)
                         await _geocodingService.ResolveAsync(model.Location);
 
                     return View(model);
@@ -65,13 +63,14 @@ public class PostController : Controller
             }
         }
 
+        model.Markdown ??= System.IO.File.ReadAllText(model.Path);
         if (ContentSecurity.TryResolvePostImagePath(model, payload.Image, out var path, out var isCoverImage))
         {
             if (!isCoverImage)
             {
-                if (Config.Password != null && User.Identity?.IsAuthenticated != true)
+                if (!CanViewPost(model))
                 {
-                    _logger.LogWarning("Unauthenticated request with Config.Password set.");
+                    _logger.LogWarning("Unauthorized request for locked post image.");
                     return Unauthorized();
                 }
             }
@@ -84,6 +83,118 @@ public class PostController : Controller
             _logger.LogWarning("Payload image not found in CoverImage and Markdown.");
             return NotFound();
         }
+    }
+
+    [HttpPost]
+    [Route("[Controller]/{year:int}/{title}")]
+    [AllowAnonymous]
+    public IActionResult Unlock(Payload payload, [FromForm] string password)
+    {
+        var model = FindPost(payload);
+        if (model == null)
+        {
+            _logger.LogWarning("No model found for payload title: {PayloadTitle}", payload.Title);
+            return NotFound();
+        }
+
+        model.Markdown = System.IO.File.ReadAllText(model.Path);
+        if (model.Draft)
+            return RedirectBack(model);
+
+        if (!model.HasPostPassword)
+            return RedirectToAction(nameof(Index), new { year = payload.Year, title = payload.Title });
+
+        if (!ContentSecurity.PasswordEquals(password, model.PostPassword))
+        {
+            string clientIp =
+                HttpContext.Request.Headers["Cf-Connecting-Ip"].FirstOrDefault()
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown";
+            _logger.LogWarning(
+                "Failed post unlock attempt for {PostTitle} by user with IP {IP}.",
+                model.Title,
+                clientIp
+            );
+            ViewData["CanViewPost"] = false;
+            ViewData["PostPasswordError"] = "Wrong password.";
+            return View("Index", model);
+        }
+
+        Response.Cookies.Append(
+            PostAccessCookieName(model),
+            CreatePostAccessCookieValue(model),
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(30),
+            }
+        );
+
+        return RedirectToAction(nameof(Index), new { year = payload.Year, title = payload.Title });
+    }
+
+    private MarkdownModel? FindPost(Payload payload)
+    {
+        return Cache.Models.SingleOrDefault(f =>
+                f.Date?.Year == payload.Year && f.Title == payload.Title
+            )
+            ?? Cache.PrivatePosts.SingleOrDefault(f =>
+                f.Date?.Year == payload.Year && f.Title == payload.Title
+            );
+    }
+
+    private bool CanViewPost(MarkdownModel model)
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return true;
+
+        if (model.HasPostPassword)
+            return HasPostAccess(model);
+
+        return Config.Password == null;
+    }
+
+    private bool HasPostAccess(MarkdownModel model)
+    {
+        if (!Request.Cookies.TryGetValue(PostAccessCookieName(model), out var cookieValue))
+            return false;
+
+        try
+        {
+            var unprotected = _postAccessProtector.Unprotect(cookieValue);
+            return ContentSecurity.PasswordEquals(unprotected, PostAccessToken(model));
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    private string CreatePostAccessCookieValue(MarkdownModel model)
+    {
+        return _postAccessProtector.Protect(PostAccessToken(model));
+    }
+
+    private static string PostAccessCookieName(MarkdownModel model)
+    {
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(PostAccessKey(model))))
+            .ToLowerInvariant();
+        return $"Picoblog.PostAccess.{hash}";
+    }
+
+    private static string PostAccessToken(MarkdownModel model)
+    {
+        var passwordHash = Convert
+            .ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(model.PostPassword ?? string.Empty)))
+            .ToLowerInvariant();
+        return $"{PostAccessKey(model)}:{passwordHash}";
+    }
+
+    private static string PostAccessKey(MarkdownModel model)
+    {
+        return $"{model.Date?.Year}:{model.Title}";
     }
 
     private IActionResult RedirectBack(MarkdownModel model)

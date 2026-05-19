@@ -69,6 +69,19 @@ location:
 
 Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. To persist login sessions between server restarts mount `/config` folder to the container at initialization.
 
+Individual posts can also be locked with a `password` or `passphrase` frontmatter value:
+
+```markdown
+---
+title: Shared post
+date: 2026-05-19
+public: true
+password: post-secret
+---
+```
+
+Unlocking a post only grants access to that post. It does not sign the visitor in to the site-wide password session.
+
 ## Environment variables
 
 These are listed in [picoblog/Config.cs at main · jonasbg/picoblog · GitHub](https://github.com/jonasbg/picoblog/blob/main/Models/Config.cs)

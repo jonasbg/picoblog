@@ -7,9 +7,12 @@
   ViewData["Title"] = Model.Title;
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
+  var canViewPost = ViewData["CanViewPost"] as bool? ?? (Config.Password == null && !Model.HasPostPassword);
+  var postUrl = Url.Action("Index", "Post", new { year = Model.Date?.Year, title = Model.Title });
+  var loginUrl = Url.Action("Login", "Home", new { ReturnUrl = postUrl });
   var hasLocation = Model.Location?.HasCoordinates == true;
   var postMapData = "";
-  if (hasLocation)
+  if (canViewPost && hasLocation)
   {
       var postTitle = ContentSecurity.UrlEncodePathSegment(Model.Title);
       var coverImageUrl = string.IsNullOrWhiteSpace(Model.CoverImage)
@@ -82,12 +85,28 @@
 
     </script>
 
-    @if (Config.Password != null && User.Identity?.IsAuthenticated != true)
+    @if (!canViewPost)
     {
     <div class="center">
-        <h1>Members only</h1>
-        <p>You have to login to view the content of this page.</p>
-        <button class="bnt-black" onclick="location.href='/login?ReturnUrl=/post/@Model.Date?.Year/@Model.Title'" type="button">Login</button>
+        <h1>Locked post</h1>
+        @if (Model.HasPostPassword)
+        {
+            <form method="post" action="@postUrl" class="login-form">
+                @Html.AntiForgeryToken()
+                <div class="form-group col-4" style="margin: 2rem auto;">
+                    <input class="input-dark" name="password" type="password" autocomplete="current-password" />
+                    @if (ViewData["PostPasswordError"] != null)
+                    {
+                        <span>@ViewData["PostPasswordError"]</span>
+                    }
+                </div>
+                <button class="bnt-black" type="submit">Unlock</button>
+            </form>
+        }
+        @if (Config.Password != null)
+        {
+            <button class="bnt-black" onclick="location.href='@loginUrl'" type="button">Login</button>
+        }
     </div>
     return;
     }

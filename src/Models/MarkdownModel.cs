@@ -25,6 +25,13 @@ public class MarkdownModel
                     .SingleOrDefault(p => p.StartsWith("description:"))
                     ?.Split(':', 2)[1]
                     .Trim();
+                PostPassword = frontmatter
+                    .SingleOrDefault(p =>
+                        p.StartsWith("password:", StringComparison.InvariantCultureIgnoreCase)
+                        || p.StartsWith("passphrase:", StringComparison.InvariantCultureIgnoreCase)
+                    )
+                    ?.Split(':', 2)[1]
+                    .Trim();
                 CoverImage = frontmatter
                     .SingleOrDefault(p => p.StartsWith(MetadataHeader.CoverImage))
                     ?.Split(':', 2)[1]
@@ -61,6 +68,8 @@ public class MarkdownModel
     public DateTime? Date { get; internal set; }
     public string? CoverImage { get; internal set; }
     public string? Description { get; internal set; }
+    public string? PostPassword { get; internal set; }
+    public bool HasPostPassword => !string.IsNullOrEmpty(PostPassword);
     public bool Draft { get; internal set; } = false;
     public LocationMetadata? Location { get; internal set; }
 }

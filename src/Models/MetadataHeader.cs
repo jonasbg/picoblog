@@ -9,4 +9,6 @@ public static class MetadataHeader
     public static string CoverImage => "cover";
     public static string Description => "description";
     public static string Location => "location";
+    public static string Password => "password";
+    public static string Passphrase => "passphrase";
 }

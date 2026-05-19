@@ -250,6 +250,17 @@ public class MonitorLoop : IDisposable
                     ):
                     model.Description = value;
                     break;
+                case var k
+                    when k.Equals(
+                            MetadataHeader.Password,
+                            StringComparison.InvariantCultureIgnoreCase
+                        )
+                        || k.Equals(
+                            MetadataHeader.Passphrase,
+                            StringComparison.InvariantCultureIgnoreCase
+                        ):
+                    model.PostPassword = value;
+                    break;
             }
         }
 

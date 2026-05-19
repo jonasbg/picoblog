@@ -26,6 +26,7 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 {
     return new BackgroundTaskQueue(1);
 });
+var dataProtectionBuilder = builder.Services.AddDataProtection();
 
 // builder.Services.AddImageSharp(options => {
 //   options.Configuration = Configuration.Default;
@@ -54,9 +55,7 @@ if (Config.Password != null)
         options.Filters.Add(new AuthorizeFilter());
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
     });
-    builder
-        .Services.AddDataProtection()
-        .PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
+    dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(Config.ConfigDir));
 }
 else
     builder.Services.AddControllersWithViews(options =>
