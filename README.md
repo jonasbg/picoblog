@@ -47,7 +47,7 @@ Supported frontmatter keys:
 | `public` | `true` publishes the post in public listings. `false` keeps it private unless authenticated or directly unlocked. |
 | `draft` | `true` hides the post from normal use. |
 | `location` | Optional map/location metadata. See examples below. |
-| `password` / `passphrase` | Optional per-post secret. Unlocks only this post. |
+| `password` | Optional per-post secret. Unlocks only this post. `passphrase` is also accepted as a legacy alias. |
 
 ## Maps
 
@@ -109,7 +109,7 @@ location:
 
 Its possible to lock down the site with a password that is set with the environment variable `PASSWORD=sUp3rS3cr34P4ss!`. If this variable is empty, then authorization is turned off. To persist login sessions between server restarts mount `/config` folder to the container at initialization.
 
-Individual posts can also be locked with a `password` or `passphrase` frontmatter value:
+Individual posts can also be locked with a `password` frontmatter value:
 
 ```markdown
 ---
@@ -117,7 +117,7 @@ title: Shared post
 date: 2026-05-19
 cover: shared.jpg
 public: true
-passphrase: post-secret
+password: post-secret
 ---
 ```
 

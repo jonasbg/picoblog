@@ -26,6 +26,23 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(ctx =>
 {
     return new BackgroundTaskQueue(1);
 });
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy(
+        "password-attempts",
+        context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                PasswordRateLimitPartitionKey(context),
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(5),
+                    QueueLimit = 0,
+                }
+            )
+    );
+});
 var dataProtectionBuilder = builder.Services.AddDataProtection();
 
 // builder.Services.AddImageSharp(options => {
@@ -117,6 +134,7 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseRouting();
+app.UseRateLimiter();
 
 var supportedCultures = new[] { new CultureInfo("nb-NO"), new CultureInfo("en-GB") };
 
@@ -185,3 +203,13 @@ logger.LogError("Error level log");
 logger.LogCritical("Critical level log");
 
 app.Run();
+
+static string PasswordRateLimitPartitionKey(HttpContext context)
+{
+    var clientIp =
+        context.Request.Headers["Cf-Connecting-Ip"].FirstOrDefault()
+        ?? context.Connection.RemoteIpAddress?.ToString()
+        ?? "unknown";
+
+    return $"{clientIp}:{context.Request.Path}";
+}

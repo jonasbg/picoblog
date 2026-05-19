@@ -2,10 +2,15 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  ViewData["BodyClass"] = Model.HasPostPassword ? "post-body post-password-body" : "post-body";
+  ViewData["BodyClass"] =
+      Model.HasPostPassword && User.Identity?.IsAuthenticated != true
+          ? "post-body post-password-body"
+          : "post-body";
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
-  var canViewPost = ViewData["CanViewPost"] as bool? ?? (Config.Password == null && !Model.HasPostPassword);
+  var canViewPost =
+      ViewData["CanViewPost"] as bool?
+      ?? (User.Identity?.IsAuthenticated == true || (Config.Password == null && !Model.HasPostPassword));
   var postUrl = $"/post/{Model.Date?.Year}/{ContentSecurity.UrlEncodePathSegment(Model.Title)}";
   var loginUrl = Url.Action("Login", "Home", new { ReturnUrl = postUrl });
 }

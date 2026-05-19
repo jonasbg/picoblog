@@ -22,6 +22,7 @@ public class HomeController : Controller
     [AllowAnonymous]
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("password-attempts")]
     [Route("/login")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {

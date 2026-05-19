@@ -88,6 +88,7 @@ public class PostController : Controller
     [HttpPost]
     [Route("[Controller]/{year:int}/{title}")]
     [AllowAnonymous]
+    [EnableRateLimiting("password-attempts")]
     public IActionResult Unlock(Payload payload, [FromForm] string password)
     {
         var model = FindPost(payload);
