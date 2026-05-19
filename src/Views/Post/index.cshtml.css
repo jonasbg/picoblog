@@ -33,29 +33,6 @@ a{
   display: none;
 }
 
-.top-right {
-  position: fixed;
-  color: white;
-  top: calc(env(safe-area-inset-top) + 1rem);
-  right: 1rem;
-  padding: 0;
-  border: 0;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 50%;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  z-index: 20;
-}
-
-.top-right:hover,
-.top-right:focus {
-  background: rgba(0, 0, 0, 0.5);
-}
-
 .date h2 {
   margin-bottom: 0px;
 }

@@ -2,7 +2,10 @@
 
 @{
   ViewData["Title"] = Model.Title;
-  ViewData["BodyClass"] = "post-body";
+  if (Model.HasPostPassword)
+  {
+      ViewData["BodyClass"] = "post-password-body";
+  }
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
   var canViewPost = ViewData["CanViewPost"] as bool? ?? (Config.Password == null && !Model.HasPostPassword);
@@ -19,12 +22,6 @@
 <button id="backButton" class="top-left">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16">
         <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
-    </svg>
-</button>
-
-<button id="closeButton" class="top-right" aria-label="Close post" title="Close post">
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
     </svg>
 </button>
 
@@ -61,15 +58,6 @@
 
         backButton.addEventListener("click", () => {
             window.location.href = document.referrer;
-        });
-
-        closeButton.addEventListener("click", () => {
-            if (document.referrer) {
-                window.location.href = document.referrer;
-                return;
-            }
-
-            window.location.href = "/";
         });
 
     </script>
