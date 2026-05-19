@@ -8,7 +8,8 @@ For building:
 - Go 1.21 or later
 
 For running:
-- No prerequisites! The binary is statically linked
+- No prerequisites for basic commands. The binary is statically linked.
+- Optional: install `fzf` for a better fuzzy post picker. The CLI falls back to an inline selector when `fzf` is not available.
 
 ## 🏗️ Building from Source
 
@@ -71,6 +72,18 @@ sudo chmod +x /usr/local/bin/picoblog
 export PICOBLOG_BASE_DIR="/path/to/your/blog/directory"
 ```
 
+The CLI shows this setting in `picoblog --help`. It expects the folder to contain markdown posts organized as `YYYY/MM/DD/*.md`.
+
+Post metadata is cached in:
+
+```text
+~/.config/picoblog/posts.json
+```
+
+If `XDG_CONFIG_HOME` is set, the cache is written to `$XDG_CONFIG_HOME/picoblog/posts.json`.
+When `list`, `find`, or `open` needs to build the cache, it prints progress on stderr while scanning.
+The scanner skips system and build directories such as `.git`, `eaDir`, `@eaDir`, `node_modules`, `bin`, `obj`, `dist`, `build`, and hidden directories.
+
 ## 📝 Usage
 
 ### Creating a New Blog Post
@@ -89,6 +102,9 @@ picoblog new "Draft Post" --public=false --draft=true
 ### Opening Existing Posts
 
 ```bash
+# Fuzzy-pick any post, using fzf when available
+picoblog open
+
 # Open post by date
 picoblog open "2024-01-20"
 
@@ -97,6 +113,26 @@ picoblog open "Jan. 20, 2024"
 picoblog open "January 20, 2024"
 picoblog open "2024/01/20"
 picoblog open "2024.01.20"
+```
+
+### Listing and Searching Posts
+
+```bash
+# List the latest 50 cached posts
+picoblog list
+
+# List all posts and refresh the cache first
+picoblog list --all --refresh
+
+# Fuzzy search cached posts and open the selected post
+picoblog find
+picoblog search "photo walk"
+
+# Rebuild the cache explicitly
+picoblog cache refresh
+
+# Print the cache file path
+picoblog cache path
 ```
 
 ## 📄 Blog Post Format
@@ -149,10 +185,45 @@ Options:
 
 ```
 Arguments:
-  date                   Date of the blog post (YYYY-MM-DD or MMM. DD, YYYY)
+  date                   Optional date of the blog post (YYYY-MM-DD or MMM. DD, YYYY)
 
 Options:
   -h, --help            Show help for the open command
+```
+
+When no date is passed, `open` fuzzy-picks from cached posts.
+
+### `list` Command
+
+```
+Aliases:
+  ls, posts
+
+Options:
+  --refresh, -r          Refresh the cache before listing
+  --limit, -n <number>   Maximum posts to list (0 for all) [default: 50]
+  -h, --help             Show help for the list command
+```
+
+### `find` Command
+
+```
+Aliases:
+  search, fzf
+
+Arguments:
+  query                  Optional text used to filter/preload the fuzzy picker
+
+Options:
+  --refresh, -r          Refresh the cache before searching
+  -h, --help             Show help for the find command
+```
+
+### `cache` Command
+
+```
+picoblog cache refresh   Rebuild the post cache
+picoblog cache path      Print the post cache path
 ```
 
 ## ⚡️ Features
@@ -163,6 +234,8 @@ Options:
 - ✅ Support for public/private and draft posts
 - ✅ Automatic file opening (uses `open` on macOS, `xdg-open` on Linux)
 - ✅ Multiple date format support
+- ✅ Cached post index in `~/.config/picoblog/posts.json`
+- ✅ Post listing and fuzzy search with optional `fzf`
 - ✅ Timestamp preservation
 - ✅ Cross-platform support (macOS ARM/Intel, Linux ARM/AMD)
 
