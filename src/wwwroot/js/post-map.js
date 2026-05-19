@@ -104,6 +104,9 @@
 
     const map = L.map(container).setView([61.0014937, 11.1647964], options.defaultZoom || 13);
     const layer = L.layerGroup().addTo(map);
+    const loading = container.parentElement
+      ? container.parentElement.querySelector(".map-loading")
+      : null;
     let requestId = 0;
     let hasLoaded = false;
 
@@ -112,48 +115,80 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    async function loadMarkers() {
+    function setLoading(message) {
+      if (!loading) {
+        return;
+      }
+
+      loading.textContent = message;
+      loading.classList.remove("hidden");
+    }
+
+    function hideLoading() {
+      if (loading) {
+        loading.classList.add("hidden");
+      }
+    }
+
+    async function loadMarkers(useBounds) {
       const currentRequest = ++requestId;
-      const bounds = map.getBounds();
       const url = new URL(options.dynamicUrl, window.location.origin);
-      url.searchParams.set("north", bounds.getNorth());
-      url.searchParams.set("south", bounds.getSouth());
-      url.searchParams.set("east", bounds.getEast());
-      url.searchParams.set("west", bounds.getWest());
 
-      const response = await fetch(url);
-      if (!response.ok || currentRequest !== requestId) {
-        return;
+      if (useBounds) {
+        const bounds = map.getBounds();
+        url.searchParams.set("north", bounds.getNorth());
+        url.searchParams.set("south", bounds.getSouth());
+        url.searchParams.set("east", bounds.getEast());
+        url.searchParams.set("west", bounds.getWest());
       }
 
-      const markers = await response.json();
-      if (currentRequest !== requestId) {
-        return;
-      }
+      setLoading(hasLoaded ? "Loading visible posts..." : "Loading posts...");
 
-      layer.clearLayers();
-      markers.forEach(function (markerData) {
-        const marker = L.marker([markerData.latitude, markerData.longitude]).addTo(layer);
-        marker.bindPopup(popupHtml(markerData));
-      });
+      try {
+        const response = await fetch(url);
+        if (!response.ok || currentRequest !== requestId) {
+          return;
+        }
 
-      if (!hasLoaded && markers.length > 0) {
-        hasLoaded = true;
-        const leafletMarkers = layer.getLayers();
-        if (leafletMarkers.length === 1) {
-          map.setView(leafletMarkers[0].getLatLng(), options.defaultZoom || 13);
-          leafletMarkers[0].openPopup();
-        } else {
-          map.fitBounds(L.featureGroup(leafletMarkers).getBounds(), {
-            padding: [30, 30],
-            maxZoom: options.defaultZoom || 13
-          });
+        const markers = await response.json();
+        if (currentRequest !== requestId) {
+          return;
+        }
+
+        layer.clearLayers();
+        markers.forEach(function (markerData) {
+          const marker = L.marker([markerData.latitude, markerData.longitude]).addTo(layer);
+          marker.bindPopup(popupHtml(markerData));
+        });
+
+        if (!hasLoaded) {
+          hasLoaded = true;
+          const leafletMarkers = layer.getLayers();
+          if (leafletMarkers.length === 1) {
+            map.setView(leafletMarkers[0].getLatLng(), options.defaultZoom || 13);
+            leafletMarkers[0].openPopup();
+          } else if (leafletMarkers.length > 1) {
+            map.fitBounds(L.featureGroup(leafletMarkers).getBounds(), {
+              padding: [30, 30],
+              maxZoom: options.defaultZoom || 13
+            });
+          }
+        }
+
+        if (currentRequest === requestId) {
+          hideLoading();
+        }
+      } catch {
+        if (currentRequest === requestId) {
+          setLoading("Could not load posts");
         }
       }
     }
 
-    map.on("moveend", loadMarkers);
-    loadMarkers();
+    map.on("moveend", function () {
+      loadMarkers(true);
+    });
+    loadMarkers(false);
   }
 
   document.addEventListener("DOMContentLoaded", function () {

@@ -66,6 +66,10 @@ nav{
   z-index: 1;
 }
 
+.post-body header {
+  display: none;
+}
+
 @media all and (display-mode: standalone) {
   footer, header, nav{
     display: none !important;
@@ -105,5 +109,4 @@ menu a:link, menu a:visited, menu a:hover, menu a {
   padding-left: 2vw;
   padding-right: 2vw;
 }
-
 

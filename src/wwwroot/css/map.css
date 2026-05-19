@@ -16,6 +16,7 @@
   width: 80vw;
   margin: 0 auto;
   padding-top: 2vh;
+  position: relative;
 }
 
 .map-page h1 {
@@ -30,6 +31,25 @@
   min-height: 320px;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.map-loading {
+  position: absolute;
+  left: 50%;
+  top: calc(2vh + 1rem);
+  transform: translateX(-50%);
+  z-index: 500;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.16);
+  color: #333;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.9rem;
+  pointer-events: none;
+}
+
+.map-loading.hidden {
+  display: none;
 }
 
 .post-location-map {

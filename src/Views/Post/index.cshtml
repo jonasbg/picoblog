@@ -1,43 +1,13 @@
 <link rel="stylesheet" href="~/css/post.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/lib/leaflet/leaflet.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/css/map.css" asp-append-version="true" />
-@using System.Text.Json
 
 @{
   ViewData["Title"] = Model.Title;
+  ViewData["BodyClass"] = "post-body";
   ViewData["Url"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}";
   ViewData["Image"] = $"{Config.Domain}/post/{Model.Date?.Year}/{Uri.EscapeDataString(Model.Title)}/{Model.CoverImage}";
   var canViewPost = ViewData["CanViewPost"] as bool? ?? (Config.Password == null && !Model.HasPostPassword);
-  var postUrl = Url.Action("Index", "Post", new { year = Model.Date?.Year, title = Model.Title });
+  var postUrl = $"/post/{Model.Date?.Year}/{ContentSecurity.UrlEncodePathSegment(Model.Title)}";
   var loginUrl = Url.Action("Login", "Home", new { ReturnUrl = postUrl });
-  var hasLocation = Model.Location?.HasCoordinates == true;
-  var postMapData = "";
-  if (canViewPost && hasLocation)
-  {
-      var postTitle = ContentSecurity.UrlEncodePathSegment(Model.Title);
-      var coverImageUrl = string.IsNullOrWhiteSpace(Model.CoverImage)
-          ? null
-          : $"/post/{Model.Date?.Year}/{postTitle}/{ContentSecurity.UrlEncodePathSegment(Model.CoverImage)}";
-      postMapData = JsonSerializer.Serialize(new
-      {
-          tileUrl = Config.MapTileUrl,
-          defaultZoom = Config.MapDefaultZoom,
-          posts = new[]
-          {
-              new
-              {
-                  title = Model.Title,
-                  url = $"/post/{Model.Date?.Year}/{postTitle}",
-                  locationTitle = Model.Location!.DisplayTitle,
-                  latitude = Model.Location.Latitude,
-                  longitude = Model.Location.Longitude,
-                  date = Model.Date?.ToString("dd. MMM yyyy"),
-                  description = Model.Description,
-                  coverImageUrl
-              }
-          }
-      });
-  }
 }
 
 <div class="hero">
@@ -52,10 +22,20 @@
     </svg>
 </button>
 
+<button id="closeButton" class="top-right" aria-label="Close post" title="Close post">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+    </svg>
+</button>
+
 <div class="content">
     <div class="center date">
         <h2>@Model.Title</h2>
         <p>@Model.Date?.ToString("MMM dd, yyyy")</p>
+        @if (Model.Location != null)
+        {
+            <p class="post-location-text">@Model.Location.DisplayTitle</p>
+        }
     </div>
     <button id="shareButton" class="circle">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share-fill" viewBox="0 0 16 16">
@@ -81,6 +61,15 @@
 
         backButton.addEventListener("click", () => {
             window.location.href = document.referrer;
+        });
+
+        closeButton.addEventListener("click", () => {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+                return;
+            }
+
+            window.location.href = "/";
         });
 
     </script>
@@ -109,16 +98,6 @@
         }
     </div>
     return;
-    }
-
-    @if (hasLocation)
-    {
-        <div id="post-location-map" class="post-location-map" data-post-map="post-location-map-data"></div>
-        <script type="application/json" id="post-location-map-data">@Html.Raw(postMapData)</script>
-    }
-    else if (Model.Location != null)
-    {
-        <p class="post-location-unresolved">@Model.Location.DisplayTitle</p>
     }
 
     <div class="rendered-markdown">
@@ -183,11 +162,3 @@ document.addEventListener('DOMContentLoaded', function() {
     })
 });
 </script>
-
-@section Scripts {
-    @if (hasLocation)
-    {
-        <script src="~/lib/leaflet/leaflet.js" asp-append-version="true"></script>
-        <script src="~/js/post-map.js" asp-append-version="true"></script>
-    }
-}

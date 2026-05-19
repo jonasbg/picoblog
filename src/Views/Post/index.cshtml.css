@@ -36,11 +36,24 @@ a{
 .top-right {
   position: fixed;
   color: white;
-  top: 1em;
-  right: 0;
-  padding: 6vh 3vh 3vh 3vh;
+  top: calc(env(safe-area-inset-top) + 1rem);
+  right: 1rem;
+  padding: 0;
   border: 0;
-  background: none;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  z-index: 20;
+}
+
+.top-right:hover,
+.top-right:focus {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .date h2 {
@@ -49,6 +62,12 @@ a{
 .date p {
   color: #c2c2c2;
   font-size: 0.8em;
+}
+
+.post-location-text {
+  color: #777 !important;
+  font-size: 0.95rem !important;
+  margin-top: 0.35rem !important;
 }
 
 @media all and (display-mode: browser) {
@@ -164,6 +183,10 @@ a{
   margin-bottom: 1rem;
 }
 
+.date .post-location-text {
+  margin-bottom: 0;
+}
+
 .stats {
   display: flex;
   align-items: center;
@@ -205,10 +228,10 @@ body {
 .hero {
   position: relative;
   width: 100vw;
-  height: 60vh;
+  height: 75vh;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  margin-top: -20px; /* Adjust based on your menu height */
+  margin-top: 0;
   overflow: hidden;
 }
 
@@ -247,7 +270,7 @@ body {
 
 @media (max-width: 768px) {
   .hero {
-      height: 40vh;
+      height: 75vh;
   }
 
   .date h2 {

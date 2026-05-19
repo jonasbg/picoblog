@@ -24,7 +24,7 @@ h1, h2, h3 {
 }
 
 .hero {
-  height: 50vw;
+  height: 75vh;
   width: 100%;
   /* background: black; */
   overflow: hidden;

@@ -137,12 +137,23 @@ public class PostController : Controller
 
     private MarkdownModel? FindPost(Payload payload)
     {
+        var title = NormalizePostTitle(payload.Title);
         return Cache.Models.SingleOrDefault(f =>
-                f.Date?.Year == payload.Year && f.Title == payload.Title
+                f.Date?.Year == payload.Year
+                && string.Equals(f.Title, title, StringComparison.InvariantCultureIgnoreCase)
             )
             ?? Cache.PrivatePosts.SingleOrDefault(f =>
-                f.Date?.Year == payload.Year && f.Title == payload.Title
+                f.Date?.Year == payload.Year
+                && string.Equals(f.Title, title, StringComparison.InvariantCultureIgnoreCase)
             );
+    }
+
+    private static string? NormalizePostTitle(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return title;
+
+        return Uri.UnescapeDataString(title).TrimEnd('/');
     }
 
     private bool CanViewPost(MarkdownModel model)

@@ -27,7 +27,7 @@
       @{var index = 0;}
     @foreach (var doc in Model[month])
     {
-      <a class='hero @calculateCSS(Model[month].Count, index)' href="/post/@doc.Date?.Year/@doc.Title">
+      <a class='hero @calculateCSS(Model[month].Count, index)' href="/post/@doc.Date?.Year/@ContentSecurity.UrlEncodePathSegment(doc.Title)">
         <img src="/post/@doc.Date?.Year/@Uri.EscapeDataString(doc.Title)/@doc.CoverImage" loading="lazy">
         <div class="hero-text">
           <h4>@doc.Title</h4>
