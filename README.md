@@ -15,15 +15,16 @@ Build with **.NET MVC** - *because I'm too old for the other cool site generator
 
 ![](.github/docs/images/post.gif)
 
-Example of a markdown file
+Example of a markdown file:
 
 ```markdown
 ---
-title: New blog post #required unique title
-date: 2023-01-29 #published date
-public: true #keyword for picoblog to publish as post
-poster: cover-image.jpg
-draft: true|false #make-post-available-but-hidden-on-front-page
+title: New blog post
+date: 2026-05-19
+description: A short summary used in feeds, maps, and previews.
+cover: cover-image.jpg
+public: true
+draft: false
 ---
 This is some awesome content
 
@@ -35,12 +36,29 @@ This is some awesome content
 :::
 ```
 
+Supported frontmatter keys:
+
+| Key | Description |
+| --- | --- |
+| `title` | Required. Used in post URLs, headings, and previews. Keep titles unique per year. |
+| `date` | Required for normal navigation. Any `DateTime` parseable date works, for example `2026-05-19`. |
+| `description` | Optional summary for feeds, maps, and metadata. |
+| `cover` | Optional cover image filename relative to the markdown file. |
+| `public` | `true` publishes the post in public listings. `false` keeps it private unless authenticated or directly unlocked. |
+| `draft` | `true` hides the post from normal use. |
+| `location` | Optional map/location metadata. See examples below. |
+| `password` / `passphrase` | Optional per-post secret. Unlocks only this post. |
+
 ## Maps
 
 Posts can include a map location in the markdown header. A plain string is looked up as a place name:
 
 ```markdown
 ---
+title: Hamar trip
+date: 2026-05-19
+cover: hamar.jpg
+public: true
 location: Hamar, Norway
 ---
 ```
@@ -49,6 +67,10 @@ Use an object when you want a custom title or exact coordinates:
 
 ```markdown
 ---
+title: Hamar trip
+date: 2026-05-19
+cover: hamar.jpg
+public: true
 location:
   title: Hamar, Norway
   gps: 60.7945, 11.0679
@@ -59,9 +81,27 @@ If `gps` is invalid, Picoblog skips that coordinate value. Add `lookup` if it sh
 
 ```markdown
 ---
+title: Hamar trip
+date: 2026-05-19
+cover: hamar.jpg
+public: true
 location:
   title: This is my title
   lookup: Hamar, Norway
+---
+```
+
+Norwegian place names that Nominatim does not know may still work through Kartverket fallback lookup:
+
+```markdown
+---
+title: Sikatjønna
+date: 2026-05-19
+cover: sikatjonna.jpg
+public: true
+location:
+  title: Sikatjønna
+  lookup: Sikatjønna, Klæbu, Norway
 ---
 ```
 
@@ -75,8 +115,9 @@ Individual posts can also be locked with a `password` or `passphrase` frontmatte
 ---
 title: Shared post
 date: 2026-05-19
+cover: shared.jpg
 public: true
-password: post-secret
+passphrase: post-secret
 ---
 ```
 
